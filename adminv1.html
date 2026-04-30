@@ -1,0 +1,2054 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Schedule OS — Admin Console</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap');
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --bg:#050608;
+  --surface:#0a0b0f;
+  --surface2:#0f1116;
+  --surface3:#14161d;
+  --surface4:#1a1d26;
+  --border:rgba(255,255,255,0.06);
+  --border2:rgba(255,255,255,0.10);
+  --border3:rgba(255,255,255,0.16);
+  --text:#e2e4ec;
+  --text2:#9ca3b0;
+  --muted:#4a5060;
+  --muted2:#2e3340;
+  --accent:#00ff88;
+  --accent-dim:rgba(0,255,136,0.08);
+  --accent-glow:rgba(0,255,136,0.25);
+  --danger:#ff3d5a;
+  --danger-dim:rgba(255,61,90,0.08);
+  --warning:#ffaa00;
+  --warning-dim:rgba(255,170,0,0.08);
+  --info:#0088ff;
+  --info-dim:rgba(0,136,255,0.08);
+  --purple:#9966ff;
+  --purple-dim:rgba(153,102,255,0.08);
+  --radius:10px;
+  --radius-sm:6px;
+  --mono:'IBM Plex Mono', monospace;
+  --sans:'IBM Plex Sans', sans-serif;
+}
+
+body{
+  font-family:var(--sans);
+  background:var(--bg);
+  color:var(--text);
+  min-height:100vh;
+  font-size:14px;
+  line-height:1.5;
+  overflow-x:hidden;
+  margin:0;padding:0;
+}
+body.auth-mode{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-height:100vh;
+}
+
+/* Grid noise texture */
+body::before{
+  content:'';
+  position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:
+    linear-gradient(rgba(0,255,136,0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,255,136,0.015) 1px, transparent 1px);
+  background-size:40px 40px;
+}
+
+/* ── AUTH SCREEN ── */
+.auth-screen{
+  width:100%;
+  max-width:440px;
+  padding:20px;
+  z-index:1000;
+}
+.auth-screen::after{
+  content:'';position:fixed;
+  top:-200px;left:-200px;
+  width:600px;height:600px;
+  background:radial-gradient(circle, rgba(0,255,136,0.04) 0%, transparent 70%);
+  pointer-events:none;
+}
+.auth-card{
+  position:relative;z-index:1;
+  width:400px;max-width:100%;
+  border:1px solid var(--border2);
+  border-radius:var(--radius);
+  padding:40px 36px;
+  background:var(--surface);
+  box-shadow:0 0 0 1px rgba(0,255,136,0.05), 0 40px 80px rgba(0,0,0,0.8);
+}
+.auth-badge{
+  display:inline-flex;align-items:center;gap:8px;
+  background:var(--danger-dim);border:1px solid rgba(255,61,90,0.25);
+  border-radius:4px;padding:4px 10px;
+  font-family:var(--mono);font-size:10px;font-weight:700;
+  color:var(--danger);letter-spacing:1px;
+  text-transform:uppercase;margin-bottom:24px;
+}
+.auth-badge::before{
+  content:'';width:6px;height:6px;border-radius:50%;
+  background:var(--danger);
+  animation:blink 1.2s ease-in-out infinite;
+}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+.auth-title{font-size:22px;font-weight:700;color:var(--text);margin-bottom:4px;letter-spacing:-.5px;}
+.auth-subtitle{font-size:12px;color:var(--muted);margin-bottom:28px;font-family:var(--mono);}
+.auth-field{margin-bottom:14px;}
+.auth-label{font-family:var(--mono);font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px;display:block;}
+.auth-input{
+  width:100%;background:var(--surface2);border:1px solid var(--border2);
+  border-radius:var(--radius-sm);color:var(--text);font-family:var(--mono);font-size:13px;
+  padding:11px 14px;outline:none;transition:border-color .15s;
+}
+.auth-input:focus{border-color:var(--accent);}
+.auth-input::placeholder{color:var(--muted);}
+.auth-btn{
+  width:100%;background:var(--accent);color:#000;border:none;
+  border-radius:var(--radius-sm);padding:12px;font-size:13px;font-weight:700;
+  cursor:pointer;font-family:var(--mono);letter-spacing:.5px;
+  transition:all .2s;margin-top:8px;
+  text-transform:uppercase;
+}
+.auth-btn:hover{box-shadow:0 0 24px var(--accent-glow);transform:translateY(-1px);}
+.auth-btn:disabled{opacity:.3;cursor:not-allowed;transform:none;box-shadow:none;}
+.auth-error{
+  background:var(--danger-dim);border:1px solid rgba(255,61,90,0.25);
+  border-radius:var(--radius-sm);padding:10px 12px;
+  font-family:var(--mono);font-size:11px;color:var(--danger);
+  margin-bottom:14px;display:none;
+}
+.auth-error.show{display:block;}
+
+/* ── TOPBAR ── */
+.topbar{
+  position:sticky;top:0;z-index:100;
+  background:rgba(5,6,8,0.95);
+  backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+  padding:0 28px;height:52px;
+  display:flex;align-items:center;gap:16px;
+}
+.topbar::after{
+  content:'';position:absolute;bottom:-1px;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--accent),transparent);
+  opacity:.4;
+}
+.top-logo{
+  display:flex;align-items:center;gap:10px;
+  font-family:var(--mono);font-size:13px;font-weight:700;color:var(--text);
+  letter-spacing:.5px;flex-shrink:0;
+}
+.top-logo-dot{
+  width:8px;height:8px;border-radius:50%;
+  background:var(--accent);
+  box-shadow:0 0 10px var(--accent-glow);
+  flex-shrink:0;
+  animation:pulse-dot 2.5s ease-in-out infinite;
+}
+@keyframes pulse-dot{0%,100%{box-shadow:0 0 6px var(--accent-glow)}50%{box-shadow:0 0 18px var(--accent-glow),0 0 8px var(--accent)}}
+.top-badge{
+  background:var(--danger-dim);border:1px solid rgba(255,61,90,0.3);
+  border-radius:3px;padding:2px 8px;font-family:var(--mono);font-size:9px;
+  font-weight:700;color:var(--danger);letter-spacing:1px;text-transform:uppercase;
+}
+.top-sep{width:1px;height:20px;background:var(--border2);}
+.top-mid{flex:1;display:flex;align-items:center;gap:8px;}
+.top-clock{
+  font-family:var(--mono);font-size:12px;color:var(--muted);
+  letter-spacing:.5px;
+}
+.top-right{display:flex;align-items:center;gap:10px;margin-left:auto;}
+.top-user{
+  display:flex;align-items:center;gap:8px;
+  font-family:var(--mono);font-size:11px;color:var(--text2);
+}
+.top-user-dot{width:7px;height:7px;border-radius:50%;background:var(--accent);}
+.btn-signout{
+  background:transparent;border:1px solid var(--border2);
+  border-radius:var(--radius-sm);color:var(--muted);
+  font-family:var(--mono);font-size:11px;padding:5px 12px;cursor:pointer;
+  transition:all .15s;
+}
+.btn-signout:hover{color:var(--danger);border-color:var(--danger);}
+
+/* ── LAYOUT ── */
+.app-layout{
+  display:grid;
+  grid-template-columns:220px 1fr;
+  min-height:calc(100vh - 52px);
+  position:relative;z-index:1;
+}
+
+/* ── SIDEBAR ── */
+.sidebar{
+  background:var(--surface);
+  border-right:1px solid var(--border);
+  padding:16px 0;
+  position:sticky;top:52px;height:calc(100vh - 52px);
+  overflow-y:auto;
+}
+.nav-section{padding:0 12px;margin-bottom:4px;}
+.nav-section-label{
+  font-family:var(--mono);font-size:9px;font-weight:700;
+  color:var(--muted);text-transform:uppercase;letter-spacing:1.2px;
+  padding:8px 8px 4px;
+}
+.nav-item{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 10px;border-radius:var(--radius-sm);
+  cursor:pointer;font-size:12px;font-weight:500;
+  color:var(--text2);transition:all .12s;
+  border:1px solid transparent;
+  font-family:var(--sans);
+}
+.nav-item:hover{background:var(--surface2);color:var(--text);}
+.nav-item.active{
+  background:var(--accent-dim);border-color:rgba(0,255,136,0.2);
+  color:var(--accent);
+}
+.nav-icon{font-size:14px;width:20px;text-align:center;flex-shrink:0;}
+.nav-badge{
+  margin-left:auto;font-family:var(--mono);font-size:9px;font-weight:700;
+  padding:1px 6px;border-radius:3px;
+}
+.nb-red{background:var(--danger-dim);color:var(--danger);}
+.nb-green{background:var(--accent-dim);color:var(--accent);}
+.nb-orange{background:var(--warning-dim);color:var(--warning);}
+.nav-sep{height:1px;background:var(--border);margin:8px 12px;}
+
+/* ── CONTENT ── */
+.content{flex:1;padding:28px;min-width:0;}
+.page{display:none;}
+.page.active{display:block;}
+
+/* ── SECTION HEADER ── */
+.section-header{margin-bottom:20px;}
+.section-title{
+  font-size:18px;font-weight:700;color:var(--text);
+  letter-spacing:-.4px;margin-bottom:4px;
+}
+.section-sub{font-family:var(--mono);font-size:11px;color:var(--muted);}
+
+/* ── STAT CARDS ── */
+.stats-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+  gap:12px;margin-bottom:24px;
+}
+.stat-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius);padding:18px 20px;
+  transition:border-color .2s;position:relative;overflow:hidden;
+}
+.stat-card:hover{border-color:var(--border2);}
+.stat-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  opacity:.6;
+}
+.sc-green::before{background:var(--accent);}
+.sc-red::before{background:var(--danger);}
+.sc-orange::before{background:var(--warning);}
+.sc-blue::before{background:var(--info);}
+.sc-purple::before{background:var(--purple);}
+.stat-label{font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px;}
+.stat-value{font-family:var(--mono);font-size:30px;font-weight:700;line-height:1;color:var(--text);}
+.sc-green .stat-value{color:var(--accent);}
+.sc-red .stat-value{color:var(--danger);}
+.sc-orange .stat-value{color:var(--warning);}
+.sc-blue .stat-value{color:var(--info);}
+.sc-purple .stat-value{color:var(--purple);}
+.stat-sub{font-size:11px;color:var(--muted);margin-top:6px;}
+
+/* ── TABLES ── */
+.table-wrap{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius);overflow:hidden;margin-bottom:20px;
+}
+.table-header{
+  padding:14px 20px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  background:var(--surface2);flex-wrap:wrap;gap:8px;
+}
+.table-title{font-size:13px;font-weight:600;color:var(--text);}
+.table-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.search-inp{
+  background:var(--surface3);border:1px solid var(--border);
+  border-radius:var(--radius-sm);color:var(--text);
+  font-family:var(--mono);font-size:11px;padding:6px 10px;outline:none;
+  width:180px;transition:border-color .15s;
+}
+.search-inp:focus{border-color:var(--accent);}
+.search-inp::placeholder{color:var(--muted);}
+.filter-sel{
+  background:var(--surface3);border:1px solid var(--border);
+  border-radius:var(--radius-sm);color:var(--text);
+  font-family:var(--mono);font-size:11px;padding:6px 8px;
+  outline:none;cursor:pointer;
+}
+.filter-sel option{background:var(--surface2);}
+table{width:100%;border-collapse:collapse;}
+thead tr{background:var(--surface2);}
+th{
+  font-family:var(--mono);font-size:10px;font-weight:600;
+  color:var(--muted);text-align:left;text-transform:uppercase;letter-spacing:.5px;
+  padding:10px 16px;border-bottom:1px solid var(--border);white-space:nowrap;
+}
+td{
+  padding:11px 16px;border-bottom:1px solid var(--border);
+  font-size:12px;color:var(--text2);vertical-align:middle;
+}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:rgba(255,255,255,.015);}
+.mono{font-family:var(--mono);}
+
+/* ── BADGES ── */
+.badge{
+  display:inline-flex;align-items:center;gap:4px;
+  font-family:var(--mono);font-size:10px;font-weight:700;
+  padding:2px 8px;border-radius:3px;white-space:nowrap;
+}
+.b-green{background:var(--accent-dim);color:var(--accent);}
+.b-red{background:var(--danger-dim);color:var(--danger);}
+.b-orange{background:var(--warning-dim);color:var(--warning);}
+.b-blue{background:var(--info-dim);color:var(--info);}
+.b-purple{background:var(--purple-dim);color:var(--purple);}
+.b-gray{background:rgba(255,255,255,.05);color:var(--muted);}
+
+/* ── ACTION BUTTONS ── */
+.btn{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:5px 12px;border-radius:var(--radius-sm);
+  font-family:var(--mono);font-size:11px;font-weight:600;
+  cursor:pointer;border:1px solid var(--border);
+  background:var(--surface2);color:var(--text2);
+  transition:all .15s;
+}
+.btn:hover{background:var(--surface3);color:var(--text);}
+.btn-danger{border-color:rgba(255,61,90,.3);color:var(--danger);background:var(--danger-dim);}
+.btn-danger:hover{background:rgba(255,61,90,.15);}
+.btn-success{border-color:rgba(0,255,136,.3);color:var(--accent);background:var(--accent-dim);}
+.btn-success:hover{background:rgba(0,255,136,.15);}
+.btn-warning{border-color:rgba(255,170,0,.3);color:var(--warning);background:var(--warning-dim);}
+.btn-warning:hover{background:rgba(255,170,0,.15);}
+.btn-primary{background:var(--accent);color:#000;border-color:var(--accent);}
+.btn-primary:hover{box-shadow:0 0 16px var(--accent-glow);}
+
+/* ── LOG STREAM ── */
+.log-stream{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius);overflow:hidden;
+}
+.log-header{
+  padding:12px 20px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  background:var(--surface2);
+}
+.log-title{font-size:12px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:8px;}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:blink 1.5s infinite;}
+.log-body{max-height:380px;overflow-y:auto;padding:8px 0;}
+.log-entry{
+  display:flex;align-items:flex-start;gap:12px;
+  padding:7px 20px;border-bottom:1px solid rgba(255,255,255,.03);
+  font-family:var(--mono);font-size:11px;
+  transition:background .1s;
+}
+.log-entry:hover{background:rgba(255,255,255,.02);}
+.log-ts{color:var(--muted);white-space:nowrap;flex-shrink:0;font-size:10px;}
+.log-type{flex-shrink:0;}
+.log-msg{color:var(--text2);flex:1;word-break:break-word;}
+.log-user{color:var(--muted);font-size:10px;flex-shrink:0;}
+.log-empty{padding:32px;text-align:center;color:var(--muted);font-family:var(--mono);font-size:12px;}
+
+/* ── ROLE EDITOR ── */
+.role-pill{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:3px 10px;border-radius:99px;cursor:pointer;
+  font-family:var(--mono);font-size:10px;font-weight:700;
+  transition:all .15s;border:1px solid transparent;
+}
+.rp-manager{background:var(--purple-dim);color:var(--purple);border-color:rgba(153,102,255,.2);}
+.rp-collaborator{background:var(--accent-dim);color:var(--accent);border-color:rgba(0,255,136,.2);}
+.rp-admin{background:var(--danger-dim);color:var(--danger);border-color:rgba(255,61,90,.2);}
+.rp-suspended{background:rgba(255,255,255,.04);color:var(--muted);}
+
+/* ── METRICS CHART ── */
+.chart-wrap{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius);padding:20px;margin-bottom:20px;
+}
+.chart-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;}
+.bar-chart{display:flex;align-items:flex-end;gap:8px;height:140px;padding:0 4px;}
+.bar-col{display:flex;flex-direction:column;align-items:center;gap:5px;flex:1;}
+.bar-fill{
+  width:100%;border-radius:3px 3px 0 0;
+  min-height:4px;transition:height .5s ease;
+  background:linear-gradient(0deg,var(--accent),rgba(0,255,136,.4));
+}
+.bar-label{font-family:var(--mono);font-size:9px;color:var(--muted);white-space:nowrap;}
+.bar-val{font-family:var(--mono);font-size:9px;color:var(--accent);}
+
+/* ── ADMIN WHITELIST ── */
+.whitelist-item{
+  display:flex;align-items:center;gap:12px;
+  padding:10px 16px;border-bottom:1px solid var(--border);
+  font-family:var(--mono);font-size:12px;
+}
+.whitelist-item:last-child{border-bottom:none;}
+.wl-uid{color:var(--muted);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.wl-email{color:var(--text2);flex:1;}
+.wl-perm{display:flex;gap:4px;flex-wrap:wrap;}
+.perm-tag{
+  font-size:9px;font-weight:700;padding:1px 6px;border-radius:2px;
+  background:var(--accent-dim);color:var(--accent);
+  border:1px solid rgba(0,255,136,.15);
+}
+.perm-tag.p-danger{background:var(--danger-dim);color:var(--danger);border-color:rgba(255,61,90,.15);}
+.perm-tag.p-warn{background:var(--warning-dim);color:var(--warning);border-color:rgba(255,170,0,.15);}
+
+/* ── CONFIRM MODAL ── */
+.modal-overlay{
+  position:fixed;inset:0;z-index:500;
+  background:rgba(0,0,0,.7);backdrop-filter:blur(4px);
+  display:flex;align-items:center;justify-content:center;padding:20px;
+}
+.modal-box{
+  background:var(--surface);border:1px solid var(--border2);
+  border-radius:var(--radius);padding:28px;width:380px;max-width:100%;
+  box-shadow:0 40px 80px rgba(0,0,0,.8);
+}
+.modal-title{font-size:16px;font-weight:700;color:var(--text);margin-bottom:8px;}
+.modal-msg{font-size:12px;color:var(--text2);margin-bottom:20px;line-height:1.6;}
+.modal-btns{display:flex;gap:8px;justify-content:flex-end;}
+
+/* ── TOAST ── */
+.toast{
+  position:fixed;bottom:24px;right:24px;z-index:9999;
+  background:var(--surface2);border:1px solid var(--border2);
+  border-radius:var(--radius-sm);padding:12px 18px;
+  font-family:var(--mono);font-size:12px;color:var(--text);
+  box-shadow:0 16px 40px rgba(0,0,0,.6);
+  opacity:0;pointer-events:none;
+  transform:translateY(8px);
+  transition:all .2s;
+}
+.toast.show{opacity:1;pointer-events:all;transform:translateY(0);}
+
+/* ── EMPTY ── */
+.empty-state{
+  padding:48px 20px;text-align:center;
+  color:var(--muted);font-family:var(--mono);font-size:12px;
+}
+.empty-icon{font-size:32px;margin-bottom:12px;opacity:.3;}
+
+/* ── RESPONSIVE ── */
+@media(max-width:900px){
+  .app-layout{grid-template-columns:1fr;}
+  .sidebar{display:none;}
+  .content{padding:16px;}
+  .stats-grid{grid-template-columns:repeat(2,1fr);}
+}
+@media(max-width:480px){
+  .stats-grid{grid-template-columns:1fr;}
+  .table-wrap{overflow-x:auto;}
+  table{min-width:600px;}
+}
+
+/* scrollbar */
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--surface4);border-radius:99px;}
+</style>
+
+<!-- Firebase -->
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, browserLocalPersistence, setPersistence }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import { getFirestore, collection, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, addDoc,
+  query, orderBy, limit, serverTimestamp, onSnapshot, where }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBm_rKD05UooJ15XrrDsoIJr_dXgBiyPjg",
+  authDomain: "schedule-os-by-gakzzy.firebaseapp.com",
+  projectId: "schedule-os-by-gakzzy",
+  storageBucket: "schedule-os-by-gakzzy.firebasestorage.app",
+  messagingSenderId: "949115571824",
+  appId: "1:949115571824:web:6fb67a82bc9c1cb85caeb5"
+};
+
+const app  = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db   = getFirestore(app);
+
+await setPersistence(auth, browserLocalPersistence);
+
+/* ══════════════════════════════════════
+   ADMIN WHITELIST
+   Add your UID and any dev/security UIDs here.
+   A user MUST be both authenticated AND in this list.
+   To find your UID: Firebase Console → Authentication → Users
+══════════════════════════════════════ */
+/* ══════════════════════════════════════
+   ACCESS CONTROL
+   UIDs are NOT stored in source code.
+   Access is verified exclusively via Firestore /admins/{uid}
+   To grant access: add document to Firestore admins collection
+   { role, perms, active:true, name, email }
+══════════════════════════════════════ */
+const ADMIN_WHITELIST = {};  // Empty — Firestore is the source of truth
+
+async function verifyAdminAccess(uid) {
+  try {
+    const snap = await getDoc(doc(db, 'admins', uid));
+    if (!snap.exists()) return false;
+    const data = snap.data();
+    return data.active === true;
+  } catch(e) {
+    console.warn('Access check failed:', e.code);
+    return false; // Fail closed — deny on error
+  }
+}
+
+async function getAdminInfo(uid) {
+  try {
+    const snap = await getDoc(doc(db, 'admins', uid));
+    if (!snap.exists()) return null;
+    return snap.data();
+  } catch(e) { return null; }
+}
+
+/* ══════════════════════════════════════
+   AUTH FLOW
+══════════════════════════════════════ */
+onAuthStateChanged(auth, async user => {
+  if (!user) { showAuthScreen(); return; }
+  const allowed = await verifyAdminAccess(user.uid);
+  if (!allowed) {
+    await signOut(auth);
+    showAuthScreen('⛔ Acceso denegado. Contacta al administrador del sistema.');
+    return;
+  }
+  const adminInfo = await getAdminInfo(user.uid) || { name: user.email, role:'admin', perms:['read'] };
+  hideAuthScreen();
+  initAdminPanel(user, adminInfo);
+});
+
+window._adminAuth = auth;
+window._adminDb   = db;
+window._adminFns  = { signOut, collection, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, addDoc,
+  query, orderBy, limit, serverTimestamp, onSnapshot, where };
+// Note: whitelist intentionally not exposed on window
+
+/* ══════ DOM helpers ══════ */
+function showAuthScreen(errMsg) {
+  const screen = document.getElementById('auth-screen');
+  const app = document.getElementById('app');
+  if (screen) screen.style.display = 'block';
+  if (app) app.style.display = 'none';
+  document.body.classList.add('auth-mode');
+  if (errMsg) {
+    const el = document.getElementById('auth-err');
+    if (el) { el.textContent = errMsg; el.classList.add('show'); }
+  }
+}
+function hideAuthScreen() {
+  const screen = document.getElementById('auth-screen');
+  const app = document.getElementById('app');
+  if (screen) screen.style.display = 'none';
+  if (app) app.style.display = 'block';
+  document.body.classList.remove('auth-mode');
+}
+
+window._showAuth = showAuthScreen;
+window._hideAuth = hideAuthScreen;
+window._verifyAdmin = verifyAdminAccess;
+</script>
+</head>
+
+<!-- ══════════════════════════════════════
+     AUTH SCREEN
+══════════════════════════════════════ -->
+<script>document.addEventListener('DOMContentLoaded',()=>document.body.classList.add('auth-mode'));</script>
+<div id="auth-screen">
+  <div class="auth-card">
+    <div class="auth-badge">Restricted Access</div>
+    <div class="auth-title">Admin Console</div>
+    <div class="auth-subtitle">// Schedule OS · Internal Only</div>
+    <div class="auth-error" id="auth-err"></div>
+    <div class="auth-field">
+      <label class="auth-label">Email</label>
+      <input class="auth-input" id="a-email" type="email" placeholder="admin@domain.com" autocomplete="email"/>
+    </div>
+    <div class="auth-field">
+      <label class="auth-label">Password</label>
+      <input class="auth-input" id="a-pass" type="password" placeholder="••••••••"
+        autocomplete="current-password" onkeydown="if(event.key==='Enter')adminLogin()"/>
+    </div>
+    <button class="auth-btn" onclick="adminLogin()">Autenticar →</button>
+    <div style="margin-top:16px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:rgba(255,255,255,.18);text-align:center;line-height:1.5">
+      Usa tu correo y contraseña de Schedule OS<br>
+      Toda actividad queda registrada
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     APP
+══════════════════════════════════════ -->
+<div id="app" style="display:none">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="top-logo">
+      <div class="top-logo-dot"></div>
+      Schedule OS
+    </div>
+    <div class="top-badge">Admin Console</div>
+    <div class="top-sep"></div>
+    <div class="top-mid">
+      <span class="top-clock" id="top-clock">--:--:--</span>
+    </div>
+    <div class="top-right">
+      <div class="top-user">
+        <div class="top-user-dot"></div>
+        <span id="top-user-name">admin</span>
+        <span style="color:var(--muted);font-size:10px" id="top-user-role"></span>
+      </div>
+      <button class="btn-signout" onclick="adminSignOut()">Sign out</button>
+    </div>
+  </div>
+
+  <div class="app-layout">
+
+    <!-- SIDEBAR -->
+    <nav class="sidebar">
+      <div class="nav-section">
+        <div class="nav-section-label">Monitoreo</div>
+        <div class="nav-item active" onclick="switchPage('overview')" id="nav-overview">
+          <span class="nav-icon">◈</span> Overview
+        </div>
+        <div class="nav-item" onclick="switchPage('logs')" id="nav-logs">
+          <span class="nav-icon">▤</span> Logs de actividad
+          <span class="nav-badge nb-green" id="log-count-badge">0</span>
+        </div>
+        <div class="nav-item" onclick="switchPage('metrics')" id="nav-metrics">
+          <span class="nav-icon">▲</span> Métricas de uso
+        </div>
+      </div>
+      <div class="nav-sep"></div>
+      <div class="nav-section">
+        <div class="nav-section-label">Usuarios</div>
+        <div class="nav-item" onclick="switchPage('users')" id="nav-users">
+          <span class="nav-icon">◉</span> Usuarios registrados
+          <span class="nav-badge nb-green" id="user-count-nav">0</span>
+        </div>
+        <div class="nav-item" onclick="switchPage('roles')" id="nav-roles">
+          <span class="nav-icon">◎</span> Roles y permisos
+        </div>
+        <div class="nav-item" onclick="switchPage('suspended')" id="nav-suspended">
+          <span class="nav-icon">⊘</span> Suspendidos
+          <span class="nav-badge nb-red" id="susp-count-nav" style="display:none">0</span>
+        </div>
+      </div>
+      <div class="nav-sep"></div>
+      <div class="nav-section">
+        <div class="nav-section-label">Equipos</div>
+        <div class="nav-item" onclick="switchPage('teams')" id="nav-teams">
+          <span class="nav-icon">▦</span> Equipos activos
+          <span class="nav-badge nb-green" id="teams-count-nav">0</span>
+        </div>
+        <div class="nav-item" onclick="switchPage('requests')" id="nav-requests">
+          <span class="nav-icon">◧</span> Solicitudes
+          <span class="nav-badge nb-green" id="requests-count-nav" style="display:none">0</span>
+        </div>
+      </div>
+      <div class="nav-sep"></div>
+      <div class="nav-section">
+        <div class="nav-section-label">Sistema</div>
+        <div class="nav-item" onclick="switchPage('admins')" id="nav-admins">
+          <span class="nav-icon">⬡</span> Administradores
+        </div>
+        <div class="nav-item" onclick="switchPage('audit')" id="nav-audit">
+          <span class="nav-icon">▣</span> Auditoría
+        </div>
+      </div>
+    </nav>
+
+    <!-- CONTENT -->
+    <div class="content">
+
+      <!-- ══ PAGE: OVERVIEW ══ -->
+      <div class="page active" id="page-overview">
+        <div class="section-header">
+          <div class="section-title">Overview del sistema</div>
+          <div class="section-sub">// Resumen en tiempo real</div>
+        </div>
+
+        <div class="stats-grid" id="overview-stats">
+          <div class="stat-card sc-green">
+            <div class="stat-label">Total usuarios</div>
+            <div class="stat-value" id="stat-total-users">—</div>
+            <div class="stat-sub">registrados en la plataforma</div>
+          </div>
+          <div class="stat-card sc-blue">
+            <div class="stat-label">Activos hoy</div>
+            <div class="stat-value" id="stat-active-today">—</div>
+            <div class="stat-sub">último acceso en 24h</div>
+          </div>
+          <div class="stat-card sc-orange">
+            <div class="stat-label">Managers</div>
+            <div class="stat-value" id="stat-managers">—</div>
+            <div class="stat-sub">rol de gestión</div>
+          </div>
+          <div class="stat-card sc-purple">
+            <div class="stat-label">Colaboradores</div>
+            <div class="stat-value" id="stat-collabs">—</div>
+            <div class="stat-sub">rol estándar</div>
+          </div>
+          <div class="stat-card sc-red">
+            <div class="stat-label">Suspendidos</div>
+            <div class="stat-value" id="stat-suspended">—</div>
+            <div class="stat-sub">cuentas bloqueadas</div>
+          </div>
+          <div class="stat-card sc-green" style="cursor:pointer" onclick="switchPage('teams')">
+            <div class="stat-label">Equipos activos</div>
+            <div class="stat-value" id="stat-teams">—</div>
+            <div class="stat-sub">creados por managers</div>
+          </div>
+          <div class="stat-card sc-orange" style="cursor:pointer" onclick="switchPage('requests')">
+            <div class="stat-label">Solicitudes pend.</div>
+            <div class="stat-value" id="stat-requests">—</div>
+            <div class="stat-sub">permisos, OT, 1on1</div>
+          </div>
+        </div>
+
+        <!-- Recent activity -->
+        <div class="log-stream" style="margin-bottom:20px">
+          <div class="log-header">
+            <div class="log-title"><div class="live-dot"></div>Actividad reciente</div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted)">últimas 20 entradas</div>
+          </div>
+          <div class="log-body" id="recent-activity-list">
+            <div class="log-empty">Cargando actividad...</div>
+          </div>
+        </div>
+
+        <!-- Quick actions bar -->
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <button class="btn btn-success" onclick="refreshAll()">↺ Actualizar datos</button>
+          <button class="btn" onclick="exportAuditCSV()">↓ Exportar auditoría CSV</button>
+          <button class="btn btn-warning" onclick="broadcastNotice()">📢 Enviar aviso a usuarios</button>
+        </div>
+      </div>
+
+      <!-- ══ PAGE: USERS ══ -->
+      <div class="page" id="page-users">
+        <div class="section-header">
+          <div class="section-title">Usuarios registrados</div>
+          <div class="section-sub">// Gestión completa de cuentas</div>
+        </div>
+        <div class="table-wrap">
+          <div class="table-header">
+            <div class="table-title" id="users-count-label">Cargando...</div>
+            <div class="table-actions">
+              <input class="search-inp" id="user-search" placeholder="Buscar usuario..." oninput="filterUsers()"/>
+              <select class="filter-sel" id="user-role-filter" onchange="filterUsers()">
+                <option value="">Todos los roles</option>
+                <option value="manager">Manager</option>
+                <option value="collaborator">Colaborador</option>
+                <option value="admin">Admin</option>
+              </select>
+              <select class="filter-sel" id="user-status-filter" onchange="filterUsers()">
+                <option value="">Todos</option>
+                <option value="active">Activos</option>
+                <option value="suspended">Suspendidos</option>
+              </select>
+            </div>
+          </div>
+          <div style="overflow-x:auto">
+            <table>
+              <thead>
+                <tr>
+                  <th>Usuario</th>
+                  <th>Email</th>
+                  <th>País</th>
+                  <th>Rol</th>
+                  <th>Estado</th>
+                  <th>Registro</th>
+                  <th>Último acceso</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="users-tbody">
+                <tr><td colspan="8" style="text-align:center;padding:32px;color:var(--muted);font-family:'IBM Plex Mono',monospace;">Cargando usuarios...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ PAGE: ROLES ══ -->
+      <div class="page" id="page-roles">
+        <div class="section-header">
+          <div class="section-title">Gestión de roles</div>
+          <div class="section-sub">// Permisos y accesos por usuario</div>
+        </div>
+        <div class="table-wrap">
+          <div class="table-header">
+            <div class="table-title">Roles asignados</div>
+            <div class="table-actions">
+              <select class="filter-sel" id="role-filter" onchange="filterRoles()">
+                <option value="">Todos los roles</option>
+                <option value="manager">Manager</option>
+                <option value="collaborator">Colaborador</option>
+                <option value="admin">Admin</option>
+              </select>
+            </div>
+          </div>
+          <div style="overflow-x:auto">
+            <table>
+              <thead>
+                <tr>
+                  <th>Usuario</th>
+                  <th>Email</th>
+                  <th>Rol actual</th>
+                  <th>País</th>
+                  <th>Cambiar a</th>
+                </tr>
+              </thead>
+              <tbody id="roles-tbody">
+                <tr><td colspan="5" style="text-align:center;padding:32px;color:var(--muted);font-family:'IBM Plex Mono',monospace;">Cargando...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ PAGE: SUSPENDED ══ -->
+      <div class="page" id="page-suspended">
+        <div class="section-header">
+          <div class="section-title">Cuentas suspendidas</div>
+          <div class="section-sub">// Usuarios bloqueados del sistema</div>
+        </div>
+        <div class="table-wrap">
+          <div class="table-header">
+            <div class="table-title" id="susp-count-label">Sin cuentas suspendidas</div>
+          </div>
+          <div style="overflow-x:auto">
+            <table>
+              <thead>
+                <tr>
+                  <th>Usuario</th>
+                  <th>Email</th>
+                  <th>Suspendido el</th>
+                  <th>Motivo</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="suspended-tbody">
+                <tr><td colspan="5" class="empty-state"><div class="empty-icon">✓</div>Sin cuentas suspendidas</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ PAGE: LOGS ══ -->
+      <div class="page" id="page-logs">
+        <div class="section-header">
+          <div class="section-title">Logs de actividad</div>
+          <div class="section-sub">// Registro completo de eventos del sistema</div>
+        </div>
+        <div class="log-stream">
+          <div class="log-header">
+            <div class="log-title"><div class="live-dot"></div>Stream en vivo</div>
+            <div class="table-actions" style="gap:8px">
+              <input class="search-inp" id="log-search" placeholder="Filtrar logs..." oninput="filterLogs()" style="width:160px"/>
+              <select class="filter-sel" id="log-type-filter" onchange="filterLogs()">
+                <option value="">Todos los tipos</option>
+                <option value="auth">Auth</option>
+                <option value="add">Agregar</option>
+                <option value="delete">Eliminar</option>
+                <option value="rename">Renombrar</option>
+                <option value="group">Grupo</option>
+                <option value="other">Otro</option>
+              </select>
+              <button class="btn" onclick="exportLogsCSV()">↓ CSV</button>
+            </div>
+          </div>
+          <div class="log-body" id="logs-list" style="max-height:500px">
+            <div class="log-empty">Cargando logs...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ PAGE: METRICS ══ -->
+      <div class="page" id="page-metrics">
+        <div class="section-header">
+          <div class="section-title">Métricas de uso</div>
+          <div class="section-sub">// Estadísticas de la plataforma</div>
+        </div>
+
+        <div class="stats-grid" id="metrics-stats">
+          <div class="stat-card sc-green">
+            <div class="stat-label">Registros 7d</div>
+            <div class="stat-value" id="met-new7">—</div>
+            <div class="stat-sub">nuevos usuarios</div>
+          </div>
+          <div class="stat-card sc-blue">
+            <div class="stat-label">Casos totales</div>
+            <div class="stat-value" id="met-cases">—</div>
+            <div class="stat-sub">en la plataforma</div>
+          </div>
+          <div class="stat-card sc-orange">
+            <div class="stat-label">Notas</div>
+            <div class="stat-value" id="met-notes">—</div>
+            <div class="stat-sub">en la plataforma</div>
+          </div>
+          <div class="stat-card sc-purple">
+            <div class="stat-label">Logs de hoy</div>
+            <div class="stat-value" id="met-logs-today">—</div>
+            <div class="stat-sub">eventos registrados</div>
+          </div>
+        </div>
+
+        <div class="chart-wrap">
+          <div class="chart-title">
+            <span>Registros por mes (últimos 6 meses)</span>
+            <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted)">usuarios nuevos</span>
+          </div>
+          <div class="bar-chart" id="reg-chart">
+            <div style="color:var(--muted);font-size:12px;width:100%;text-align:center">Generando gráfico...</div>
+          </div>
+        </div>
+
+        <div class="chart-wrap">
+          <div class="chart-title">
+            <span>Distribución de roles</span>
+          </div>
+          <div id="role-dist-chart" style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;"></div>
+        </div>
+      </div>
+
+      <!-- ══ PAGE: ADMINS ══ -->
+      <div class="page" id="page-admins">
+        <div class="section-header">
+          <div class="section-title">Panel de administradores</div>
+          <div class="section-sub">// Lista blanca y permisos de acceso</div>
+        </div>
+
+        <div class="table-wrap" style="margin-bottom:20px">
+          <div class="table-header">
+            <div class="table-title">Administradores activos (Whitelist local)</div>
+            <div class="table-actions">
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--warning)">⚠ Edita el código para añadir/quitar admins</span>
+            </div>
+          </div>
+          <div id="whitelist-display"></div>
+        </div>
+
+        <div class="table-wrap">
+          <div class="table-header">
+            <div class="table-title">Admins verificados en Firestore</div>
+            <div class="table-actions">
+              <button class="btn btn-success" onclick="openAddAdminModal()">+ Agregar admin</button>
+            </div>
+          </div>
+          <div style="overflow-x:auto">
+            <table>
+              <thead>
+                <tr>
+                  <th>UID</th>
+                  <th>Email</th>
+                  <th>Rol</th>
+                  <th>Permisos</th>
+                  <th>Estado</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="admins-tbody">
+                <tr><td colspan="6" style="text-align:center;padding:24px;color:var(--muted);font-family:'IBM Plex Mono',monospace;">Cargando...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ PAGE: AUDIT ══ -->
+      <div class="page" id="page-audit">
+        <div class="section-header">
+          <div class="section-title">Registro de auditoría</div>
+          <div class="section-sub">// Acciones de administradores en el sistema</div>
+        </div>
+        <div class="table-wrap">
+          <div class="table-header">
+            <div class="table-title">Acciones de admins</div>
+            <div class="table-actions">
+              <button class="btn" onclick="exportAuditCSV()">↓ Exportar CSV</button>
+            </div>
+          </div>
+          <div style="overflow-x:auto">
+            <table>
+              <thead>
+                <tr>
+                  <th>Timestamp</th>
+                  <th>Admin</th>
+                  <th>Acción</th>
+                  <th>Target</th>
+                  <th>Detalle</th>
+                </tr>
+              </thead>
+              <tbody id="audit-tbody">
+                <tr><td colspan="5" style="text-align:center;padding:24px;color:var(--muted);font-family:'IBM Plex Mono',monospace;">Cargando auditoría...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ PAGE: TEAMS ══ -->
+      <div class="page" id="page-teams">
+        <div class="section-header">
+          <div class="section-title">Equipos activos</div>
+          <div class="section-sub">// Teams creados por managers en Schedule OS</div>
+        </div>
+        <div class="table-wrap">
+          <div class="table-header">
+            <div class="table-title">Todos los equipos</div>
+            <div class="table-actions">
+              <button class="btn" onclick="loadTeams()">↺ Actualizar</button>
+            </div>
+          </div>
+          <div style="overflow-x:auto">
+            <table>
+              <thead><tr>
+                <th>Team ID</th><th>Manager</th><th>Nombre</th>
+                <th>Código</th><th>Miembros</th><th>Creado</th><th>Acciones</th>
+              </tr></thead>
+              <tbody id="teams-tbody">
+                <tr><td colspan="7" style="text-align:center;padding:24px;color:var(--muted);font-family:'IBM Plex Mono',monospace;">Cargando equipos...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ PAGE: REQUESTS ══ -->
+      <div class="page" id="page-requests">
+        <div class="section-header">
+          <div class="section-title">Solicitudes del sistema</div>
+          <div class="section-sub">// Permisos, OT, 1on1 y cambios de turno de todos los equipos</div>
+        </div>
+        <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+          <select id="req-filter-status" onchange="loadRequests()" style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:11px;padding:6px 10px;outline:none;">
+            <option value="">Todos los estados</option>
+            <option value="pending">Pendientes</option>
+            <option value="approved">Aprobados</option>
+            <option value="rejected">Rechazados</option>
+          </select>
+          <select id="req-filter-type" onchange="loadRequests()" style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:11px;padding:6px 10px;outline:none;">
+            <option value="">Todos los tipos</option>
+            <option value="permiso">Permiso</option>
+            <option value="ot">Hora Extra</option>
+            <option value="1on1">1on1</option>
+            <option value="turno">Cambio turno</option>
+          </select>
+        </div>
+        <div class="table-wrap">
+          <div class="table-header">
+            <div class="table-title">Solicitudes</div>
+            <div class="table-actions">
+              <button class="btn" onclick="exportRequestsCSV()">↓ CSV</button>
+            </div>
+          </div>
+          <div style="overflow-x:auto">
+            <table>
+              <thead><tr>
+                <th>Colaborador</th><th>Tipo</th><th>Fecha</th>
+                <th>Motivo</th><th>Estado</th><th>Manager nota</th><th>Registrado</th>
+              </tr></thead>
+              <tbody id="requests-tbody">
+                <tr><td colspan="7" style="text-align:center;padding:24px;color:var(--muted);font-family:'IBM Plex Mono',monospace;">Cargando solicitudes...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- end content -->
+  </div><!-- end app-layout -->
+</div><!-- end app -->
+
+<!-- MODAL CONFIRM -->
+<div class="modal-overlay" id="modal" style="display:none">
+  <div class="modal-box">
+    <div class="modal-title" id="modal-title">Confirmar acción</div>
+    <div class="modal-msg" id="modal-msg"></div>
+    <div class="modal-btns">
+      <button class="btn" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-danger" id="modal-confirm-btn" onclick="">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+/* ══════════════════════════════════════
+   HELPERS
+══════════════════════════════════════ */
+function toast(msg, type='info') {
+  const el = document.getElementById('toast');
+  const colors = { info:'var(--accent)', error:'var(--danger)', warn:'var(--warning)', ok:'var(--accent)' };
+  el.style.borderLeft = `3px solid ${colors[type]||colors.info}`;
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 3200);
+}
+
+function openModal(title, msg, onConfirm, btnClass='btn-danger') {
+  document.getElementById('modal-title').textContent = title;
+  document.getElementById('modal-msg').textContent = msg;
+  const btn = document.getElementById('modal-confirm-btn');
+  btn.className = `btn ${btnClass}`;
+  btn.onclick = () => { closeModal(); onConfirm(); };
+  document.getElementById('modal').style.display = 'flex';
+}
+function closeModal() { document.getElementById('modal').style.display = 'none'; }
+document.getElementById('modal').addEventListener('click', e => { if(e.target===document.getElementById('modal'))closeModal(); });
+
+function fmtDate(ts) {
+  if (!ts) return '—';
+  const d = ts.seconds ? new Date(ts.seconds*1000) : new Date(ts);
+  return d.toLocaleDateString('es-DO',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+}
+function fmtDateShort(ts) {
+  if (!ts) return '—';
+  const d = ts.seconds ? new Date(ts.seconds*1000) : new Date(ts);
+  return d.toLocaleDateString('es-DO',{day:'2-digit',month:'short',year:'numeric'});
+}
+function initials(name) {
+  return (name||'?').split(' ').slice(0,2).map(p=>p[0]).join('').toUpperCase();
+}
+function flagMap(c) { return {do:'🇩🇴',ca:'🇨🇦',fr:'🇫🇷',us:'🇺🇸'}[c]||'🌍'; }
+function rolePill(role) {
+  if (!role) return '<span class="badge b-gray">—</span>';
+  const map = { manager:'<span class="badge b-purple">Manager</span>', collaborator:'<span class="badge b-green">Colaborador</span>', admin:'<span class="badge b-red">Admin</span>', superadmin:'<span class="badge b-red">Superadmin</span>' };
+  return map[role] || `<span class="badge b-gray">${role}</span>`;
+}
+function statusBadge(suspended) {
+  return suspended
+    ? '<span class="badge b-red">⊘ Suspendido</span>'
+    : '<span class="badge b-green">● Activo</span>';
+}
+
+/* ══════════════════════════════════════
+   CLOCK
+══════════════════════════════════════ */
+function tickClock() {
+  const el = document.getElementById('top-clock');
+  if (!el) return;
+  const now = new Date();
+  el.textContent = now.toLocaleTimeString('en-GB', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}
+setInterval(tickClock, 1000);
+tickClock();
+
+/* ══════════════════════════════════════
+   NAV
+══════════════════════════════════════ */
+function switchPage(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + page)?.classList.add('active');
+  document.getElementById('nav-' + page)?.classList.add('active');
+  const loaders = {
+    logs:     loadLogs,
+    users:    loadUsers,
+    roles:    loadRoles,
+    suspended:loadSuspended,
+    metrics:  loadMetrics,
+    admins:   loadAdmins,
+    audit:    loadAudit,
+    teams:    loadTeams,
+    requests: loadRequests,
+  };
+  if (loaders[page]) loaders[page]();
+}
+
+/* ══════════════════════════════════════
+   AUTH ACTIONS
+══════════════════════════════════════ */
+async function adminLogin() {
+  const email = document.getElementById('a-email')?.value?.trim();
+  const pass  = document.getElementById('a-pass')?.value;
+  if (!email || !pass) { showErr('Completa todos los campos.'); return; }
+  const btn = document.querySelector('.auth-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Verificando...'; }
+  const errEl = document.getElementById('auth-err');
+  if (errEl) { errEl.classList.remove('show'); }
+  try {
+    if (!window._adminAuth) { showErr('Firebase no cargado. Verifica conexión.'); if(btn){btn.disabled=false;btn.textContent='Autenticar →';} return; }
+    await window._adminFns.signInWithEmailAndPassword
+      ? window._adminFns.signInWithEmailAndPassword(window._adminAuth, email, pass)
+      : (await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js')).signInWithEmailAndPassword(window._adminAuth, email, pass);
+    // onAuthStateChanged handles the rest
+  } catch(e) {
+    const msgs = { 'auth/user-not-found':'Email no registrado.', 'auth/wrong-password':'Contraseña incorrecta.', 'auth/invalid-credential':'Credenciales incorrectas.', 'auth/too-many-requests':'Demasiados intentos. Espera unos minutos.' };
+    showErr(msgs[e.code] || 'Error: ' + e.message);
+    if (btn) { btn.disabled = false; btn.textContent = 'Autenticar →'; }
+  }
+}
+function showErr(msg) {
+  const el = document.getElementById('auth-err');
+  if (el) { el.textContent = msg; el.classList.add('show'); }
+}
+
+async function adminSignOut() {
+  if (!confirm('¿Cerrar sesión del admin panel?')) return;
+  try { await window._adminFns.signOut(window._adminAuth); } catch(e) {}
+  window.location.reload();
+}
+
+/* ══════════════════════════════════════
+   INIT ADMIN PANEL
+══════════════════════════════════════ */
+let _allUsers = [];
+let _allLogs  = [];
+let _currentAdmin = null;
+
+async function initAdminPanel(user, adminInfo) {
+  _currentAdmin = { uid: user.uid, email: user.email, ...adminInfo };
+  document.getElementById('top-user-name').textContent = adminInfo.name || user.email;
+  document.getElementById('top-user-role').textContent = `[${adminInfo.role||'admin'}]`;
+
+  // Render whitelist in admins page
+  renderWhitelistDisplay();
+
+  // Load overview data
+  await loadOverview();
+
+  // Write audit log: admin logged in
+  await writeAuditLog('login', 'AUTH', `Admin login: ${user.email}`);
+
+  // Start live listeners
+  startLiveListeners();
+}
+
+function startLiveListeners() {
+  const { collection, query, where, onSnapshot } = window._adminFns;
+
+  // Live: user count
+  onSnapshot(collection(window._adminDb, 'users'), snap => {
+    const total = snap.size;
+    const suspended = snap.docs.filter(d => d.data().suspended).length;
+    const el = document.getElementById('user-count-nav');
+    if (el) el.textContent = total;
+    const suspEl = document.getElementById('susp-count-nav');
+    if (suspEl) {
+      suspEl.textContent = suspended;
+      suspEl.style.display = suspended > 0 ? 'inline-flex' : 'none';
+    }
+    const statTotal = document.getElementById('stat-total-users');
+    if (statTotal) statTotal.textContent = total;
+    const statSusp = document.getElementById('stat-suspended');
+    if (statSusp) statSusp.textContent = suspended;
+  });
+
+  // Live: teams count
+  onSnapshot(collection(window._adminDb, 'teams'), snap => {
+    const el = document.getElementById('teams-count-nav');
+    if (el) el.textContent = snap.size;
+    const stat = document.getElementById('stat-teams');
+    if (stat) stat.textContent = snap.size;
+  });
+
+  // Live: pending requests count
+  onSnapshot(
+    query(collection(window._adminDb, 'requests'), where('status', '==', 'pending')),
+    snap => {
+      const count = snap.size;
+      const el = document.getElementById('requests-count-nav');
+      if (el) { el.textContent = count; el.style.display = count > 0 ? '' : 'none'; }
+      const stat = document.getElementById('stat-requests');
+      if (stat) stat.textContent = count;
+    }
+  );
+
+  // Live: audit log count
+  onSnapshot(collection(window._adminDb, 'admin_audit'), snap => {
+    const el = document.getElementById('log-count-badge');
+    if (el) el.textContent = snap.size;
+  });
+}
+
+/* ══════════════════════════════════════
+   AUDIT LOGGING
+══════════════════════════════════════ */
+async function writeAuditLog(action, target, detail) {
+  if (!window._adminDb || !_currentAdmin) return;
+  try {
+    const { collection, addDoc, serverTimestamp } = window._adminFns;
+    await addDoc(collection(window._adminDb, 'admin_audit'), {
+      admin: _currentAdmin.email,
+      adminUid: _currentAdmin.uid,
+      action, target, detail,
+      ts: serverTimestamp(),
+    });
+  } catch(e) { console.warn('audit log:', e); }
+}
+
+/* ══════════════════════════════════════
+   LOAD OVERVIEW
+══════════════════════════════════════ */
+async function loadOverview() {
+  await loadUsers(true); // loads _allUsers
+  updateOverviewStats();
+  loadRecentActivity();
+  // Load teams and requests counts
+  try {
+    const { collection, getDocs, query, where } = window._adminFns;
+    const [teamsSnap, reqSnap] = await Promise.all([
+      getDocs(collection(window._adminDb, 'teams')),
+      getDocs(collection(window._adminDb, 'requests')),
+    ]);
+    const teamsCount = teamsSnap.size;
+    const pendingReqs = reqSnap.docs.filter(d => d.data().status === 'pending').length;
+    const stTeams = document.getElementById('stat-teams');
+    const stReqs = document.getElementById('stat-requests');
+    if (stTeams) stTeams.textContent = teamsCount;
+    if (stReqs) stReqs.textContent = pendingReqs;
+    const tcNav = document.getElementById('teams-count-nav');
+    const rcNav = document.getElementById('requests-count-nav');
+    if (tcNav) tcNav.textContent = teamsCount;
+    if (rcNav) { rcNav.textContent = pendingReqs; rcNav.style.display = pendingReqs > 0 ? '' : 'none'; }
+  } catch(e) { console.warn('loadOverview extras:', e); }
+}
+
+function updateOverviewStats() {
+  const total = _allUsers.length;
+  const managers = _allUsers.filter(u => u.role === 'manager').length;
+  const collabs = _allUsers.filter(u => u.role === 'collaborator' || !u.role).length;
+  const suspended = _allUsers.filter(u => u.suspended).length;
+  const now = Date.now();
+  const active24h = _allUsers.filter(u => {
+    if (!u.lastSignIn) return false;
+    const ts = u.lastSignIn.seconds ? u.lastSignIn.seconds*1000 : new Date(u.lastSignIn).getTime();
+    return (now - ts) < 86400000;
+  }).length;
+
+  document.getElementById('stat-total-users').textContent = total;
+  document.getElementById('stat-active-today').textContent = active24h;
+  document.getElementById('stat-managers').textContent = managers;
+  document.getElementById('stat-collabs').textContent = collabs;
+  document.getElementById('stat-suspended').textContent = suspended;
+  document.getElementById('user-count-nav').textContent = total;
+  if (suspended > 0) {
+    document.getElementById('susp-count-nav').textContent = suspended;
+    document.getElementById('susp-count-nav').style.display = 'inline-flex';
+  }
+}
+
+/* ══════════════════════════════════════
+   RECENT ACTIVITY
+══════════════════════════════════════ */
+async function loadRecentActivity() {
+  // We read schedule changelogs stored in Firestore if available
+  // Fall back to user list as activity proxy
+  const el = document.getElementById('recent-activity-list');
+  if (!el) return;
+  if (_allUsers.length === 0) { el.innerHTML = '<div class="log-empty">Sin datos de actividad aún</div>'; return; }
+
+  // Show recent user registrations as "activity"
+  const sorted = [..._allUsers].sort((a,b) => {
+    const ta = a.createdAt?.seconds||0; const tb = b.createdAt?.seconds||0; return tb-ta;
+  }).slice(0,15);
+
+  const icons = { manager:'🏢', collaborator:'👤', admin:'⬡' };
+  el.innerHTML = sorted.map(u => `
+    <div class="log-entry">
+      <span class="log-ts">${fmtDateShort(u.createdAt)}</span>
+      <span class="log-type"><span class="badge b-green" style="font-size:9px">REGISTER</span></span>
+      <span class="log-msg">${icons[u.role]||'👤'} ${u.name||u.email} — ${u.role||'collaborator'}</span>
+      <span class="log-user">${flagMap(u.country)}</span>
+    </div>`).join('');
+  document.getElementById('log-count-badge').textContent = sorted.length;
+}
+
+/* ══════════════════════════════════════
+   LOAD USERS
+══════════════════════════════════════ */
+async function loadUsers(silent=false) {
+  const { collection, getDocs } = window._adminFns;
+  try {
+    const snap = await getDocs(collection(window._adminDb, 'users'));
+    _allUsers = snap.docs.map(d => ({ uid: d.id, ...d.data() }));
+    if (!silent) renderUsersTable(_allUsers);
+    const label = document.getElementById('users-count-label');
+    if (label) label.textContent = `${_allUsers.length} usuarios registrados`;
+  } catch(e) {
+    toast('Error cargando usuarios: ' + e.message, 'error');
+    console.error(e);
+    if (!silent) {
+      const tb = document.getElementById('users-tbody');
+      if (tb) tb.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--danger);font-family:'IBM Plex Mono',monospace;">Error: ${e.message}</td></tr>`;
+    }
+  }
+}
+
+function renderUsersTable(users) {
+  const tb = document.getElementById('users-tbody');
+  if (!tb) return;
+  if (!users.length) {
+    tb.innerHTML = `<tr><td colspan="8"><div class="empty-state"><div class="empty-icon">◉</div>Sin usuarios registrados aún</div></td></tr>`;
+    return;
+  }
+  tb.innerHTML = users.map(u => `
+    <tr>
+      <td>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="width:28px;height:28px;border-radius:50%;background:rgba(0,255,136,.1);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;font-family:'IBM Plex Mono',monospace;flex-shrink:0">${initials(u.name||u.email)}</div>
+          <div style="font-weight:500;color:var(--text)">${u.name||'(sin nombre)'}</div>
+        </div>
+      </td>
+      <td class="mono" style="font-size:11px">${u.email||'—'}</td>
+      <td>${flagMap(u.country)} ${u.country||'—'}</td>
+      <td>${rolePill(u.role)}</td>
+      <td>${statusBadge(u.suspended)}</td>
+      <td class="mono" style="font-size:10px">${fmtDateShort(u.createdAt)}</td>
+      <td class="mono" style="font-size:10px">${fmtDateShort(u.lastSignIn)}</td>
+      <td>
+        <div style="display:flex;gap:4px">
+          ${u.suspended
+            ? `<button class="btn btn-success" onclick="reactivateUser('${u.uid}','${u.name||u.email}')">↑ Reactivar</button>`
+            : `<button class="btn btn-warning" onclick="suspendUser('${u.uid}','${u.name||u.email}')">⊘ Suspender</button>`}
+          <button class="btn btn-danger" onclick="deleteUserAccount('${u.uid}','${u.name||u.email}')">✕</button>
+        </div>
+      </td>
+    </tr>`).join('');
+}
+
+function filterUsers() {
+  const q = document.getElementById('user-search')?.value?.toLowerCase()||'';
+  const role = document.getElementById('user-role-filter')?.value||'';
+  const status = document.getElementById('user-status-filter')?.value||'';
+  const filtered = _allUsers.filter(u => {
+    const matchQ = !q || (u.name||'').toLowerCase().includes(q) || (u.email||'').toLowerCase().includes(q);
+    const matchR = !role || u.role===role;
+    const matchS = !status || (status==='suspended'?u.suspended:!u.suspended);
+    return matchQ && matchR && matchS;
+  });
+  renderUsersTable(filtered);
+}
+
+/* ══════════════════════════════════════
+   USER ACTIONS
+══════════════════════════════════════ */
+async function suspendUser(uid, name) {
+  openModal(
+    `⊘ Suspender cuenta`,
+    `¿Suspender a "${name}"? No podrá iniciar sesión hasta que se reactive.`,
+    async () => {
+      try {
+        const { doc, updateDoc, serverTimestamp } = window._adminFns;
+        await updateDoc(doc(window._adminDb, 'users', uid), {
+          suspended: true,
+          suspendedAt: serverTimestamp(),
+          suspendedBy: _currentAdmin.email,
+        });
+        toast(`✓ Cuenta de ${name} suspendida`, 'ok');
+        await writeAuditLog('suspend', uid, `Suspendido: ${name}`);
+        await loadUsers();
+        updateOverviewStats();
+        loadSuspended();
+      } catch(e) { toast('Error: ' + e.message, 'error'); }
+    }
+  );
+}
+
+async function reactivateUser(uid, name) {
+  openModal(
+    '↑ Reactivar cuenta',
+    `¿Reactivar la cuenta de "${name}"?`,
+    async () => {
+      try {
+        const { doc, updateDoc } = window._adminFns;
+        await updateDoc(doc(window._adminDb, 'users', uid), {
+          suspended: false, suspendedAt: null, suspendedBy: null,
+        });
+        toast(`✓ Cuenta de ${name} reactivada`, 'ok');
+        await writeAuditLog('reactivate', uid, `Reactivado: ${name}`);
+        await loadUsers();
+        updateOverviewStats();
+        loadSuspended();
+      } catch(e) { toast('Error: ' + e.message, 'error'); }
+    },
+    'btn-success'
+  );
+}
+
+async function deleteUserAccount(uid, name) {
+  openModal(
+    `✕ Eliminar cuenta permanentemente`,
+    `⚠ ACCIÓN IRREVERSIBLE: ¿Eliminar TODOS los datos de "${name}"? Esto borra horarios, notas y casos.`,
+    async () => {
+      try {
+        const { doc, deleteDoc } = window._adminFns;
+        await deleteDoc(doc(window._adminDb, 'users', uid));
+        await deleteDoc(doc(window._adminDb, 'schedules', uid));
+        // Try to delete notes sub-collection
+        try { await deleteDoc(doc(window._adminDb, 'notes', uid)); } catch(e) {}
+        toast(`✓ Datos de ${name} eliminados de Firestore`, 'ok');
+        await writeAuditLog('delete_user', uid, `Eliminado: ${name}`);
+        await loadUsers(false);
+        updateOverviewStats();
+      } catch(e) { toast('Error: ' + e.message, 'error'); }
+    }
+  );
+}
+
+/* ══════════════════════════════════════
+   ROLES PAGE
+══════════════════════════════════════ */
+async function loadRoles() {
+  if (!_allUsers.length) await loadUsers(true);
+  filterRoles();
+}
+
+function filterRoles() {
+  const filter = document.getElementById('role-filter')?.value||'';
+  const users = filter ? _allUsers.filter(u => u.role===filter) : _allUsers;
+  const tb = document.getElementById('roles-tbody');
+  if (!tb) return;
+  if (!users.length) { tb.innerHTML = `<tr><td colspan="5"><div class="empty-state">Sin usuarios</div></td></tr>`; return; }
+  tb.innerHTML = users.map(u => `
+    <tr>
+      <td style="font-weight:500;color:var(--text)">${u.name||'(sin nombre)'}</td>
+      <td class="mono" style="font-size:11px">${u.email||'—'}</td>
+      <td>${rolePill(u.role)}</td>
+      <td>${flagMap(u.country)}</td>
+      <td>
+        <div style="display:flex;gap:5px">
+          ${['manager','collaborator'].map(r =>
+            `<button class="btn ${u.role===r?'btn-success':''}" onclick="changeRole('${u.uid}','${u.name||u.email}','${r}')">${r==='manager'?'Manager':'Colaborador'}</button>`
+          ).join('')}
+        </div>
+      </td>
+    </tr>`).join('');
+}
+
+async function changeRole(uid, name, newRole) {
+  openModal(
+    'Cambiar rol',
+    `¿Cambiar el rol de "${name}" a ${newRole}?`,
+    async () => {
+      try {
+        const { doc, updateDoc } = window._adminFns;
+        await updateDoc(doc(window._adminDb, 'users', uid), { role: newRole });
+        toast(`✓ Rol de ${name} cambiado a ${newRole}`, 'ok');
+        await writeAuditLog('change_role', uid, `${name}: → ${newRole}`);
+        await loadUsers(true);
+        filterRoles();
+      } catch(e) { toast('Error: ' + e.message, 'error'); }
+    },
+    'btn-warning'
+  );
+}
+
+/* ══════════════════════════════════════
+   SUSPENDED PAGE
+══════════════════════════════════════ */
+function loadSuspended() {
+  const suspended = _allUsers.filter(u => u.suspended);
+  const tb = document.getElementById('suspended-tbody');
+  const lbl = document.getElementById('susp-count-label');
+  if (lbl) lbl.textContent = `${suspended.length} cuentas suspendidas`;
+  if (!tb) return;
+  if (!suspended.length) {
+    tb.innerHTML = `<tr><td colspan="5"><div class="empty-state"><div class="empty-icon">✓</div>Sin cuentas suspendidas</div></td></tr>`;
+    return;
+  }
+  tb.innerHTML = suspended.map(u => `
+    <tr>
+      <td style="font-weight:500;color:var(--text)">${u.name||'—'}</td>
+      <td class="mono" style="font-size:11px">${u.email||'—'}</td>
+      <td class="mono" style="font-size:10px">${fmtDate(u.suspendedAt)}</td>
+      <td style="font-size:11px;color:var(--muted)">${u.suspendedBy||'—'}</td>
+      <td>
+        <button class="btn btn-success" onclick="reactivateUser('${u.uid}','${u.name||u.email}')">↑ Reactivar</button>
+        <button class="btn btn-danger" onclick="deleteUserAccount('${u.uid}','${u.name||u.email}')" style="margin-left:4px">✕ Eliminar</button>
+      </td>
+    </tr>`).join('');
+}
+
+/* ══════════════════════════════════════
+   LOGS PAGE
+══════════════════════════════════════ */
+async function loadLogs() {
+  const el = document.getElementById('logs-list');
+  if (!el) return;
+  // Aggregate activity_logs if they exist, otherwise show placeholder
+  try {
+    const { collection, query, orderBy, limit, getDocs } = window._adminFns;
+    let logs = [];
+    // Try admin_audit first (our own logs)
+    try {
+      const q = query(collection(window._adminDb, 'admin_audit'), orderBy('ts','desc'), limit(100));
+      const snap = await getDocs(q);
+      logs = snap.docs.map(d => ({ id:d.id, src:'admin', ...d.data() }));
+    } catch(e) {}
+    _allLogs = logs;
+    renderLogsTable(logs);
+  } catch(e) {
+    el.innerHTML = `<div class="log-empty" style="color:var(--danger)">Error: ${e.message}</div>`;
+  }
+}
+
+function renderLogsTable(logs) {
+  const el = document.getElementById('logs-list');
+  if (!el) return;
+  if (!logs.length) {
+    el.innerHTML = '<div class="log-empty">Sin logs disponibles</div>';
+    return;
+  }
+  const icons = { login:'🔐', suspend:'⊘', reactivate:'↑', delete_user:'✕', change_role:'◎', add_admin:'⬡', remove_admin:'✗', broadcast:'📢', other:'●' };
+  const colors = { login:'b-blue', suspend:'b-orange', reactivate:'b-green', delete_user:'b-red', change_role:'b-purple', add_admin:'b-red', remove_admin:'b-red', broadcast:'b-orange', other:'b-gray' };
+  el.innerHTML = logs.map(l => `
+    <div class="log-entry">
+      <span class="log-ts">${fmtDate(l.ts)}</span>
+      <span class="log-type"><span class="badge ${colors[l.action]||'b-gray'}" style="font-size:9px">${icons[l.action]||'●'} ${l.action||'—'}</span></span>
+      <span class="log-msg">${l.detail||'—'}</span>
+      <span class="log-user">${l.admin||'—'}</span>
+    </div>`).join('');
+}
+
+function filterLogs() {
+  const q = (document.getElementById('log-search')?.value||'').toLowerCase();
+  const type = document.getElementById('log-type-filter')?.value||'';
+  const filtered = _allLogs.filter(l => {
+    const matchQ = !q || (l.detail||'').toLowerCase().includes(q) || (l.admin||'').toLowerCase().includes(q);
+    const matchT = !type || l.action===type;
+    return matchQ && matchT;
+  });
+  renderLogsTable(filtered);
+}
+
+/* ══════════════════════════════════════
+   METRICS PAGE
+══════════════════════════════════════ */
+async function loadMetrics() {
+  if (!_allUsers.length) await loadUsers(true);
+  const total = _allUsers.length;
+
+  // New users last 7 days
+  const now = Date.now();
+  const new7 = _allUsers.filter(u => {
+    if (!u.createdAt) return false;
+    const ts = u.createdAt.seconds ? u.createdAt.seconds*1000 : new Date(u.createdAt).getTime();
+    return (now - ts) < 7*86400000;
+  }).length;
+
+  document.getElementById('met-new7').textContent = new7;
+  document.getElementById('met-cases').textContent = '—';
+  document.getElementById('met-notes').textContent = '—';
+
+  // Logs today
+  const logsToday = _allLogs.filter(l => {
+    if (!l.ts) return false;
+    const ts = l.ts.seconds ? l.ts.seconds*1000 : 0;
+    return (now - ts) < 86400000;
+  }).length;
+  document.getElementById('met-logs-today').textContent = logsToday;
+
+  // Counts by month chart
+  renderRegChart();
+  renderRoleDist();
+}
+
+function renderRegChart() {
+  const el = document.getElementById('reg-chart');
+  if (!el) return;
+  const months = [];
+  const now = new Date();
+  for (let i=5;i>=0;i--) {
+    const d = new Date(now.getFullYear(), now.getMonth()-i, 1);
+    months.push({ label: d.toLocaleDateString('es-DO',{month:'short'}), year: d.getFullYear(), month: d.getMonth(), count: 0 });
+  }
+  _allUsers.forEach(u => {
+    if (!u.createdAt) return;
+    const ts = u.createdAt.seconds ? u.createdAt.seconds*1000 : 0;
+    const d = new Date(ts);
+    const m = months.find(x => x.year===d.getFullYear() && x.month===d.getMonth());
+    if (m) m.count++;
+  });
+  const maxVal = Math.max(...months.map(m=>m.count), 1);
+  el.innerHTML = months.map(m => {
+    const pct = Math.round((m.count/maxVal)*100);
+    return `<div class="bar-col">
+      <div class="bar-val">${m.count}</div>
+      <div class="bar-fill" style="height:${Math.max(pct,2)}px;"></div>
+      <div class="bar-label">${m.label}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderRoleDist() {
+  const el = document.getElementById('role-dist-chart');
+  if (!el) return;
+  const roles = {};
+  _allUsers.forEach(u => { const r=u.role||'collaborator'; roles[r]=(roles[r]||0)+1; });
+  const total = _allUsers.length || 1;
+  const colors = { manager:'var(--purple)', collaborator:'var(--accent)', admin:'var(--danger)', superadmin:'var(--danger)' };
+  el.innerHTML = Object.entries(roles).map(([role, count]) => {
+    const pct = Math.round(count/total*100);
+    const col = colors[role]||'var(--info)';
+    return `<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);">
+      <div style="width:10px;height:10px;border-radius:50%;background:${col};flex-shrink:0"></div>
+      <div style="font-size:13px;font-weight:600;color:${col};font-family:'IBM Plex Mono',monospace;">${count}</div>
+      <div style="font-size:12px;color:var(--text2);">${role}</div>
+      <div style="font-size:11px;color:var(--muted);font-family:'IBM Plex Mono',monospace;">${pct}%</div>
+    </div>`;
+  }).join('');
+}
+
+/* ══════════════════════════════════════
+   ADMINS PAGE
+══════════════════════════════════════ */
+function renderWhitelistDisplay() {
+  const el = document.getElementById('whitelist-display');
+  if (!el) return;
+  const wl = window._whitelist || {};
+  const entries = Object.entries(wl);
+  if (!entries.length) {
+    el.innerHTML = `<div style="padding:20px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--warning);">
+      ⚠ Whitelist vacía — Agrega tu UID en el código fuente de admin.html para habilitar el acceso.
+      <br><br>Encuentra tu UID en Firebase Console → Authentication → Users
+    </div>`;
+    return;
+  }
+  el.innerHTML = entries.map(([uid, info]) => `
+    <div class="whitelist-item">
+      <div style="width:28px;height:28px;border-radius:50%;background:var(--danger-dim);color:var(--danger);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;font-family:'IBM Plex Mono',monospace;">
+        ${initials(info.name||uid)}
+      </div>
+      <div class="wl-email" style="flex:0 0 auto;width:180px">${info.name||'—'}</div>
+      <div class="wl-uid">${uid}</div>
+      <div class="wl-perm">
+        ${(info.perms||[]).map(p =>
+          `<span class="perm-tag ${p==='all'?'p-danger':p==='delete'?'p-danger':p==='suspend'?'p-warn':''}">${p}</span>`
+        ).join('')}
+        <span class="perm-tag ${info.role==='superadmin'?'p-danger':''}">${info.role||'admin'}</span>
+      </div>
+    </div>`).join('');
+}
+
+async function loadAdmins() {
+  renderWhitelistDisplay();
+  const { collection, getDocs } = window._adminFns;
+  try {
+    const snap = await getDocs(collection(window._adminDb, 'admins'));
+    const admins = snap.docs.map(d => ({ uid: d.id, ...d.data() }));
+    const tb = document.getElementById('admins-tbody');
+    if (!tb) return;
+    if (!admins.length) {
+      tb.innerHTML = `<tr><td colspan="6"><div class="empty-state"><div class="empty-icon">⬡</div>Sin admins en Firestore aún<br><small>Agrega el primero con el botón de arriba</small></div></td></tr>`;
+      return;
+    }
+    tb.innerHTML = admins.map(a => `
+      <tr>
+        <td class="mono" style="font-size:10px">${a.uid.slice(0,20)}…</td>
+        <td class="mono" style="font-size:11px">${a.email||'—'}</td>
+        <td>${rolePill(a.role)}</td>
+        <td><div style="display:flex;gap:3px;flex-wrap:wrap">${(a.perms||[]).map(p=>`<span class="perm-tag ${p==='all'?'p-danger':''}">${p}</span>`).join('')}</div></td>
+        <td>${a.active ? '<span class="badge b-green">● Activo</span>' : '<span class="badge b-red">⊘ Inactivo</span>'}</td>
+        <td>
+          <button class="btn ${a.active?'btn-warning':'btn-success'}" onclick="toggleAdminActive('${a.uid}',${!a.active})">
+            ${a.active ? '⊘ Revocar' : '↑ Activar'}
+          </button>
+          <button class="btn btn-danger" onclick="removeAdmin('${a.uid}')" style="margin-left:4px">✕</button>
+        </td>
+      </tr>`).join('');
+  } catch(e) {
+    toast('Error cargando admins: ' + e.message, 'error');
+  }
+}
+
+async function openAddAdminModal() {
+  const uid   = prompt('UID de Firebase del nuevo admin:');
+  if (!uid?.trim()) return;
+  const email = prompt('Email del admin (referencia):');
+  const role  = prompt('Rol (admin / dev / security / superadmin):', 'admin');
+  const perms = prompt('Permisos separados por coma (all / read / logs / suspend / delete):', 'read,logs');
+  if (!uid || !role) return;
+  try {
+    const { doc, setDoc, serverTimestamp } = window._adminFns;
+    await setDoc(doc(window._adminDb, 'admins', uid.trim()), {
+      uid: uid.trim(), email: email?.trim()||'', role: role.trim(),
+      perms: perms ? perms.split(',').map(p=>p.trim()) : ['read'],
+      active: true, createdAt: serverTimestamp(), createdBy: _currentAdmin.email,
+    });
+    toast('✓ Admin agregado en Firestore', 'ok');
+    await writeAuditLog('add_admin', uid.trim(), `Nuevo admin: ${email} [${role}]`);
+    loadAdmins();
+  } catch(e) { toast('Error: ' + e.message, 'error'); }
+}
+
+async function toggleAdminActive(uid, newState) {
+  try {
+    const { doc, updateDoc } = window._adminFns;
+    await updateDoc(doc(window._adminDb, 'admins', uid), { active: newState });
+    toast(`Admin ${newState?'activado':'revocado'}`, newState?'ok':'warn');
+    await writeAuditLog(newState?'reactivate':'suspend', uid, `Admin access ${newState?'activated':'revoked'}`);
+    loadAdmins();
+  } catch(e) { toast('Error: ' + e.message, 'error'); }
+}
+
+async function removeAdmin(uid) {
+  openModal('Eliminar admin', `¿Eliminar UID ${uid} de la lista de admins en Firestore?`, async () => {
+    try {
+      const { doc, deleteDoc } = window._adminFns;
+      await deleteDoc(doc(window._adminDb, 'admins', uid));
+      toast('Admin eliminado de Firestore', 'ok');
+      await writeAuditLog('remove_admin', uid, 'Admin removed from Firestore');
+      loadAdmins();
+    } catch(e) { toast('Error: ' + e.message, 'error'); }
+  });
+}
+
+/* ══════════════════════════════════════
+   AUDIT PAGE
+══════════════════════════════════════ */
+async function loadAudit() {
+  const { collection, query, orderBy, limit, getDocs } = window._adminFns;
+  const tb = document.getElementById('audit-tbody');
+  try {
+    const q = query(collection(window._adminDb, 'admin_audit'), orderBy('ts','desc'), limit(200));
+    const snap = await getDocs(q);
+    const rows = snap.docs.map(d => ({ id:d.id, ...d.data() }));
+    if (!rows.length) {
+      tb.innerHTML = `<tr><td colspan="5"><div class="empty-state">Sin registros de auditoría aún</div></td></tr>`;
+      return;
+    }
+    tb.innerHTML = rows.map(r => `
+      <tr>
+        <td class="mono" style="font-size:10px">${fmtDate(r.ts)}</td>
+        <td class="mono" style="font-size:11px">${r.admin||'—'}</td>
+        <td><span class="badge b-orange" style="font-size:9px">${r.action||'—'}</span></td>
+        <td class="mono" style="font-size:10px;max-width:120px;overflow:hidden;text-overflow:ellipsis">${r.target||'—'}</td>
+        <td style="font-size:11px;color:var(--text2)">${r.detail||'—'}</td>
+      </tr>`).join('');
+  } catch(e) {
+    if (tb) tb.innerHTML = `<tr><td colspan="5" style="color:var(--danger);padding:20px;text-align:center">${e.message}</td></tr>`;
+  }
+}
+
+/* ══════════════════════════════════════
+   EXPORTS
+══════════════════════════════════════ */
+function exportAuditCSV() {
+  let csv = 'Timestamp,Admin,Accion,Target,Detalle\n';
+  _allLogs.forEach(l => {
+    const ts = l.ts?.seconds ? new Date(l.ts.seconds*1000).toISOString() : '—';
+    csv += `"${ts}","${l.admin||''}","${l.action||''}","${l.target||''}","${(l.detail||'').replace(/"/g,'""')}"\n`;
+  });
+  // Also include user list
+  csv += '\n\nUsuarios:\nUID,Nombre,Email,Rol,Pais,Registro,Suspendido\n';
+  _allUsers.forEach(u => {
+    csv += `"${u.uid}","${u.name||''}","${u.email||''}","${u.role||''}","${u.country||''}","${fmtDateShort(u.createdAt)}","${u.suspended?'Sí':'No'}"\n`;
+  });
+  const blob = new Blob(['\uFEFF'+csv], {type:'text/csv;charset=utf-8;'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `admin_audit_${new Date().toISOString().split('T')[0]}.csv`;
+  a.click();
+  toast('✓ CSV exportado', 'ok');
+}
+
+function exportLogsCSV() { exportAuditCSV(); }
+
+/* ══════════════════════════════════════
+   BROADCAST NOTICE
+══════════════════════════════════════ */
+async function broadcastNotice() {
+  const msg = prompt('Mensaje para todos los usuarios\n(Se guardará en /system/notice en Firestore):');
+  if (!msg?.trim()) return;
+  try {
+    const { doc, setDoc, serverTimestamp } = window._adminFns;
+    await setDoc(doc(window._adminDb, 'system', 'notice'), {
+      message: msg.trim(),
+      createdAt: serverTimestamp(),
+      createdBy: _currentAdmin.email,
+      active: true,
+    });
+    toast('✓ Aviso enviado al sistema', 'ok');
+    await writeAuditLog('broadcast', 'system', msg.trim().slice(0,80));
+  } catch(e) { toast('Error: ' + e.message, 'error'); }
+}
+
+/* ══════════════════════════════════════
+   REFRESH ALL
+══════════════════════════════════════ */
+async function refreshAll() {
+  toast('↺ Actualizando datos...', 'info');
+  _allUsers = [];
+  await loadOverview();
+  toast('✓ Datos actualizados', 'ok');
+}
+
+/* ══════════════════════════════════════
+   TEAMS PAGE
+══════════════════════════════════════ */
+async function loadTeams() {
+  const tb = document.getElementById('teams-tbody');
+  if (!tb) return;
+  tb.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--muted);font-family:'IBM Plex Mono',monospace;">Cargando...</td></tr>`;
+  try {
+    const { collection, getDocs } = window._adminFns;
+    const snap = await getDocs(collection(window._adminDb, 'teams'));
+    const teams = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+    const countEl = document.getElementById('teams-count-nav');
+    if (countEl) countEl.textContent = teams.length;
+
+    if (!teams.length) {
+      tb.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="empty-icon">▦</div>Sin equipos creados aún</div></td></tr>`;
+      return;
+    }
+    tb.innerHTML = teams.map(t => {
+      const members = t.members || [];
+      return `<tr>
+        <td class="mono" style="font-size:10px">${t.id.slice(0,16)}…</td>
+        <td class="mono" style="font-size:11px">${t.managerName || '—'}</td>
+        <td style="font-weight:600">${t.name || '—'}</td>
+        <td><span class="badge b-green mono" style="letter-spacing:2px">${t.inviteCode || '—'}</span></td>
+        <td style="text-align:center">${members.length}</td>
+        <td class="mono" style="font-size:10px">${fmtDateShort(t.createdAt)}</td>
+        <td>
+          <button class="btn" onclick="viewTeamMembers('${t.id}')">Ver miembros</button>
+          <button class="btn btn-danger" onclick="deleteTeam('${t.id}')" style="margin-left:4px">✕</button>
+        </td>
+      </tr>`;
+    }).join('');
+  } catch(e) {
+    tb.innerHTML = `<tr><td colspan="7" style="color:var(--danger);padding:20px;text-align:center">${e.message}</td></tr>`;
+    toast('Error cargando equipos: ' + e.message, 'error');
+  }
+}
+
+async function viewTeamMembers(teamId) {
+  try {
+    const { doc, getDoc } = window._adminFns;
+    const snap = await getDoc(doc(window._adminDb, 'teams', teamId));
+    if (!snap.exists()) { toast('Equipo no encontrado', 'error'); return; }
+    const members = snap.data().members || [];
+    const list = members.map(m => `• ${m.name} (${m.email}) — desde ${fmtDateShort(m.joinedAt)}`).join('\n');
+    openModal(`Miembros del equipo (${members.length})`,
+      members.length ? `<pre style="font-family:'IBM Plex Mono',monospace;font-size:11px;line-height:1.8;color:var(--text2)">${list}</pre>` : '<div style="color:var(--muted);padding:16px;text-align:center">Sin miembros aún</div>',
+      null);
+  } catch(e) { toast('Error: ' + e.message, 'error'); }
+}
+
+async function deleteTeam(teamId) {
+  openModal('Eliminar equipo', `¿Eliminar el equipo <strong>${teamId.slice(0,16)}</strong>? Los colaboradores perderán acceso.`, async () => {
+    try {
+      const { doc, deleteDoc } = window._adminFns;
+      await deleteDoc(doc(window._adminDb, 'teams', teamId));
+      toast('Equipo eliminado', 'ok');
+      await writeAuditLog('delete_team', teamId, 'Team deleted by admin');
+      loadTeams();
+    } catch(e) { toast('Error: ' + e.message, 'error'); }
+  });
+}
+
+/* ══════════════════════════════════════
+   REQUESTS PAGE
+══════════════════════════════════════ */
+let _allRequests = [];
+async function loadRequests() {
+  const tb = document.getElementById('requests-tbody');
+  if (!tb) return;
+  tb.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--muted);font-family:'IBM Plex Mono',monospace;">Cargando...</td></tr>`;
+  try {
+    const { collection, getDocs } = window._adminFns;
+    const snap = await getDocs(collection(window._adminDb, 'requests'));
+    _allRequests = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+      .sort((a,b) => (b.createdAt?.seconds||0) - (a.createdAt?.seconds||0));
+
+    const filterStatus = document.getElementById('req-filter-status')?.value || '';
+    const filterType = document.getElementById('req-filter-type')?.value || '';
+
+    const filtered = _allRequests.filter(r =>
+      (!filterStatus || r.status === filterStatus) &&
+      (!filterType || r.type === filterType)
+    );
+
+    const pendingCount = _allRequests.filter(r => r.status === 'pending').length;
+    const countEl = document.getElementById('requests-count-nav');
+    if (countEl) {
+      countEl.textContent = pendingCount;
+      countEl.style.display = pendingCount > 0 ? '' : 'none';
+    }
+
+    if (!filtered.length) {
+      tb.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="empty-icon">◧</div>Sin solicitudes${filterStatus||filterType?' para estos filtros':''}</div></td></tr>`;
+      return;
+    }
+
+    const typeLabels = { permiso:'🏖 Permiso', ot:'⏱ OT', '1on1':'💬 1on1', turno:'🔄 Turno' };
+    const statusBadge = s => s==='pending' ? '<span class="badge b-orange">Pendiente</span>' : s==='approved' ? '<span class="badge b-green">Aprobado</span>' : '<span class="badge b-red">Rechazado</span>';
+
+    tb.innerHTML = filtered.map(r => `
+      <tr>
+        <td>
+          <div style="font-weight:600;font-size:12px">${r.collaboratorName||'—'}</div>
+          <div class="mono" style="font-size:10px;color:var(--muted)">${r.collaboratorEmail||''}</div>
+        </td>
+        <td>${typeLabels[r.type]||r.type}</td>
+        <td class="mono" style="font-size:11px">${r.fecha||'—'}${r.horas?'<br>'+r.horas+'h':r.dias?'<br>'+r.dias+'d':''}</td>
+        <td style="font-size:11px;max-width:180px;white-space:normal">${r.motivo||'—'}</td>
+        <td>${statusBadge(r.status)}</td>
+        <td style="font-size:11px;color:var(--text2)">${r.managerNote||'—'}</td>
+        <td class="mono" style="font-size:10px">${fmtDateShort(r.createdAt)}</td>
+      </tr>`).join('');
+  } catch(e) {
+    tb.innerHTML = `<tr><td colspan="7" style="color:var(--danger);padding:20px;text-align:center">${e.message}</td></tr>`;
+    toast('Error cargando solicitudes: ' + e.message, 'error');
+  }
+}
+
+function exportRequestsCSV() {
+  let csv = 'Colaborador,Email,Tipo,Fecha,Horas,Dias,Motivo,Estado,Nota Manager,Registrado\n';
+  _allRequests.forEach(r => {
+    const ts = r.createdAt?.seconds ? new Date(r.createdAt.seconds*1000).toISOString() : '—';
+    csv += `"${r.collaboratorName||''}","${r.collaboratorEmail||''}","${r.type||''}","${r.fecha||''}","${r.horas||''}","${r.dias||''}","${(r.motivo||'').replace(/"/g,'""')}","${r.status||''}","${(r.managerNote||'').replace(/"/g,'""')}","${ts}"\n`;
+  });
+  const blob = new Blob(['\uFEFF'+csv], {type:'text/csv;charset=utf-8;'});
+  const a = document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download=`solicitudes_${new Date().toISOString().split('T')[0]}.csv`; a.click();
+  toast('✓ Solicitudes exportadas', 'ok');
+}
+
+/* ══════════════════════════════════════
+   KEYBOARD SHORTCUTS
+══════════════════════════════════════ */
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeModal();
+  if (e.ctrlKey && e.key === 'r') { e.preventDefault(); refreshAll(); }
+});
+</script>
+</body>
+</html>
