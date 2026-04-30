@@ -1240,10 +1240,15 @@ function toast(msg, type='info') {
 
 function openModal(title, msg, onConfirm, btnClass='btn-danger') {
   document.getElementById('modal-title').textContent = title;
-  document.getElementById('modal-msg').textContent = msg;
+  document.getElementById('modal-msg').innerHTML = msg;  // innerHTML to render HTML content
   const btn = document.getElementById('modal-confirm-btn');
-  btn.className = `btn ${btnClass}`;
-  btn.onclick = () => { closeModal(); onConfirm(); };
+  if (onConfirm) {
+    btn.className = `btn ${btnClass}`;
+    btn.style.display = '';
+    btn.onclick = () => { closeModal(); onConfirm(); };
+  } else {
+    btn.style.display = 'none'; // Hide confirm button if no action
+  }
   document.getElementById('modal').style.display = 'flex';
 }
 function closeModal() { document.getElementById('modal').style.display = 'none'; }
