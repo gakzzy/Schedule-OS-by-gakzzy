@@ -685,6 +685,22 @@ window._verifyAdmin = verifyAdminAccess;
           <span class="nav-icon">▣</span> Auditoría
         </div>
       </div>
+      <div class="nav-sep"></div>
+      <div class="nav-section">
+        <div class="nav-section-label">Dev Flow</div>
+        <div class="nav-item" onclick="switchPage('contributors')" id="nav-contributors">
+          <span class="nav-icon">⌬</span> Contributors
+          <span class="nav-badge nb-green" id="contributors-count-nav">0</span>
+        </div>
+        <div class="nav-item" onclick="switchPage('submissions')" id="nav-submissions">
+          <span class="nav-icon">⊞</span> Submissions
+          <span class="nav-badge nb-orange" id="submissions-pending-nav" style="display:none">0</span>
+        </div>
+        <div class="nav-item" onclick="switchPage('review')" id="nav-review">
+          <span class="nav-icon">◈</span> Code Review
+          <span class="nav-badge nb-red" id="review-pending-nav" style="display:none">0</span>
+        </div>
+      </div>
     </nav>
 
     <!-- CONTENT -->
@@ -767,9 +783,13 @@ window._verifyAdmin = verifyAdminAccess;
               <input class="search-inp" id="user-search" placeholder="Buscar usuario..." oninput="filterUsers()"/>
               <select class="filter-sel" id="user-role-filter" onchange="filterUsers()">
                 <option value="">Todos los roles</option>
+                <option value="superadmin">Super Admin</option>
                 <option value="manager">Manager</option>
+                <option value="team_lead">Team Lead</option>
                 <option value="collaborator">Colaborador</option>
-                <option value="admin">Admin</option>
+                <option value="support">Soporte</option>
+                <option value="dev">Dev</option>
+                <option value="security">Security</option>
               </select>
               <select class="filter-sel" id="user-status-filter" onchange="filterUsers()">
                 <option value="">Todos</option>
@@ -812,9 +832,13 @@ window._verifyAdmin = verifyAdminAccess;
             <div class="table-actions">
               <select class="filter-sel" id="role-filter" onchange="filterRoles()">
                 <option value="">Todos los roles</option>
+                <option value="superadmin">Super Admin</option>
                 <option value="manager">Manager</option>
+                <option value="team_lead">Team Lead</option>
                 <option value="collaborator">Colaborador</option>
-                <option value="admin">Admin</option>
+                <option value="support">Soporte</option>
+                <option value="dev">Dev</option>
+                <option value="security">Security</option>
               </select>
             </div>
           </div>
@@ -1088,6 +1112,100 @@ window._verifyAdmin = verifyAdminAccess;
         </div>
       </div>
 
+      <!-- ══ PAGE: CONTRIBUTORS ══ -->
+      <div class="page" id="page-contributors">
+        <div class="section-header">
+          <div class="section-title">Contributors</div>
+          <div class="section-sub">// Desarrolladores con acceso al código de Schedule OS</div>
+        </div>
+        <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center">
+          <button class="btn btn-primary" onclick="openInviteContributor()">+ Invitar contributor</button>
+          <span style="font-size:11px;color:var(--muted);font-family:'IBM Plex Mono',monospace">Los contributors pueden enviar cambios al código para revisión.</span>
+        </div>
+        <div class="table-wrap">
+          <div class="table-header">
+            <div class="table-title">Equipo técnico</div>
+            <div class="table-actions">
+              <button class="btn" onclick="loadContributors()">↺ Actualizar</button>
+            </div>
+          </div>
+          <div style="overflow-x:auto">
+            <table>
+              <thead><tr>
+                <th>Contributor</th><th>Email</th><th>Rol técnico</th>
+                <th>Submissions</th><th>Último acceso</th><th>Estado</th><th>Acciones</th>
+              </tr></thead>
+              <tbody id="contributors-tbody">
+                <tr><td colspan="7" style="text-align:center;padding:24px;color:var(--muted)">Cargando contributors...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <!-- GitHub access instructions -->
+        <div style="margin-top:20px;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius);padding:20px">
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--accent);margin-bottom:10px">// Acceso a GitHub repo</div>
+          <p style="font-size:13px;color:var(--text2);margin-bottom:12px">Para que un contributor pueda hacer cambios al código, también necesita acceso al repositorio de GitHub:</p>
+          <ol style="padding-left:20px;color:var(--text2);font-size:13px;line-height:2">
+            <li>Ve a <a href="https://github.com/gakzzy/Schedule-OS-by-gakzzy/settings/access" target="_blank" style="color:var(--accent)">github.com → Settings → Collaborators</a></li>
+            <li>Clic en <strong>"Add people"</strong> y busca por GitHub username o email</li>
+            <li>Asigna rol <strong>Write</strong> (puede hacer push) o <strong>Maintain</strong> (gestión completa)</li>
+            <li>La persona recibe invitación por email para aceptar</li>
+          </ol>
+          <a href="https://github.com/gakzzy/Schedule-OS-by-gakzzy/settings/access" target="_blank" class="btn btn-primary" style="display:inline-block;margin-top:8px;text-decoration:none">→ Abrir GitHub Collaborators</a>
+        </div>
+      </div>
+
+      <!-- ══ PAGE: SUBMISSIONS ══ -->
+      <div class="page" id="page-submissions">
+        <div class="section-header">
+          <div class="section-title">Submissions</div>
+          <div class="section-sub">// Cambios de código enviados por contributors para revisión</div>
+        </div>
+        <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+          <select id="sub-filter-status" onchange="loadSubmissions()" style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:11px;padding:6px 10px;outline:none;">
+            <option value="">Todos los estados</option>
+            <option value="draft">Borrador</option>
+            <option value="submitted">Enviado</option>
+            <option value="in_review">En revisión</option>
+            <option value="needs_fix">Necesita fix</option>
+            <option value="approved">Aprobado</option>
+            <option value="rejected">Rechazado</option>
+            <option value="deployed">Desplegado</option>
+          </select>
+          <select id="sub-filter-type" onchange="loadSubmissions()" style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:11px;padding:6px 10px;outline:none;">
+            <option value="">Todos los tipos</option>
+            <option value="feature">Nueva función</option>
+            <option value="bugfix">Bug fix</option>
+            <option value="ui">UI/UX</option>
+            <option value="security">Seguridad</option>
+            <option value="performance">Performance</option>
+            <option value="docs">Documentación</option>
+          </select>
+        </div>
+        <div class="table-wrap">
+          <div class="table-header">
+            <div class="table-title">Cola de submissions</div>
+            <div class="table-actions">
+              <button class="btn" onclick="loadSubmissions()">↺ Actualizar</button>
+            </div>
+          </div>
+          <div id="submissions-list">
+            <div style="text-align:center;padding:32px;color:var(--muted)">Cargando submissions...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ PAGE: CODE REVIEW ══ -->
+      <div class="page" id="page-review">
+        <div class="section-header">
+          <div class="section-title">Code Review</div>
+          <div class="section-sub">// Pipeline de revisión antes de deploy a producción</div>
+        </div>
+        <div id="review-content">
+          <div style="text-align:center;padding:32px;color:var(--muted)">Selecciona un submission para revisar.</div>
+        </div>
+      </div>
+
     </div><!-- end content -->
   </div><!-- end app-layout -->
 </div><!-- end app -->
@@ -1147,7 +1265,16 @@ function initials(name) {
 function flagMap(c) { return {do:'🇩🇴',ca:'🇨🇦',fr:'🇫🇷',us:'🇺🇸'}[c]||'🌍'; }
 function rolePill(role) {
   if (!role) return '<span class="badge b-gray">—</span>';
-  const map = { manager:'<span class="badge b-purple">Manager</span>', collaborator:'<span class="badge b-green">Colaborador</span>', admin:'<span class="badge b-red">Admin</span>', superadmin:'<span class="badge b-red">Superadmin</span>' };
+  const map = {
+    superadmin:   '<span class="badge b-red">⬡ Super Admin</span>',
+    manager:      '<span class="badge b-purple">🏢 Manager</span>',
+    team_lead:    '<span class="badge" style="background:rgba(34,211,238,0.1);color:#22d3ee;border-color:rgba(34,211,238,0.3)">⭐ Team Lead</span>',
+    support:      '<span class="badge b-green">🛠 Soporte</span>',
+    dev:          '<span class="badge b-orange">⚡ Dev</span>',
+    security:     '<span class="badge" style="background:rgba(248,113,113,0.1);color:#f87171;border-color:rgba(248,113,113,0.3)">🔒 Security</span>',
+    collaborator: '<span class="badge b-green">👤 Colaborador</span>',
+    admin:        '<span class="badge b-red">Admin</span>',
+  };
   return map[role] || `<span class="badge b-gray">${role}</span>`;
 }
 function statusBadge(suspended) {
@@ -1177,15 +1304,18 @@ function switchPage(page) {
   document.getElementById('page-' + page)?.classList.add('active');
   document.getElementById('nav-' + page)?.classList.add('active');
   const loaders = {
-    logs:     loadLogs,
-    users:    loadUsers,
-    roles:    loadRoles,
-    suspended:loadSuspended,
-    metrics:  loadMetrics,
-    admins:   loadAdmins,
-    audit:    loadAudit,
-    teams:    loadTeams,
-    requests: loadRequests,
+    logs:         loadLogs,
+    users:        loadUsers,
+    roles:        loadRoles,
+    suspended:    loadSuspended,
+    metrics:      loadMetrics,
+    admins:       loadAdmins,
+    audit:        loadAudit,
+    teams:        loadTeams,
+    requests:     loadRequests,
+    contributors: loadContributors,
+    submissions:  loadSubmissions,
+    review:       () => {},
   };
   if (loaders[page]) loaders[page]();
 }
@@ -1233,6 +1363,7 @@ let _currentAdmin = null;
 
 async function initAdminPanel(user, adminInfo) {
   _currentAdmin = { uid: user.uid, email: user.email, ...adminInfo };
+  window._currentAdminInfo = adminInfo; // for Dev Flow
   document.getElementById('top-user-name').textContent = adminInfo.name || user.email;
   document.getElementById('top-user-role').textContent = `[${adminInfo.role||'admin'}]`;
 
@@ -1245,8 +1376,9 @@ async function initAdminPanel(user, adminInfo) {
   // Write audit log: admin logged in
   await writeAuditLog('login', 'AUTH', `Admin login: ${user.email}`);
 
-  // Start live listeners
+  // Start live listeners (including Dev Flow)
   startLiveListeners();
+  startDevFlowListeners();
 }
 
 function startLiveListeners() {
@@ -1542,9 +1674,15 @@ function filterRoles() {
       <td>${rolePill(u.role)}</td>
       <td>${flagMap(u.country)}</td>
       <td>
-        <div style="display:flex;gap:5px">
-          ${['manager','collaborator'].map(r =>
-            `<button class="btn ${u.role===r?'btn-success':''}" onclick="changeRole('${u.uid}','${u.name||u.email}','${r}')">${r==='manager'?'Manager':'Colaborador'}</button>`
+        <div style="display:flex;gap:5px;flex-wrap:wrap">
+          ${[
+            ['collaborator','👤 Colab'],
+            ['team_lead','⭐ Lead'],
+            ['manager','🏢 Manager'],
+            ['support','🛠 Soporte'],
+            ['dev','⚡ Dev'],
+          ].map(([r,label]) =>
+            `<button class="btn ${u.role===r?'btn-success':''}" onclick="changeRole('${u.uid}','${u.name||u.email}','${r}')" style="font-size:10px;padding:4px 8px">${label}</button>`
           ).join('')}
         </div>
       </td>
@@ -1552,9 +1690,14 @@ function filterRoles() {
 }
 
 async function changeRole(uid, name, newRole) {
+  // Restrict who can assign certain roles
+  const restrictedRoles = ['superadmin','security','dev','support'];
+  if (restrictedRoles.includes(newRole) && _currentAdmin?.role !== 'superadmin') {
+    toast('Solo el Super Admin puede asignar este rol', 'error'); return;
+  }
   openModal(
     'Cambiar rol',
-    `¿Cambiar el rol de "${name}" a ${newRole}?`,
+    `¿Cambiar el rol de "<strong>${name}</strong>" a <strong>${newRole === 'team_lead' ? '⭐ Team Lead' : newRole}</strong>?`,
     async () => {
       try {
         const { doc, updateDoc } = window._adminFns;
@@ -2043,8 +2186,517 @@ function exportRequestsCSV() {
 }
 
 /* ══════════════════════════════════════
-   KEYBOARD SHORTCUTS
+   DEV FLOW — CONTRIBUTORS
 ══════════════════════════════════════ */
+async function loadContributors() {
+  const tb = document.getElementById('contributors-tbody');
+  if (!tb) return;
+  tb.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--muted)">Cargando...</td></tr>`;
+  try {
+    const { collection, getDocs, query, where } = window._adminFns;
+    // Load all admins with dev/support roles
+    const snap = await getDocs(collection(window._adminDb, 'admins'));
+    const contributors = snap.docs
+      .map(d => ({ id: d.id, ...d.data() }))
+      .filter(u => ['dev','support','security'].includes(u.role));
+
+    const countEl = document.getElementById('contributors-count-nav');
+    if (countEl) countEl.textContent = contributors.length;
+
+    if (!contributors.length) {
+      tb.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="empty-icon">⌬</div>Sin contributors aún. Invita a alguien con rol Dev.</div></td></tr>`;
+      return;
+    }
+
+    // Load submission counts per contributor
+    const subsSnap = await getDocs(collection(window._adminDb, 'submissions'));
+    const subsByUser = {};
+    subsSnap.docs.forEach(d => {
+      const uid = d.data().authorId;
+      subsByUser[uid] = (subsByUser[uid] || 0) + 1;
+    });
+
+    const roleColors = { dev:'var(--warning)', support:'var(--accent)', security:'#f87171' };
+    const roleIcons = { dev:'⚡', support:'🛠', security:'🔒' };
+
+    tb.innerHTML = contributors.map(c => `
+      <tr>
+        <td style="font-weight:600">${c.name || '—'}</td>
+        <td class="mono" style="font-size:11px">${c.email || '—'}</td>
+        <td><span class="badge" style="background:${roleColors[c.role]}22;color:${roleColors[c.role]};border-color:${roleColors[c.role]}44">${roleIcons[c.role]} ${c.role}</span></td>
+        <td style="text-align:center">${subsByUser[c.id] || 0}</td>
+        <td class="mono" style="font-size:10px">${c.lastAccess ? fmtDateShort(c.lastAccess) : '—'}</td>
+        <td><span class="badge ${c.active ? 'b-green' : 'b-red'}">${c.active ? 'Activo' : 'Inactivo'}</span></td>
+        <td>
+          <button class="btn" onclick="viewContributorActivity('${c.id}','${c.name||c.email}')">Ver actividad</button>
+          ${c.active
+            ? `<button class="btn btn-danger" onclick="revokeContributorAccess('${c.id}','${c.name||c.email}')" style="margin-left:4px">Revocar</button>`
+            : `<button class="btn btn-success" onclick="restoreContributorAccess('${c.id}','${c.name||c.email}')" style="margin-left:4px">Restaurar</button>`}
+        </td>
+      </tr>`).join('');
+  } catch(e) {
+    tb.innerHTML = `<tr><td colspan="7" style="color:var(--danger);padding:20px;text-align:center">${e.message}</td></tr>`;
+  }
+}
+
+function openInviteContributor() {
+  openModal('Invitar Contributor', `
+    <p style="font-size:13px;color:var(--text2);margin-bottom:16px;line-height:1.6">
+      Para dar acceso a un contributor debes hacer dos cosas:
+    </p>
+    <div style="background:var(--surface3);border-radius:8px;padding:14px;margin-bottom:14px">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--accent);margin-bottom:8px">// Paso 1 — Crear doc en Firestore</div>
+      <p style="font-size:12px;color:var(--text2);margin-bottom:8px">Ve a Firebase Console → Firestore → colección <strong>admins</strong> → nuevo documento:</p>
+      <pre style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text2);line-height:1.8">uid    → UID del usuario en Firebase Auth
+email  → su@email.com
+name   → Nombre Apellido
+role   → dev  (o support / security)
+active → true</pre>
+    </div>
+    <div style="background:var(--surface3);border-radius:8px;padding:14px">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--accent);margin-bottom:8px">// Paso 2 — Dar acceso a GitHub</div>
+      <p style="font-size:12px;color:var(--text2);margin-bottom:8px">Para que puedan editar el código:</p>
+      <a href="https://github.com/gakzzy/Schedule-OS-by-gakzzy/settings/access" target="_blank" style="color:var(--accent);font-size:12px">→ github.com → Settings → Collaborators → Add people</a>
+    </div>
+    <div style="margin-top:14px;background:rgba(255,180,68,0.08);border:1px solid rgba(255,180,68,0.2);border-radius:8px;padding:12px">
+      <p style="font-size:11px;color:var(--warning)">⚠ Siempre usa el rol mínimo necesario. Los devs ven logs y métricas pero no pueden borrar usuarios ni tocar datos de producción.</p>
+    </div>`, null);
+}
+
+async function viewContributorActivity(uid, name) {
+  const { collection, query, where, getDocs, orderBy, limit } = window._adminFns;
+  try {
+    const [auditSnap, subSnap] = await Promise.all([
+      getDocs(query(collection(window._adminDb, 'admin_audit'), where('actorId','==',uid))),
+      getDocs(query(collection(window._adminDb, 'submissions'), where('authorId','==',uid))),
+    ]);
+    const audits = auditSnap.docs.map(d=>d.data()).sort((a,b)=>(b.ts?.seconds||0)-(a.ts?.seconds||0)).slice(0,10);
+    const subs = subSnap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
+    const statusColors = { draft:'var(--muted)', submitted:'var(--warning)', in_review:'var(--accent)', needs_fix:'#f87171', approved:'var(--success)', rejected:'var(--danger)', deployed:'var(--accent)' };
+    openModal(`Actividad de ${name}`, `
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--accent);margin-bottom:10px">Submissions (${subs.length})</div>
+          ${subs.length ? subs.map(s=>`
+            <div style="padding:8px;background:var(--surface3);border-radius:6px;margin-bottom:6px;cursor:pointer" onclick="openReviewPage('${s.id}')">
+              <div style="font-size:12px;font-weight:600;color:var(--text)">${s.title||'Sin título'}</div>
+              <div style="display:flex;gap:6px;margin-top:4px">
+                <span style="font-size:10px;padding:1px 6px;border-radius:4px;background:${statusColors[s.status]||'var(--muted)'}22;color:${statusColors[s.status]||'var(--muted)'}">${s.status}</span>
+                <span style="font-size:10px;color:var(--muted)">${fmtDateShort(s.createdAt)}</span>
+              </div>
+            </div>`).join('') : '<div style="color:var(--muted);font-size:12px">Sin submissions</div>'}
+        </div>
+        <div>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--accent);margin-bottom:10px">Audit log (${audits.length})</div>
+          ${audits.length ? audits.map(a=>`
+            <div style="padding:6px 0;border-bottom:1px solid var(--border)">
+              <div style="font-size:11px;color:var(--text2)">${a.action||'—'}</div>
+              <div style="font-size:10px;color:var(--muted)">${fmtDateShort(a.ts)}</div>
+            </div>`).join('') : '<div style="color:var(--muted);font-size:12px">Sin actividad</div>'}
+        </div>
+      </div>`, null);
+  } catch(e) { toast('Error: ' + e.message, 'error'); }
+}
+
+async function revokeContributorAccess(uid, name) {
+  openModal(`Revocar acceso de ${name}`, `<p style="color:var(--text2);font-size:13px">¿Revocar acceso al Admin Console de <strong>${name}</strong>? Esto no borra su cuenta ni su acceso a GitHub.</p>`, async () => {
+    const { doc, updateDoc } = window._adminFns;
+    await updateDoc(doc(window._adminDb, 'admins', uid), { active: false });
+    await writeAuditLog('revoke_contributor', uid, `Acceso revocado a ${name}`);
+    toast('Acceso revocado', 'ok'); loadContributors();
+  });
+}
+
+async function restoreContributorAccess(uid, name) {
+  const { doc, updateDoc } = window._adminFns;
+  await updateDoc(doc(window._adminDb, 'admins', uid), { active: true });
+  await writeAuditLog('restore_contributor', uid, `Acceso restaurado a ${name}`);
+  toast('Acceso restaurado', 'ok'); loadContributors();
+}
+
+/* ══════════════════════════════════════
+   DEV FLOW — SUBMISSIONS
+══════════════════════════════════════ */
+let _allSubmissions = [];
+
+async function loadSubmissions() {
+  const listEl = document.getElementById('submissions-list');
+  if (!listEl) return;
+  listEl.innerHTML = `<div style="text-align:center;padding:24px;color:var(--muted)">Cargando...</div>`;
+  try {
+    const { collection, getDocs } = window._adminFns;
+    const snap = await getDocs(collection(window._adminDb, 'submissions'));
+    _allSubmissions = snap.docs
+      .map(d => ({ id: d.id, ...d.data() }))
+      .sort((a,b) => (b.createdAt?.seconds||0) - (a.createdAt?.seconds||0));
+
+    const filterStatus = document.getElementById('sub-filter-status')?.value || '';
+    const filterType = document.getElementById('sub-filter-type')?.value || '';
+    const filtered = _allSubmissions.filter(s =>
+      (!filterStatus || s.status === filterStatus) &&
+      (!filterType || s.type === filterType)
+    );
+
+    // Update badges
+    const pending = _allSubmissions.filter(s => ['submitted','in_review'].includes(s.status)).length;
+    const subNav = document.getElementById('submissions-pending-nav');
+    const revNav = document.getElementById('review-pending-nav');
+    if (subNav) { subNav.textContent = pending; subNav.style.display = pending > 0 ? '' : 'none'; }
+    if (revNav) {
+      const needsReview = _allSubmissions.filter(s => s.status === 'submitted').length;
+      revNav.textContent = needsReview; revNav.style.display = needsReview > 0 ? '' : 'none';
+    }
+
+    if (!filtered.length) {
+      listEl.innerHTML = `<div style="text-align:center;padding:32px;color:var(--muted)">Sin submissions${filterStatus||filterType?' para estos filtros':''}</div>`;
+      return;
+    }
+
+    const statusConfig = {
+      draft:      { label:'Borrador',      color:'var(--muted)',    bg:'var(--surface3)' },
+      submitted:  { label:'Enviado',       color:'var(--warning)',  bg:'rgba(255,180,68,0.1)' },
+      in_review:  { label:'En revisión',   color:'var(--accent)',   bg:'rgba(77,166,255,0.1)' },
+      needs_fix:  { label:'Necesita fix',  color:'#f87171',         bg:'rgba(248,113,113,0.1)' },
+      approved:   { label:'Aprobado',      color:'var(--success)',  bg:'rgba(0,224,168,0.1)' },
+      rejected:   { label:'Rechazado',     color:'var(--danger)',   bg:'rgba(255,92,106,0.1)' },
+      deployed:   { label:'Desplegado',    color:'var(--accent)',   bg:'rgba(77,166,255,0.1)' },
+    };
+    const typeIcon = { feature:'✨', bugfix:'🐛', ui:'🎨', security:'🔒', performance:'⚡', docs:'📝' };
+
+    listEl.innerHTML = filtered.map(s => {
+      const st = statusConfig[s.status] || statusConfig.draft;
+      return `
+        <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:16px 20px;margin-bottom:10px;cursor:pointer;transition:border-color .15s"
+          onclick="openReviewPage('${s.id}')"
+          onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border2)'">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:8px">
+            <div style="flex:1">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+                <span style="font-size:14px">${typeIcon[s.type]||'📦'}</span>
+                <span style="font-size:14px;font-weight:700;color:var(--text)">${s.title||'Sin título'}</span>
+              </div>
+              <div style="font-size:12px;color:var(--text2);line-height:1.5">${(s.description||'').slice(0,120)}${(s.description||'').length>120?'...':''}</div>
+            </div>
+            <span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:99px;background:${st.bg};color:${st.color};white-space:nowrap;flex-shrink:0">${st.label}</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+            <span style="font-size:10px;color:var(--muted);font-family:'IBM Plex Mono',monospace">#${s.id.slice(-6).toUpperCase()}</span>
+            <span style="font-size:10px;color:var(--muted)">por ${s.authorName||'—'}</span>
+            <span style="font-size:10px;color:var(--muted)">${fmtDateShort(s.createdAt)}</span>
+            ${s.checksPassed !== undefined ? `<span style="font-size:10px;color:${s.checksPassed?'var(--success)':'#f87171'}">${s.checksPassed?'✓ checks OK':'✗ checks fallaron'}</span>` : ''}
+            ${s.reviewerName ? `<span style="font-size:10px;color:var(--accent)">Revisor: ${s.reviewerName}</span>` : ''}
+          </div>
+        </div>`;
+    }).join('');
+  } catch(e) {
+    listEl.innerHTML = `<div style="color:var(--danger);padding:20px;text-align:center">${e.message}</div>`;
+    toast('Error cargando submissions: ' + e.message, 'error');
+  }
+}
+
+/* ══════════════════════════════════════
+   DEV FLOW — CODE REVIEW
+══════════════════════════════════════ */
+async function openReviewPage(submissionId) {
+  switchPage('review');
+  const el = document.getElementById('review-content');
+  if (!el) return;
+  el.innerHTML = `<div style="text-align:center;padding:24px;color:var(--muted)">Cargando submission...</div>`;
+
+  try {
+    const { doc, getDoc, collection, getDocs, query, where, orderBy, addDoc, updateDoc, serverTimestamp } = window._adminFns;
+    const snap = await getDoc(doc(window._adminDb, 'submissions', submissionId));
+    if (!snap.exists()) { el.innerHTML = '<div style="color:var(--danger)">Submission no encontrado</div>'; return; }
+    const s = { id: snap.id, ...snap.data() };
+
+    // Load comments
+    const commentsSnap = await getDocs(
+      query(collection(window._adminDb, 'submission_comments'), where('submissionId','==',submissionId))
+    );
+    const comments = commentsSnap.docs
+      .map(d => ({ id:d.id, ...d.data() }))
+      .sort((a,b) => (a.ts?.seconds||0) - (b.ts?.seconds||0));
+
+    const statusConfig = {
+      draft:     { label:'Borrador',     color:'var(--muted)' },
+      submitted: { label:'Enviado',      color:'var(--warning)' },
+      in_review: { label:'En revisión',  color:'var(--accent)' },
+      needs_fix: { label:'Necesita fix', color:'#f87171' },
+      approved:  { label:'Aprobado',     color:'var(--success)' },
+      rejected:  { label:'Rechazado',    color:'var(--danger)' },
+      deployed:  { label:'Desplegado',   color:'var(--accent)' },
+    };
+    const st = statusConfig[s.status] || statusConfig.draft;
+    const canApprove = ['submitted','in_review','needs_fix'].includes(s.status);
+    const canDeploy = s.status === 'approved';
+
+    el.innerHTML = `
+      <div style="max-width:900px">
+        <!-- Header -->
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:24px;flex-wrap:wrap">
+          <div>
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted)">#${s.id.slice(-6).toUpperCase()}</span>
+              <span style="font-size:13px;font-weight:700;padding:3px 10px;border-radius:99px;background:${st.color}22;color:${st.color}">${st.label}</span>
+            </div>
+            <h2 style="font-size:20px;font-weight:700;color:var(--text);margin-bottom:4px">${s.title||'Sin título'}</h2>
+            <div style="font-size:12px;color:var(--muted)">por <strong>${s.authorName||'—'}</strong> · ${fmtDateShort(s.createdAt)}</div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            ${s.status === 'submitted' ? `<button class="btn" onclick="setSubmissionStatus('${s.id}','in_review')" style="background:rgba(77,166,255,0.1);border-color:var(--accent);color:var(--accent)">▶ Iniciar revisión</button>` : ''}
+            ${canApprove ? `
+              <button class="btn btn-success" onclick="approveSubmission('${s.id}')">✓ Aprobar</button>
+              <button class="btn" onclick="requestFix('${s.id}')" style="background:rgba(255,180,68,0.1);border-color:var(--warning);color:var(--warning)">⚠ Pedir fix</button>
+              <button class="btn btn-danger" onclick="rejectSubmission('${s.id}')">✕ Rechazar</button>` : ''}
+            ${canDeploy ? `<button class="btn btn-primary" onclick="deploySubmission('${s.id}')" style="background:var(--accent)">🚀 Deploy</button>` : ''}
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 340px;gap:20px">
+          <!-- Main content -->
+          <div>
+            <!-- Description -->
+            <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:16px 20px;margin-bottom:16px">
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">Descripción</div>
+              <p style="font-size:13px;color:var(--text2);line-height:1.7;white-space:pre-wrap">${s.description||'Sin descripción'}</p>
+            </div>
+
+            <!-- Auto-checks results -->
+            <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:16px 20px;margin-bottom:16px">
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px">Auto-checks</div>
+              ${renderAutoChecks(s)}
+            </div>
+
+            <!-- Files changed -->
+            ${s.filesChanged?.length ? `
+            <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:16px 20px;margin-bottom:16px">
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px">Archivos modificados (${s.filesChanged.length})</div>
+              ${s.filesChanged.map(f=>`
+                <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
+                  <span style="font-size:11px;color:${f.type==='added'?'var(--success)':f.type==='deleted'?'var(--danger)':'var(--accent)'}">${f.type==='added'?'+':f.type==='deleted'?'-':'M'}</span>
+                  <span style="font-size:12px;font-family:'IBM Plex Mono',monospace;color:var(--text2)">${f.name}</span>
+                  ${f.additions!==undefined?`<span style="font-size:10px;color:var(--success);margin-left:auto">+${f.additions}</span>`:''}
+                  ${f.deletions!==undefined?`<span style="font-size:10px;color:var(--danger)">-${f.deletions}</span>`:''}
+                </div>`).join('')}
+            </div>` : ''}
+
+            <!-- Comments -->
+            <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:16px 20px">
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px">Comentarios (${comments.length})</div>
+              <div id="review-comments">
+                ${comments.length ? comments.map(c => `
+                  <div style="padding:10px 0;border-bottom:1px solid var(--border)">
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+                      <span style="font-size:12px;font-weight:600;color:var(--text)">${c.authorName||'—'}</span>
+                      <span style="font-size:10px;color:var(--muted)">${fmtDateShort(c.ts)}</span>
+                      ${c.type==='approval'?`<span style="font-size:10px;color:var(--success)">✓ Aprobó</span>`:''}
+                      ${c.type==='rejection'?`<span style="font-size:10px;color:var(--danger)">✕ Rechazó</span>`:''}
+                      ${c.type==='fix_request'?`<span style="font-size:10px;color:var(--warning)">⚠ Fix solicitado</span>`:''}
+                    </div>
+                    <div style="font-size:13px;color:var(--text2);white-space:pre-wrap">${c.body||''}</div>
+                  </div>`).join('') : '<div style="color:var(--muted);font-size:12px;padding:8px 0">Sin comentarios aún</div>'}
+              </div>
+              <div style="margin-top:14px">
+                <textarea id="review-comment-input" placeholder="Escribe un comentario..." style="width:100%;min-height:72px;background:var(--surface3);border:1px solid var(--border2);border-radius:8px;color:var(--text);font-family:inherit;font-size:12px;padding:10px;outline:none;resize:vertical;box-sizing:border-box;line-height:1.5"></textarea>
+                <div style="display:flex;justify-content:flex-end;margin-top:8px">
+                  <button onclick="postReviewComment('${s.id}')" class="btn btn-primary">Comentar</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sidebar info -->
+          <div>
+            <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:16px;margin-bottom:12px">
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px">Detalles</div>
+              <div style="display:flex;flex-direction:column;gap:10px">
+                <div><div style="font-size:10px;color:var(--muted)">Tipo</div><div style="font-size:12px;font-weight:600;color:var(--text);margin-top:2px">${s.type||'—'}</div></div>
+                <div><div style="font-size:10px;color:var(--muted)">Prioridad</div><div style="font-size:12px;font-weight:600;color:${s.priority==='high'?'var(--danger)':s.priority==='medium'?'var(--warning)':'var(--muted)'};margin-top:2px">${s.priority||'—'}</div></div>
+                <div><div style="font-size:10px;color:var(--muted)">Branch / Versión</div><div style="font-size:11px;font-family:'IBM Plex Mono',monospace;color:var(--text2);margin-top:2px">${s.branch||'—'}</div></div>
+                <div><div style="font-size:10px;color:var(--muted)">Revisor asignado</div><div style="font-size:12px;color:var(--text2);margin-top:2px">${s.reviewerName||'Sin asignar'}</div></div>
+              </div>
+            </div>
+
+            <!-- Assign reviewer -->
+            <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:16px;margin-bottom:12px">
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px">Asignar revisor</div>
+              <select id="reviewer-select" style="width:100%;background:var(--surface3);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-family:inherit;font-size:12px;padding:7px;outline:none;margin-bottom:8px">
+                <option value="">Sin asignar</option>
+              </select>
+              <button onclick="assignReviewer('${s.id}')" class="btn" style="width:100%">Asignar</button>
+            </div>
+
+            <!-- History -->
+            <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:16px">
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px">Historial</div>
+              ${(s.history||[]).map(h=>`
+                <div style="display:flex;gap:8px;padding:5px 0;border-bottom:1px solid var(--border)">
+                  <div style="width:6px;height:6px;border-radius:50%;background:var(--accent);margin-top:5px;flex-shrink:0"></div>
+                  <div>
+                    <div style="font-size:11px;color:var(--text2)">${h.action||'—'}</div>
+                    <div style="font-size:10px;color:var(--muted)">${h.by||''} · ${fmtDateShort(h.ts)}</div>
+                  </div>
+                </div>`).join('') || '<div style="font-size:11px;color:var(--muted)">Sin historial</div>'}
+            </div>
+          </div>
+        </div>
+      </div>`;
+
+    // Load reviewers into select
+    loadReviewersSelect(s.reviewerId);
+
+  } catch(e) {
+    el.innerHTML = `<div style="color:var(--danger);padding:20px">${e.message}</div>`;
+    toast('Error: ' + e.message, 'error');
+  }
+}
+
+function renderAutoChecks(s) {
+  const checks = s.autoChecks || {};
+  const items = [
+    { key:'jsValid',    label:'JavaScript válido',        icon:'⚡', pass: checks.jsValid !== false },
+    { key:'noUIDs',     label:'Sin UIDs en el código',    icon:'🔒', pass: checks.noUIDs !== false },
+    { key:'noSecrets',  label:'Sin credenciales expuestas',icon:'🔑', pass: checks.noSecrets !== false },
+    { key:'htmlValid',  label:'HTML balanceado',           icon:'🌐', pass: checks.htmlValid !== false },
+    { key:'sizeOk',     label:'Tamaño < 2MB',              icon:'📦', pass: checks.sizeOk !== false },
+    { key:'noConsole',  label:'Sin console.error expuestos',icon:'🪲', pass: checks.noConsole !== false },
+  ];
+  const allPending = !Object.keys(checks).length;
+  if (allPending) return `<div style="font-size:12px;color:var(--muted)">⏳ Checks pendientes de ejecución</div>`;
+  return items.map(item => `
+    <div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border)">
+      <span style="color:${item.pass ? 'var(--success)' : 'var(--danger)'}">${item.pass ? '✓' : '✗'}</span>
+      <span style="font-size:12px;color:var(--text2)">${item.icon} ${item.label}</span>
+      <span style="margin-left:auto;font-size:10px;color:${item.pass?'var(--success)':'var(--danger)'}">${checks[item.key] === undefined ? 'N/A' : item.pass ? 'PASS' : 'FAIL'}</span>
+    </div>`).join('');
+}
+
+async function loadReviewersSelect(currentReviewerId) {
+  const sel = document.getElementById('reviewer-select');
+  if (!sel) return;
+  try {
+    const { collection, getDocs } = window._adminFns;
+    const snap = await getDocs(collection(window._adminDb, 'admins'));
+    const admins = snap.docs.map(d=>({id:d.id,...d.data()})).filter(a=>a.active);
+    admins.forEach(a => {
+      const opt = document.createElement('option');
+      opt.value = a.id; opt.textContent = `${a.name} (${a.role})`;
+      if (a.id === currentReviewerId) opt.selected = true;
+      sel.appendChild(opt);
+    });
+  } catch(e) {}
+}
+
+async function setSubmissionStatus(id, status, extra = {}) {
+  const { doc, updateDoc, arrayUnion, serverTimestamp } = window._adminFns;
+  const adminInfo = window._currentAdminInfo;
+  await updateDoc(doc(window._adminDb, 'submissions', id), {
+    status,
+    updatedAt: serverTimestamp(),
+    history: arrayUnion({ action: `Estado → ${status}`, by: adminInfo?.name || 'Admin', ts: { seconds: Math.floor(Date.now()/1000) } }),
+    ...extra,
+  });
+  await writeAuditLog('submission_status_change', id, `Submission ${id.slice(-6)} → ${status}`);
+  toast(`Estado actualizado: ${status}`, 'ok');
+  loadSubmissions();
+  openReviewPage(id);
+}
+
+async function approveSubmission(id) {
+  const note = prompt('Nota de aprobación (opcional):','');
+  await setSubmissionStatus(id, 'approved', { approvedBy: window._currentAdminInfo?.name, approvedAt: { seconds: Math.floor(Date.now()/1000) } });
+  await postReviewCommentDirect(id, note || 'Aprobado. Listo para deploy.', 'approval');
+}
+
+async function requestFix(id) {
+  const note = prompt('¿Qué necesita arreglarse?', '');
+  if (!note) return;
+  await setSubmissionStatus(id, 'needs_fix');
+  await postReviewCommentDirect(id, note, 'fix_request');
+}
+
+async function rejectSubmission(id) {
+  const reason = prompt('Motivo del rechazo:', '');
+  if (!reason) return;
+  await setSubmissionStatus(id, 'rejected');
+  await postReviewCommentDirect(id, reason, 'rejection');
+}
+
+async function deploySubmission(id) {
+  openModal('🚀 Deploy a producción', `
+    <p style="color:var(--text2);font-size:13px;margin-bottom:16px">
+      Este submission ha sido aprobado. Para desplegarlo a producción:
+    </p>
+    <div style="background:var(--surface3);border-radius:8px;padding:14px;margin-bottom:14px">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--accent);margin-bottom:8px">// Opción 1 — GitHub (recomendado)</div>
+      <ol style="padding-left:16px;color:var(--text2);font-size:12px;line-height:2">
+        <li>Ve al repositorio en GitHub</li>
+        <li>Haz merge del PR o sube el archivo actualizado</li>
+        <li>GitHub Pages desplegará automáticamente en ~2 min</li>
+      </ol>
+      <a href="https://github.com/gakzzy/Schedule-OS-by-gakzzy" target="_blank" class="btn btn-primary" style="display:inline-block;margin-top:8px;text-decoration:none;font-size:11px">→ Abrir GitHub</a>
+    </div>
+    <div style="background:var(--surface3);border-radius:8px;padding:14px">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--accent);margin-bottom:8px">// Opción 2 — Marcar como desplegado manualmente</div>
+      <p style="font-size:12px;color:var(--muted)">Una vez que hayas subido los cambios a GitHub, marca este submission como desplegado.</p>
+    </div>`,
+  async () => {
+    await setSubmissionStatus(id, 'deployed', { deployedAt: { seconds: Math.floor(Date.now()/1000) }, deployedBy: window._currentAdminInfo?.name });
+    toast('✓ Marcado como desplegado', 'ok');
+  });
+}
+
+async function assignReviewer(submissionId) {
+  const sel = document.getElementById('reviewer-select');
+  if (!sel?.value) return;
+  const { doc, updateDoc, collection, getDoc } = window._adminFns;
+  const adminSnap = await getDoc(doc(window._adminDb, 'admins', sel.value));
+  const reviewerName = adminSnap.exists() ? adminSnap.data().name : '—';
+  await updateDoc(doc(window._adminDb, 'submissions', submissionId), {
+    reviewerId: sel.value, reviewerName,
+  });
+  toast(`Revisor asignado: ${reviewerName}`, 'ok');
+  openReviewPage(submissionId);
+}
+
+async function postReviewComment(submissionId) {
+  const input = document.getElementById('review-comment-input');
+  const body = input?.value?.trim();
+  if (!body) return;
+  await postReviewCommentDirect(submissionId, body, 'comment');
+  if (input) input.value = '';
+  openReviewPage(submissionId);
+}
+
+async function postReviewCommentDirect(submissionId, body, type = 'comment') {
+  const { collection, addDoc, serverTimestamp } = window._adminFns;
+  const adminInfo = window._currentAdminInfo;
+  await addDoc(collection(window._adminDb, 'submission_comments'), {
+    submissionId, body, type,
+    authorId: auth.currentUser?.uid,
+    authorName: adminInfo?.name || 'Admin',
+    ts: serverTimestamp(),
+  });
+}
+
+/* ══════════════════════════════════════
+   DEV FLOW — LIVE LISTENERS
+══════════════════════════════════════ */
+function startDevFlowListeners() {
+  const { collection, query, where, onSnapshot } = window._adminFns;
+  // Watch pending submissions
+  onSnapshot(
+    query(collection(window._adminDb, 'submissions'), where('status', 'in', ['submitted','in_review'])),
+    snap => {
+      const count = snap.size;
+      const subNav = document.getElementById('submissions-pending-nav');
+      const revNav = document.getElementById('review-pending-nav');
+      const needsReview = snap.docs.filter(d => d.data().status === 'submitted').length;
+      if (subNav) { subNav.textContent = count; subNav.style.display = count > 0 ? '' : 'none'; }
+      if (revNav) { revNav.textContent = needsReview; revNav.style.display = needsReview > 0 ? '' : 'none'; }
+    }
+  );
+}
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') closeModal();
   if (e.ctrlKey && e.key === 'r') { e.preventDefault(); refreshAll(); }
