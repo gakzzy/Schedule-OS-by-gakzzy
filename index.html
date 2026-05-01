@@ -541,8 +541,8 @@ footer{
     <a href="#industries" class="nav-link">Industrias</a>
     <a href="#pricing" class="nav-link">Precios</a>
     <a href="app.html" class="nav-link">Demo</a>
-    <a href="app.html" class="nav-login">Iniciar sesión</a>
-    <a href="app.html" class="nav-cta">Comenzar gratis →</a>
+    <a href="app.html?action=login" class="nav-login">Iniciar sesión</a>
+    <a href="app.html?action=register" class="nav-cta">Comenzar gratis →</a>
   </div>
 </nav>
 
@@ -561,11 +561,11 @@ footer{
     Una sola plataforma para cualquier industria.
   </p>
   <div class="hero-actions">
-    <a href="app.html" class="btn-primary">
+    <a href="app.html?action=register" class="btn-primary">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
       Comenzar gratis
     </a>
-    <a href="app.html" class="btn-secondary">
+    <a href="app.html?action=login" class="btn-secondary">
       Iniciar sesión →
     </a>
   </div>
@@ -791,7 +791,7 @@ footer{
           <li class="disabled">Admin Panel</li>
           <li class="disabled">Soporte prioritario</li>
         </ul>
-        <a href="app.html" class="plan-cta secondary">Comenzar gratis</a>
+        <a href="app.html?action=register" class="plan-cta secondary">Comenzar gratis →</a>
       </div>
       <!-- Pro -->
       <div class="pricing-card popular">
@@ -811,7 +811,7 @@ footer{
           <li>Vista Stand-up</li>
           <li class="disabled">Admin Panel completo</li>
         </ul>
-        <a href="app.html" class="plan-cta primary">Empezar Pro →</a>
+        <button onclick="showPlanUnavailable('Pro')" class="plan-cta primary" style="border:none;cursor:pointer;width:100%">Empezar Pro → 🔒</button>
       </div>
       <!-- Business -->
       <div class="pricing-card">
@@ -830,7 +830,7 @@ footer{
           <li>API access (próximamente)</li>
           <li class="disabled">SLA garantizado</li>
         </ul>
-        <a href="app.html" class="plan-cta secondary">Empezar Business →</a>
+        <button onclick="showPlanUnavailable('Business')" class="plan-cta secondary" style="border:none;cursor:pointer;width:100%">Empezar Business → 🔒</button>
       </div>
       <!-- Enterprise -->
       <div class="pricing-card" style="border-color:rgba(192,132,252,0.3);background:rgba(192,132,252,0.03)">
@@ -1112,6 +1112,27 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
     document.getElementById(id)?.scrollIntoView({behavior:'smooth', block:'start'});
   });
 });
+function showPlanUnavailable(planName) {
+  const existing = document.getElementById('plan-unavail-modal');
+  if (existing) existing.remove();
+  const modal = document.createElement('div');
+  modal.id = 'plan-unavail-modal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:999;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(8px)';
+  modal.innerHTML = `
+    <div style="background:#0d1117;border:1px solid #30363d;border-radius:16px;padding:32px 28px;max-width:380px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.5)">
+      <div style="font-size:40px;margin-bottom:12px">🚧</div>
+      <div style="font-size:20px;font-weight:800;color:#fff;margin-bottom:8px;font-family:'Syne',sans-serif">Plan ${planName}</div>
+      <div style="font-size:14px;color:#8b949e;line-height:1.6;margin-bottom:12px">Este plan estará disponible próximamente.</div>
+      <div style="background:rgba(0,224,168,0.08);border:1px solid rgba(0,224,168,0.2);border-radius:10px;padding:14px;margin-bottom:20px">
+        <div style="font-size:14px;color:#00e0a8;font-weight:700;margin-bottom:4px">🎁 Buenas noticias</div>
+        <div style="font-size:13px;color:#c9d1d9;line-height:1.5">Por ahora tienes acceso completo a <strong>Enterprise Demo</strong> gratis por <strong>12 meses</strong>. Sin límites, sin tarjeta.</div>
+      </div>
+      <a href="app.html?action=register" style="display:block;background:#4da6ff;color:#fff;border-radius:10px;padding:12px 24px;text-decoration:none;font-weight:700;font-size:14px;margin-bottom:10px">Comenzar Enterprise Demo →</a>
+      <button onclick="document.getElementById('plan-unavail-modal').remove()" style="background:none;border:1px solid #30363d;border-radius:10px;color:#8b949e;padding:10px 20px;cursor:pointer;font-family:inherit;font-size:13px;width:100%">Cerrar</button>
+    </div>`;
+  modal.onclick = e => { if(e.target===modal) modal.remove(); };
+  document.body.appendChild(modal);
+}
 </script>
 </body>
 </html>
