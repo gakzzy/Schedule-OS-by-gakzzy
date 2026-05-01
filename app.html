@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<meta name="app-version" content="5.1.3"/>
+<meta http-equiv="X-Content-Type-Options" content="nosniff"/>
+<meta name="referrer" content="strict-origin-when-cross-origin"/>
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
@@ -3922,12 +3925,12 @@ button, [onclick], .nav-item, .country-card, .lang-card, .kpi-card[style*="curso
   <svg viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg>
 </button>
 
-<!-- External Libraries -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<!-- External Libraries — crossorigin for security -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script>if(window.pdfjsLib){pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";}</script>
-<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script>
   // Initialize EmailJS
   if (typeof emailjs !== 'undefined') emailjs.init(atob('OGpmR1FNdERLcVVncXJYMXU='));
@@ -4076,31 +4079,58 @@ const INDUSTRY_TEMPLATES = {
 function applyIndustryTemplate(industryKey) {
   const tpl = INDUSTRY_TEMPLATES[industryKey];
   if (!tpl) return;
-  // Apply groups
+
+  // Confirm if team has members already
+  const hasMembers = GROUP_DEFS.some(g => g.members && g.members.length > 0);
+  if (hasMembers) {
+    if (!confirm(`¿Aplicar la plantilla "${tpl.name}"?\n\nEsto cambiará los nombres de los grupos. Los miembros y horarios se conservan.`)) return;
+  }
+
+  // Apply groups — preserve existing members by matching index
+  const oldMembers = GROUP_DEFS.map(g => g.members || []);
   GROUP_DEFS.length = 0;
-  tpl.groups.forEach(g => GROUP_DEFS.push({ ...g, members: [] }));
-  // Apply case types
+  tpl.groups.forEach((g, i) => {
+    GROUP_DEFS.push({
+      ...g,
+      members: oldMembers[i] || [],
+    });
+  });
+
+  // Always apply case types (overwrite existing)
   try {
-    const existing = JSON.parse(localStorage.getItem('scheduleOS_caseTypes') || '[]');
-    if (!existing.length) {
-      const newTypes = tpl.caseTypes.map((name,i) => ({
-        id: `ct_${Date.now()}_${i}`, name,
-        color: ['#4da6ff','#00e0a8','#ffb444','#c084fc','#ff5c6a','#22d3ee','#f472b6'][i % 7],
-        sla: 3,
-      }));
-      localStorage.setItem('scheduleOS_caseTypes', JSON.stringify(newTypes));
-    }
+    const newTypes = tpl.caseTypes.map((name, i) => ({
+      id: `ct_${Date.now()}_${i}`, name,
+      color: ['#4da6ff','#00e0a8','#ffb444','#c084fc','#ff5c6a','#22d3ee','#f472b6'][i % 7],
+      sla: 3,
+    }));
+    localStorage.setItem('scheduleOS_caseTypes', JSON.stringify(newTypes));
+    // Reload case types into memory
+    if (typeof loadCaseTypes === 'function') loadCaseTypes();
   } catch(e) {}
+
   // Apply routing
-  TASK_ROUTING = { ...tpl.routing };
+  Object.keys(TASK_ROUTING).forEach(k => delete TASK_ROUTING[k]);
+  Object.assign(TASK_ROUTING, tpl.routing);
   saveRoutingRules();
+
   // Save industry preference
   try { localStorage.setItem('scheduleOS_industry', industryKey); } catch(e) {}
-  // Re-render
+
+  // Save state
+  scheduleSave();
+
+  // Full re-render
   _invalidateAll();
-  if (activeTab === 'horarios') { renderNav(); renderGroups(); }
-  if (activeTab === 'casos') { renderMetrics(); renderCasoList(); }
-  showSaveToast(`✓ Plantilla "${tpl.name}" aplicada`);
+  renderNav();
+  renderGroups();
+  renderMetrics();
+  renderCasoList();
+
+  // Update buttons to show active
+  renderIndustryButtons();
+
+  showSaveToast(`✓ Plantilla "${tpl.name}" aplicada — ${tpl.groups.length} grupos, ${tpl.caseTypes.length} tipos de caso`, 'success');
+  logChange('other', `Plantilla de industria aplicada: ${tpl.name}`);
 }
 
 let GROUP_DEFS = [
@@ -4894,11 +4924,12 @@ function buildMemberRow(g,idx) {
   const daysToShow=viewAll?DAYS:[activeDay];
   const row=document.createElement('div');row.className='member-row';
   const top=document.createElement('div');top.className='member-top';
-  top.innerHTML=`<div class="member-avatar">${initials(m.name)}</div>`;
+  top.innerHTML=`<div class="member-avatar">${sanitize(initials(m.name))}</div>`;
   const nameInp=document.createElement('input');nameInp.className='member-name-input';nameInp.value=m.name;
   nameInp.onchange=e=>{
     const newName = e.target.value.trim();
     if(!newName || newName === m.name){ e.target.value = m.name; return; }
+    if (!validateNoProfanity(newName, 'nombre')) { e.target.value = m.name; return; }
     renameMember(g.id, idx, m.name, newName, e.target);
   };
   const remBtn=document.createElement('button');remBtn.className='btn-remove';remBtn.innerHTML='&times;';
@@ -5278,35 +5309,63 @@ function renderImportZone() {
   const rulesHtml = Object.entries(TASK_ROUTING).map(([gid, kws]) => {
     const g = GROUP_DEFS.find(x => x.id === gid);
     const label = g ? g.label : gid;
-    const col = GC_COL[gid];
-    return `<span class="rule-chip" style="border-color:${col};color:${col}"><strong>${label}:</strong> ${kws.slice(0,3).join(', ')}…</span>`;
+    const col = GC_COL[gid] || 'var(--muted)';
+    return `<span class="rule-chip" style="border-color:${col};color:${col}"><strong>${label}:</strong> ${(kws||[]).slice(0,3).join(', ')}${kws?.length>3?'…':''}</span>`;
   }).join('');
 
   const hasPreview = importedCases.length > 0;
+  const routedCount = importedCases.filter(c => c.routedGroup).length;
+  const unroutedCount = importedCases.length - routedCount;
 
   box.innerHTML = `
     <div class="import-zone">
       <div class="import-zone-header">
-        <div class="import-zone-title">📂 Importar casos — asignación automática por tipo</div>
-        <div style="font-size:11px;color:var(--muted)">PDF · Imagen · TXT · CSV</div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div>
+            <div class="import-zone-title">📂 Importar casos</div>
+            <div style="font-size:11px;color:var(--muted)">Asignación automática por tipo · PDF · Imagen · Excel · CSV · Word</div>
+          </div>
+        </div>
+        ${hasPreview ? `
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:12px;color:var(--accent-b);font-weight:600">${importedCases.length} casos detectados</span>
+          ${unroutedCount>0?`<span style="font-size:11px;color:var(--accent-c)">⚠ ${unroutedCount} sin asignar</span>`:''}
+          <button onclick="clearImport()" title="Limpiar y subir otro archivo"
+            style="background:var(--ot-dim);border:1px solid var(--ot);border-radius:var(--radius-xs);color:var(--ot);padding:5px 12px;cursor:pointer;font-family:inherit;font-size:11px;font-weight:700;display:flex;align-items:center;gap:4px">
+            🗑 Limpiar
+          </button>
+        </div>` : ''}
       </div>
       <div class="import-zone-body">
-        <div class="drop-area" id="drop-area" ondragover="event.preventDefault();this.classList.add('drag-over')" ondragleave="this.classList.remove('drag-over')" ondrop="this.classList.remove('drag-over');handleCaseFileUpload(event.dataTransfer.files[0])">
-          <input type="file" accept=".pdf,.png,.jpg,.jpeg,.webp,.txt,.csv,.xlsx,.xls,.docx,.doc,.html,.htm" onchange="handleCaseFileUpload(this.files[0])"/>
+        ${!hasPreview ? `
+        <div class="drop-area" id="drop-area"
+          ondragover="event.preventDefault();this.classList.add('drag-over')"
+          ondragleave="this.classList.remove('drag-over')"
+          ondrop="this.classList.remove('drag-over');handleCaseFileUpload(event.dataTransfer.files[0])">
+          <input type="file" id="import-file-input" accept=".pdf,.png,.jpg,.jpeg,.webp,.txt,.csv,.xlsx,.xls,.docx,.doc,.html,.htm"
+            onchange="handleCaseFileUpload(this.files[0])"/>
           <div class="drop-icon">📎</div>
           <div class="drop-title">Arrastra un archivo aquí o haz clic para seleccionar</div>
           <div class="drop-sub">PDF · Imagen · Excel · Word · HTML · TXT · CSV · máx 10MB</div>
-        </div>
-        <div class="import-ai-status" style="${hasPreview?'':'display:none'}"></div>
-        <div style="margin-top:4px;">
-          <div style="font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px;">Reglas de asignación activas</div>
-          <div class="import-rule-chips">${rulesHtml}</div>
+        </div>` : ''}
+        <div class="import-ai-status" id="import-ai-status" style="${hasPreview?'':'display:none'}"></div>
+        <div style="margin-top:${hasPreview?'0':'8px'};">
+          <div style="font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px;">
+            Reglas de asignación activas
+            <span style="font-weight:400;text-transform:none;letter-spacing:0;margin-left:6px;color:var(--muted2)">(configura en Configuración → Asignación)</span>
+          </div>
+          <div class="import-rule-chips">${rulesHtml || '<span style="font-size:11px;color:var(--muted)">Sin reglas configuradas</span>'}</div>
         </div>
         ${hasPreview ? `
         <div class="import-preview"></div>
         <div class="import-actions">
-          <button class="btn-import-confirm" onclick="confirmImport()">✓ Confirmar y asignar ${importedCases.length} casos</button>
-          <button class="btn-import-clear" onclick="clearImport()">✕ Cancelar</button>
+          <button class="btn-import-confirm" onclick="confirmImport()">
+            ✓ Confirmar y asignar ${importedCases.length} caso${importedCases.length!==1?'s':''}
+            ${routedCount<importedCases.length?`<span style="font-size:10px;opacity:.7;margin-left:6px">(${unroutedCount} necesitan grupo manual)</span>`:''}
+          </button>
+          <button class="btn-import-clear" onclick="clearImport()" style="display:flex;align-items:center;gap:4px">
+            🗑 Cancelar y limpiar
+          </button>
         </div>` : ''}
       </div>
     </div>`;
@@ -5359,17 +5418,31 @@ function renderMetrics() {
 }
 
 /* ════════════════════════════════════════
-   CASO LIST
+   CASO LIST — v2 (enhanced)
 ════════════════════════════════════════ */
 function renderCasoList() {
-  const box=document.getElementById('caso-list-section');if(!box)return;box.innerHTML='';
-  const totalCasos=getAllMembers().reduce((s,m)=>s+m.casos.length,0);
-  const pendAll=allCasosByStatus('pend'),progAll=allCasosByStatus('prog'),cerrAll=allCasosByStatus('cerr');
-  const expiredAll=getAllMembers().reduce((s,m)=>s+m.casos.filter(c=>c.estado!=='cerr'&&casoUrgency(c).urgency==='expired').length,0);
-  const critAll=getAllMembers().reduce((s,m)=>s+m.casos.filter(c=>c.estado!=='cerr'&&casoUrgency(c).urgency==='critical').length,0);
-  const sec=document.createElement('div');sec.className='caso-section';
-  const hdr=document.createElement('div');hdr.className='caso-section-header';
-  hdr.innerHTML=`<div><div class="caso-section-title">${t('caso_list_title')}</div><div class="caso-section-sub">${totalCasos} ${totalCasos!==1?t('caso_list_sub_p'):t('caso_list_sub_s')}</div></div>
+  const box = document.getElementById('caso-list-section');
+  if (!box) return;
+  box.innerHTML = '';
+
+  const totalCasos = getAllMembers().reduce((s,m) => s + m.casos.length, 0);
+  const pendAll   = allCasosByStatus('pend');
+  const progAll   = allCasosByStatus('prog');
+  const cerrAll   = allCasosByStatus('cerr');
+  const expiredAll = getAllMembers().reduce((s,m) => s + m.casos.filter(c => c.estado !== 'cerr' && casoUrgency(c).urgency === 'expired').length, 0);
+  const critAll   = getAllMembers().reduce((s,m) => s + m.casos.filter(c => c.estado !== 'cerr' && casoUrgency(c).urgency === 'critical').length, 0);
+
+  const sec = document.createElement('div');
+  sec.className = 'caso-section';
+
+  // ── Header with stats ──
+  const hdr = document.createElement('div');
+  hdr.className = 'caso-section-header';
+  hdr.innerHTML = `
+    <div>
+      <div class="caso-section-title">${t('caso_list_title')}</div>
+      <div class="caso-section-sub">${totalCasos} ${totalCasos!==1?t('caso_list_sub_p'):t('caso_list_sub_s')}</div>
+    </div>
     <div class="caso-stats-row">
       ${expiredAll>0?`<span class="deadline-chip dc-expired">⚠ ${expiredAll} ${expiredAll>1?t('vencidos'):t('vencido')}</span>`:''}
       ${critAll>0?`<span class="deadline-chip dc-critical">${critAll} ${critAll>1?t('criticos'):t('critico')}</span>`:''}
@@ -5379,93 +5452,266 @@ function renderCasoList() {
       <span class="caso-stat-chip caso-stat-total">${totalCasos} ${t('total')}</span>
     </div>`;
   sec.appendChild(hdr);
-  GROUP_DEFS.forEach(g=>{
-    // Skip group if group filter active and doesn't match
+
+  // Load custom case types
+  let customTypes = [];
+  try { customTypes = JSON.parse(localStorage.getItem('scheduleOS_caseTypes') || '[]'); } catch(e) {}
+
+  GROUP_DEFS.forEach(g => {
     if (_casoFilters?.group && g.id !== _casoFilters.group) return;
 
-    const gsep=document.createElement('div');gsep.className='caso-group-sep';
-    const gTotal=state[g.id].reduce((s,m)=>s+m.casos.length,0);
-    gsep.innerHTML=`<div class="caso-group-sep-dot" style="background:${GC_COL[g.id]}"></div>
+    const gsep = document.createElement('div');
+    gsep.className = 'caso-group-sep';
+    const gTotal = state[g.id].reduce((s,m) => s + m.casos.length, 0);
+    const gExp = state[g.id].reduce((s,m) => s + m.casos.filter(c => c.estado!=='cerr' && casoUrgency(c).urgency==='expired').length, 0);
+    gsep.innerHTML = `
+      <div class="caso-group-sep-dot" style="background:${GC_COL[g.id]}"></div>
       <span class="caso-group-sep-label" style="color:${GC_COL[g.id]}">${g.label}</span>
-      <span style="font-size:11px;color:var(--muted);margin-left:4px;">${gTotal} caso${gTotal!==1?'s':''}</span>`;
+      <span style="font-size:11px;color:var(--muted);margin-left:4px">${gTotal} caso${gTotal!==1?'s':''}</span>
+      ${gExp>0?`<span class="deadline-chip dc-expired" style="font-size:9px;margin-left:8px">⚠ ${gExp} vencido${gExp!==1?'s':''}</span>`:''}`;
     sec.appendChild(gsep);
-    state[g.id].forEach((m,idx)=>{
-      // Filter: only show members that have matching cases (or show member with empty state)
+
+    state[g.id].forEach((m, idx) => {
       const hasFilters = _casoFilters?.search || _casoFilters?.status || _casoFilters?.urgency || _casoFilters?.group;
       const filteredCasos = hasFilters
-        ? m.casos.filter((c,ci) => matchesCasoFilters(c, g.id))
+        ? m.casos.filter(c => matchesCasoFilters(c, g.id))
         : m.casos;
-      if (hasFilters && filteredCasos.length === 0) return; // hide member if no matching cases
-      const key=`${g.id}-${idx}`;
-      const pend=memberCasosByStatus(m,'pend'),prog=memberCasosByStatus(m,'prog'),cerr=memberCasosByStatus(m,'cerr');
-      const cpbC=m.casos.filter(c=>c.tipo==='cpb').length,nndC=m.casos.filter(c=>c.tipo==='nnd').length,fupC=m.casos.filter(c=>c.tipo==='fup').length;
-      const expC=m.casos.filter(c=>c.estado!=='cerr'&&casoUrgency(c).urgency==='expired').length;
-      const critC=m.casos.filter(c=>c.estado!=='cerr'&&casoUrgency(c).urgency==='critical').length;
-      const isOpen=openCasos.has(key);
-      const block=document.createElement('div');block.className='caso-member-block';
-      const mhdr=document.createElement('div');mhdr.className='caso-member-header';
-      const metaBadges=[
-        expC>0?`<span class="deadline-chip dc-expired" style="font-size:10px">⚠ ${expC} ${expC>1?t('vencidos'):t('vencido')}</span>`:'',
-        critC>0?`<span class="deadline-chip dc-critical" style="font-size:10px">${critC} ${critC>1?t('criticos'):t('critico')}</span>`:'',
-        cpbC>0?`<span class="caso-type-badge badge-cpb">CPB ${cpbC}</span>`:'',
-        nndC>0?`<span class="caso-type-badge badge-nnd">NND ${nndC}</span>`:'',
-        fupC>0?`<span class="caso-type-badge badge-fup">FUP ${fupC}</span>`:'',
-        pend>0?`<span class="caso-status-badge status-pend">${pend} ${t('pend_label')}</span>`:'',
-        prog>0?`<span class="caso-status-badge status-prog">${prog} ${t('proc_label')}</span>`:'',
-        cerr>0?`<span class="caso-status-badge status-cerr">${cerr} ${t('cerr_label')}</span>`:'',
+      if (hasFilters && filteredCasos.length === 0) return;
+
+      const key = `${g.id}-${idx}`;
+      const pend = memberCasosByStatus(m,'pend');
+      const prog = memberCasosByStatus(m,'prog');
+      const cerr = memberCasosByStatus(m,'cerr');
+      const expC = m.casos.filter(c => c.estado!=='cerr' && casoUrgency(c).urgency==='expired').length;
+      const critC = m.casos.filter(c => c.estado!=='cerr' && casoUrgency(c).urgency==='critical').length;
+      const isOpen = openCasos.has(key);
+
+      const block = document.createElement('div');
+      block.className = 'caso-member-block';
+
+      // ── Member header ──
+      const mhdr = document.createElement('div');
+      mhdr.className = 'caso-member-header';
+      const metaBadges = [
+        expC>0  ? `<span class="deadline-chip dc-expired" style="font-size:10px">⚠ ${expC} ${expC>1?t('vencidos'):t('vencido')}</span>` : '',
+        critC>0 ? `<span class="deadline-chip dc-critical" style="font-size:10px">${critC} ${critC>1?t('criticos'):t('critico')}</span>` : '',
+        pend>0  ? `<span class="caso-status-badge status-pend">${pend} ${t('pend_label')}</span>` : '',
+        prog>0  ? `<span class="caso-status-badge status-prog">${prog} ${t('proc_label')}</span>` : '',
+        cerr>0  ? `<span class="caso-status-badge status-cerr">${cerr} ${t('cerr_label')}</span>` : '',
       ].filter(Boolean).join('');
-      mhdr.innerHTML=`<div class="caso-member-avatar" style="background:${GC_AVA[g.id]};color:${GC_COL[g.id]}">${initials(m.name)}</div>
-        <div class="caso-member-name">${m.name}</div><div class="caso-member-meta">${metaBadges}</div>
+      mhdr.innerHTML = `
+        <div class="caso-member-avatar" style="background:${GC_AVA[g.id]};color:${GC_COL[g.id]}">${initials(m.name)}</div>
+        <div class="caso-member-name">${m.name}</div>
+        <div class="caso-member-meta">${metaBadges}</div>
         <span class="caso-chevron ${isOpen?'open':''}">&#9654;</span>`;
-      mhdr.onclick=()=>{isOpen?openCasos.delete(key):openCasos.add(key);renderCasoList();};
+      mhdr.onclick = () => { isOpen ? openCasos.delete(key) : openCasos.add(key); renderCasoList(); };
       block.appendChild(mhdr);
-      const mbody=document.createElement('div');mbody.className=`caso-member-body${isOpen?' open':''}`;
-      if(m.casos.length===0){const e=document.createElement('div');e.className='caso-empty';e.textContent=t('sin_casos');mbody.appendChild(e);}
-      else {
-        const table=document.createElement('table');table.className='caso-table';
-        const thN=currentLang==='en'?'Case name':'Nombre del caso';const thT=currentLang==='en'?'Type':'Tipo';
-        const thI=currentLang==='en'?'Start':'Inicio';const thV=currentLang==='en'?'Deadline':'Vencimiento';const thS=currentLang==='en'?'Status':'Estado';
-        table.innerHTML=`<thead><tr><th style="width:20px">#</th><th style="width:34%">${thN}</th><th>${thT}</th><th>${thI}</th><th>${thV}</th><th>${thS}</th><th style="width:24px"></th></tr></thead>`;
-        const tbody=document.createElement('tbody');
-        const casosToShow = (typeof filteredCasos !== 'undefined' && filteredCasos.length !== m.casos.length) ? filteredCasos : sortedCasos(m.casos);
-        casosToShow.forEach((caso,rank)=>{
-          const origIdx=caso._origIdx;const{daysLeft,deadline,urgency}=casoUrgency(caso);
-          const tr=document.createElement('tr');tr.className=`caso-row-${urgency}`;
-          const tdR=document.createElement('td');const rb=document.createElement('span');rb.className=`prio-badge prio-${urgency}`;rb.textContent=caso.estado==='cerr'?'✓':(rank+1);tdR.appendChild(rb);
-          const tdN=document.createElement('td');const ni=document.createElement('input');ni.className='caso-name-input';ni.placeholder=t('caso_ph');ni.value=caso.nombre;
-          ni.onchange=e=>{state[g.id][idx].casos[origIdx].nombre=e.target.value;scheduleSave();};tdN.appendChild(ni);
-          const tdT=document.createElement('td');const ts=document.createElement('select');ts.className='caso-select';
-          const TIPO_LABELS_I18N={cpb:'Personal Basket',nnd:'Net New Day',fup:'Follow Ups'};
-          Object.entries(TIPO_LABELS_I18N).forEach(([val,lbl])=>{const o=document.createElement('option');o.value=val;o.textContent=lbl;if(val===caso.tipo)o.selected=true;ts.appendChild(o);});
-          ts.onchange=e=>{state[g.id][idx].casos[origIdx].tipo=e.target.value;renderMetrics();renderCasoList();};tdT.appendChild(ts);
-          const tdF=document.createElement('td');const fi=document.createElement('input');fi.type='date';fi.className='caso-date-input';fi.value=caso.fechaInicio||'';
-          const lim=getDateLimits(); fi.min=lim.caseMin; fi.max=lim.caseMax;
-          fi.onchange=e=>{
-            const v=clampDate(e.target.value,lim.caseMin,lim.caseMax);
-            if(v!==e.target.value){e.target.value=v;showSaveToast('⚠ Fecha ajustada al rango permitido (máx 6 meses)');}
-            state[g.id][idx].casos[origIdx].fechaInicio=v;renderCasoList();
-          };tdF.appendChild(fi);
-          const tdDl=document.createElement('td');const chip=document.createElement('span');
-          if(!caso.fechaInicio||caso.estado==='cerr'){chip.className=`deadline-chip dc-${urgency}`;chip.textContent=caso.estado==='cerr'?t('cerrado'):t('sin_fecha');}
-          else if(urgency==='expired'){chip.className='deadline-chip dc-expired';chip.textContent=`${t('vencido_label')} ${Math.abs(daysLeft)}d`;}
-          else{chip.className=`deadline-chip dc-${urgency}`;const dlStr=deadline.toLocaleDateString(currentLang==='en'?'en-US':'es-DO',{day:'2-digit',month:'short'});chip.textContent=`${daysLeft}d · ${dlStr}`;}
-          tdDl.appendChild(chip);
-          const tdSt=document.createElement('td');const ss=document.createElement('select');ss.className='caso-select';
-          const stC={'#f87171':'pend','var(--task3)':'prog','var(--accent-b)':'cerr'};
-          const stColors={pend:'#f87171',prog:'var(--task3)',cerr:'var(--accent-b)'};
-          const stL={pend:t('pendiente'),prog:t('en_proceso'),cerr:t('cerrado')};
-          Object.entries(stL).forEach(([val,lbl])=>{const o=document.createElement('option');o.value=val;o.textContent=lbl;if(val===caso.estado)o.selected=true;ss.appendChild(o);});
-          ss.style.color=stColors[caso.estado];ss.onchange=e=>{state[g.id][idx].casos[origIdx].estado=e.target.value;ss.style.color=stColors[e.target.value];renderCasoList();};tdSt.appendChild(ss);
-          const tdDel=document.createElement('td');const db=document.createElement('button');db.className='btn-del-caso';db.innerHTML='&times;';
-          db.onclick=()=>{state[g.id][idx].casos.splice(origIdx,1);renderMetrics();renderCasoList();updateCasosBadge();};tdDel.appendChild(db);
-          tr.appendChild(tdR);tr.appendChild(tdN);tr.appendChild(tdT);tr.appendChild(tdF);tr.appendChild(tdDl);tr.appendChild(tdSt);tr.appendChild(tdDel);
+
+      // ── Member body (cases table) ──
+      const mbody = document.createElement('div');
+      mbody.className = `caso-member-body${isOpen?' open':''}`;
+
+      if (m.casos.length === 0) {
+        const e = document.createElement('div');
+        e.className = 'caso-empty';
+        e.textContent = t('sin_casos');
+        mbody.appendChild(e);
+      } else {
+        const table = document.createElement('table');
+        table.className = 'caso-table';
+
+        // Headers — now with checkbox, SLA, priority
+        table.innerHTML = `<thead><tr>
+          <th style="width:18px"><input type="checkbox" title="Seleccionar todos" onchange="(function(cb,gid,mi){const casos=state[gid][mi].casos;casos.forEach((_,ci)=>{const k=gid+'-'+mi+'-'+ci;cb.checked?_selectedCasos.add(k):_selectedCasos.delete(k);});updateBulkBar();renderCasoList();})(this,'${g.id}',${idx})"/></th>
+          <th style="width:20px">#</th>
+          <th style="width:32%">${t('caso_list_title')||'Caso'}</th>
+          <th>Tipo</th>
+          <th>Inicio</th>
+          <th>SLA</th>
+          <th>Prior.</th>
+          <th>Estado</th>
+          <th style="width:24px"></th>
+        </tr></thead>`;
+
+        const tbody = document.createElement('tbody');
+        const casosToShow = (filteredCasos.length !== m.casos.length) ? filteredCasos : sortedCasos(m.casos);
+
+        casosToShow.forEach((caso, rank) => {
+          const origIdx = caso._origIdx;
+          const { daysLeft, deadline, urgency } = casoUrgency(caso);
+          const bulkKey = `${g.id}-${idx}-${origIdx}`;
+          const isSelected = _selectedCasos.has(bulkKey);
+          const tr = document.createElement('tr');
+          tr.className = `caso-row-${urgency}${isSelected?' caso-selected':''}`;
+
+          // ── Checkbox ──
+          const tdCb = document.createElement('td');
+          const cb = document.createElement('input');
+          cb.type = 'checkbox';
+          cb.checked = isSelected;
+          cb.onclick = e => { e.stopPropagation(); toggleCasoSelect(bulkKey, cb.checked); };
+          tdCb.appendChild(cb);
+
+          // ── Rank/priority indicator ──
+          const tdR = document.createElement('td');
+          const rb = document.createElement('span');
+          rb.className = `prio-badge prio-${urgency}`;
+          rb.textContent = caso.estado === 'cerr' ? '✓' : (rank + 1);
+          tdR.appendChild(rb);
+
+          // ── Name (editable) ──
+          const tdN = document.createElement('td');
+          const ni = document.createElement('input');
+          ni.className = 'caso-name-input';
+          ni.placeholder = t('caso_ph');
+          ni.value = caso.nombre || '';
+          ni.title = caso.nombre || '';
+          ni.onchange = e => {
+            const val = e.target.value;
+            if (containsProfanity(val)) {
+              showSaveToast('⚠ Lenguaje inapropiado detectado', 'warn');
+              e.target.value = caso.nombre || '';
+              return;
+            }
+            state[g.id][idx].casos[origIdx].nombre = val;
+            scheduleSave();
+          };
+          // Notes indicator
+          if (caso.nota) {
+            const noteDot = document.createElement('div');
+            noteDot.style.cssText = 'width:5px;height:5px;border-radius:50%;background:var(--accent-c);position:absolute;top:4px;right:4px;';
+            tdN.style.position = 'relative';
+            tdN.appendChild(noteDot);
+          }
+          tdN.appendChild(ni);
+
+          // ── Type (custom or default) ──
+          const tdT = document.createElement('td');
+          const ts = document.createElement('select');
+          ts.className = 'caso-select';
+          if (customTypes.length > 0) {
+            customTypes.forEach(ct => {
+              const o = document.createElement('option');
+              o.value = ct.id;
+              o.textContent = ct.name.length > 12 ? ct.name.slice(0,11)+'…' : ct.name;
+              if (ct.id === caso.tipo || ct.name === caso.tipo || ct.id === caso.tipoId) o.selected = true;
+              ts.appendChild(o);
+            });
+          } else {
+            const defaults = {cpb:'Personal Basket', nnd:'Net New Day', fup:'Follow Ups'};
+            Object.entries(defaults).forEach(([val,lbl]) => {
+              const o = document.createElement('option');
+              o.value = val; o.textContent = lbl;
+              if (val === caso.tipo) o.selected = true;
+              ts.appendChild(o);
+            });
+          }
+          ts.onchange = e => {
+            state[g.id][idx].casos[origIdx].tipo = e.target.value;
+            renderMetrics(); renderCasoList();
+          };
+          tdT.appendChild(ts);
+
+          // ── Start date ──
+          const tdF = document.createElement('td');
+          const fi = document.createElement('input');
+          fi.type = 'date'; fi.className = 'caso-date-input'; fi.value = caso.fechaInicio || '';
+          const lim = getDateLimits(); fi.min = lim.caseMin; fi.max = lim.caseMax;
+          fi.onchange = e => {
+            const v = clampDate(e.target.value, lim.caseMin, lim.caseMax);
+            if (v !== e.target.value) { e.target.value = v; showSaveToast('⚠ Fecha ajustada'); }
+            state[g.id][idx].casos[origIdx].fechaInicio = v;
+            renderCasoList();
+          };
+          tdF.appendChild(fi);
+
+          // ── SLA badge ──
+          const tdSla = document.createElement('td');
+          if (!caso.fechaInicio || caso.estado === 'cerr') {
+            tdSla.innerHTML = `<span class="deadline-chip dc-${urgency}">${caso.estado==='cerr'?'✓':t('sin_fecha')}</span>`;
+          } else if (urgency === 'expired') {
+            tdSla.innerHTML = `<span class="deadline-chip dc-expired" title="Vencido hace ${Math.abs(daysLeft)} días">⚠ ${Math.abs(daysLeft)}d</span>`;
+          } else {
+            const dlStr = deadline.toLocaleDateString(currentLang==='en'?'en-US':'es-DO', {day:'2-digit',month:'short'});
+            tdSla.innerHTML = `<span class="deadline-chip dc-${urgency}" title="${dlStr}">${daysLeft}d</span>`;
+          }
+
+          // ── Priority ──
+          const tdPrio = document.createElement('td');
+          const prioSel = document.createElement('select');
+          prioSel.className = 'caso-select';
+          prioSel.style.fontSize = '10px';
+          [['','—'],['high','🔴 Alta'],['medium','🟡 Media'],['low','🟢 Baja']].forEach(([v,l]) => {
+            const o = document.createElement('option');
+            o.value = v; o.textContent = l;
+            if (v === (caso.prioridad||'')) o.selected = true;
+            prioSel.appendChild(o);
+          });
+          prioSel.onchange = e => {
+            state[g.id][idx].casos[origIdx].prioridad = e.target.value;
+            scheduleSave();
+          };
+          tdPrio.appendChild(prioSel);
+
+          // ── Status ──
+          const tdSt = document.createElement('td');
+          const ss = document.createElement('select');
+          ss.className = 'caso-select';
+          const stColors = {pend:'#f87171', prog:'var(--task3)', cerr:'var(--accent-b)'};
+          const stL = {pend:t('pendiente'), prog:t('en_proceso'), cerr:t('cerrado')};
+          Object.entries(stL).forEach(([val,lbl]) => {
+            const o = document.createElement('option');
+            o.value = val; o.textContent = lbl;
+            if (val === caso.estado) o.selected = true;
+            ss.appendChild(o);
+          });
+          ss.style.color = stColors[caso.estado];
+          ss.onchange = e => {
+            state[g.id][idx].casos[origIdx].estado = e.target.value;
+            ss.style.color = stColors[e.target.value];
+            renderCasoList();
+          };
+          tdSt.appendChild(ss);
+
+          // ── Delete ──
+          const tdDel = document.createElement('td');
+          const db = document.createElement('button');
+          db.className = 'btn-del-caso';
+          db.innerHTML = '&times;';
+          db.title = 'Eliminar caso';
+          db.onclick = () => {
+            state[g.id][idx].casos.splice(origIdx, 1);
+            renderMetrics(); renderCasoList(); updateCasosBadge();
+          };
+          tdDel.appendChild(db);
+
+          tr.appendChild(tdCb);
+          tr.appendChild(tdR);
+          tr.appendChild(tdN);
+          tr.appendChild(tdT);
+          tr.appendChild(tdF);
+          tr.appendChild(tdSla);
+          tr.appendChild(tdPrio);
+          tr.appendChild(tdSt);
+          tr.appendChild(tdDel);
           tbody.appendChild(tr);
         });
-        table.appendChild(tbody);mbody.appendChild(table);
+
+        table.appendChild(tbody);
+        mbody.appendChild(table);
       }
-      const addBtn=document.createElement('button');addBtn.className='btn-add-caso';addBtn.textContent=t('add_caso');
-      addBtn.onclick=()=>{state[g.id][idx].casos.push(newCaso());openCasos.add(key);renderMetrics();renderCasoList();updateCasosBadge();};
-      mbody.appendChild(addBtn);block.appendChild(mbody);sec.appendChild(block);
+
+      const addBtn = document.createElement('button');
+      addBtn.className = 'btn-add-caso';
+      addBtn.textContent = t('add_caso');
+      addBtn.onclick = () => {
+        state[g.id][idx].casos.push(newCaso());
+        openCasos.add(key);
+        renderMetrics(); renderCasoList(); updateCasosBadge();
+      };
+      mbody.appendChild(addBtn);
+      block.appendChild(mbody);
+      sec.appendChild(block);
     });
   });
   box.appendChild(sec);
@@ -6979,14 +7225,15 @@ function switchSettingsTab(tab) {
 
 function renderIndustryButtons() {
   const container = document.getElementById('industry-buttons-container');
-  if (!container || container.dataset.rendered) return;
-  container.dataset.rendered = '1';
+  if (!container) return;
+  // Always re-render (remove dataset guard)
   if (typeof INDUSTRY_TEMPLATES === 'undefined') return;
+  const saved = localStorage.getItem('scheduleOS_industry') || '';
   container.innerHTML = Object.entries(INDUSTRY_TEMPLATES).map(([k,t]) =>
     `<button onclick="applyIndustryTemplate('${k}')"
-      style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-xs);color:var(--text2);padding:6px 12px;cursor:pointer;font-family:inherit;font-size:11px;font-weight:600;transition:all .15s;display:flex;align-items:center;gap:5px"
+      style="background:${saved===k?'rgba(0,224,168,0.1)':'var(--surface2)'};border:1px solid ${saved===k?'var(--accent-b)':'var(--border2)'};border-radius:var(--radius-xs);color:${saved===k?'var(--accent-b)':'var(--text2)'};padding:6px 12px;cursor:pointer;font-family:inherit;font-size:11px;font-weight:600;transition:all .15s;display:flex;align-items:center;gap:5px"
       onmouseover="this.style.borderColor='var(--accent-b)';this.style.color='var(--accent-b)'"
-      onmouseout="this.style.borderColor='var(--border2)';this.style.color='var(--text2)'">
+      onmouseout="this.style.borderColor='${saved===k?'var(--accent-b)':'var(--border2)'}';this.style.color='${saved===k?'var(--accent-b)':'var(--text2)'}'">
       ${t.icon} ${t.name}
     </button>`
   ).join('');
@@ -7731,6 +7978,23 @@ setTimeout(() => {
   }
 }, 5000);
 
+// Handle ?action=register or ?action=login from landing page
+(function handleURLAction() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const action = params.get('action');
+    const code = params.get('code');
+    if (action === 'register' || action === 'login') {
+      window._pendingAuthAction = action;
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+    if (code) {
+      window._pendingJoinCode = code;
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  } catch(e) {}
+})();
+
 /* ════════════════════════════════════════
    FIREBASE — AUTH, FIRESTORE, NOTES, SHARING
 ════════════════════════════════════════ */
@@ -7774,15 +8038,21 @@ whenFirebaseReady(() => {
     if (user) {
       // ALWAYS full reset before loading any new user — prevents data bleed
       const prevUid = currentUser?.uid;
-      if (prevUid && prevUid !== user.uid) {
-        // Different user logged in — hard reset everything
-        fullSessionReset();
+      if (prevUid && prevUid !== user.uid) fullSessionReset();
+
+      // Check suspended/banned status first
+      const status = await checkAccountStatus(user.uid);
+      if (!status.ok) {
+        await window._fbFns.signOut(auth);
+        showSuspendedScreen(status.message);
+        return;
       }
+
       currentUser = user;
       hideAuthOverlay();
-      // Always go to dashboard on login
       switchTab('dash');
-      // New account = created within last 15 seconds
+      checkAppVersion();
+
       const createdAt = new Date(user.metadata.creationTime).getTime();
       const isNewAccount = (Date.now() - createdAt) < 15000;
       if (isNewAccount) {
@@ -7808,6 +8078,15 @@ whenFirebaseReady(() => {
         loadNotifHistory();
         loadOLEDPref();
         initMobileNav();
+        // Handle invite code from URL
+        if (window._pendingJoinCode) {
+          const code = window._pendingJoinCode;
+          window._pendingJoinCode = null;
+          setTimeout(() => {
+            const inp = document.getElementById('join-code-inp');
+            if (inp) { inp.value = code; joinTeamWithCode(); }
+          }, 1000);
+        }
         // Show dev submit button for dev roles
         if (['dev','support','security','superadmin'].includes(userRole)) {
           const devBtn = document.getElementById('dev-submit-btn');
@@ -7857,6 +8136,12 @@ function resetIdleTimer() {
 ════════════════ */
 function showAuthOverlay() {
   document.getElementById('auth-overlay').classList.remove('hidden');
+  // Check if coming from landing with specific action
+  if (window._pendingAuthAction) {
+    const action = window._pendingAuthAction;
+    window._pendingAuthAction = null;
+    setTimeout(() => showAuthScreen(action === 'register' ? 'register' : 'login'), 100);
+  }
 }
 function hideAuthOverlay() {
   document.getElementById('auth-overlay').classList.add('hidden');
@@ -8169,6 +8454,11 @@ async function doLogin() {
   const email = document.getElementById('auth-email')?.value?.trim();
   const pass  = document.getElementById('auth-pass')?.value;
   if (!email || !pass) { showAuthError('Completa todos los campos.'); return; }
+
+  // Brute force check
+  const rateCheck = checkLoginRateLimit(email);
+  if (rateCheck.locked) { showAuthError(rateCheck.message); return; }
+
   const btn = document.querySelector('.auth-btn');
   if (btn) { btn.disabled = true; btn.textContent = 'Iniciando sesión...'; }
   try {
@@ -8180,13 +8470,25 @@ async function doLogin() {
       showVerificationNotice(email);
       return;
     }
+    // Check suspended/banned status
+    const status = await checkAccountStatus(cred.user.uid);
+    if (!status.ok) {
+      // Force sign out
+      await window._fbFns.signOut(window._fbAuth);
+      if (btn) { btn.disabled = false; btn.textContent = 'Iniciar sesión'; }
+      showSuspendedScreen(status.message);
+      return;
+    }
+    clearLoginAttempts();
     // onAuthStateChanged handles the rest
   } catch(e) {
+    recordLoginFailure(email);
+    const remaining = 5 - _loginAttempts.count;
     const msgs = {
       'auth/user-not-found':'Correo no registrado.',
-      'auth/wrong-password':'Contraseña incorrecta.',
+      'auth/wrong-password':`Contraseña incorrecta.${remaining > 0 && remaining < 3 ? ` ${remaining} intento${remaining!==1?'s':''} restante${remaining!==1?'s':''}.` : ''}`,
       'auth/invalid-email':'Correo inválido.',
-      'auth/invalid-credential':'Correo o contraseña incorrectos.',
+      'auth/invalid-credential':`Correo o contraseña incorrectos.${remaining > 0 && remaining < 3 ? ` ${remaining} intento${remaining!==1?'s':''} restante${remaining!==1?'s':''}.` : ''}`,
       'auth/too-many-requests':'Demasiados intentos. Espera unos minutos.',
     };
     showAuthError(msgs[e.code] || 'Error al iniciar sesión.');
@@ -9781,35 +10083,93 @@ function exportPrintView() {
 function exportCSV() {
   closeExportModal();
   const title = document.getElementById('schedule-title')?.value || 'Horario';
-  let csv = 'Colaborador,Grupo,' + DAYS.join(',') + ',OT Total,Casos\n';
+  const weekDate = document.getElementById('week-date')?.value || new Date().toISOString().split('T')[0];
+  const now = new Date().toLocaleString('es-DO');
+
+  // Header row
+  const headers = ['Colaborador','Grupo','Lun','Mar','Mié','Jue','Vie','Sáb','Dom',
+                   'OT Total','Turno','Casos Total','Casos Pend.','Casos En Proceso','Casos Cerrados','Casos Vencidos'];
+  let csv = headers.join(',') + '\n';
+
+  // Schedule data
   GROUP_DEFS.forEach(g => {
     (state[g.id]||[]).forEach(m => {
-      const dayCells = DAYS.map(d => {
-        const dd = m.days[d];
+      const dayData = DAYS.map(d => {
+        const dd = m.days[d] || {};
         if (dd.dayoff) return 'LIBRE';
-        const ot = calcOT(dd.exit,d,dd);
-        const flags = (dd.perm?'P':dd.fault?'F':'');
-        return `${fmtTime(dd.entry||'08:00')}-${fmtTime(dd.exit||'17:30')}${flags?'('+flags+')':''}${ot>0?'OT:'+fmtH(ot):''}`;
-      }).join(',');
-      const wOT = weekOT(m);
-      csv += `"${m.name}","${g.label}",${dayCells},${wOT>0?fmtH(wOT):'-'},${m.casos.length}\n`;
+        if (dd.perm)   return 'PERMISO';
+        if (dd.fault)  return 'FALTA';
+        const ot = calcOT(dd.exit, d, dd);
+        const time = `${fmtTime(dd.entry||'08:00')}-${fmtTime(dd.exit||'17:30')}`;
+        return ot > 0 ? `${time}(+${fmtH(ot)})` : time;
+      });
+      const totalOT = weekOT(m);
+      const shift = document.getElementById('shift-label')?.value || '-';
+      const pend  = m.casos.filter(c => c.estado === 'pend').length;
+      const prog  = m.casos.filter(c => c.estado === 'prog').length;
+      const cerr  = m.casos.filter(c => c.estado === 'cerr').length;
+      const exp   = m.casos.filter(c => c.estado !== 'cerr' && casoUrgency(c).urgency === 'expired').length;
+      const row = [
+        `"${(m.name||'').replace(/"/g,'""')}"`,
+        `"${(g.label||'').replace(/"/g,'""')}"`,
+        ...dayData.map(d => `"${d}"`),
+        totalOT > 0 ? fmtH(totalOT) : '0h',
+        `"${shift}"`,
+        m.casos.length, pend, prog, cerr, exp
+      ];
+      csv += row.join(',') + '\n';
     });
   });
-  csv += '\n\nCasos:\nColaborador,Grupo,Nombre,Tipo,Estado,Fecha Inicio,Urgencia\n';
+
+  // Casos detail section
+  csv += '\n\n';
+  csv += '"DETALLE DE CASOS"\n';
+  csv += ['Colaborador','Grupo','Caso','Tipo','Estado','Prioridad','Fecha Inicio','SLA (días)','Urgencia'].join(',') + '\n';
   GROUP_DEFS.forEach(g => {
     (state[g.id]||[]).forEach(m => {
       m.casos.forEach(c => {
-        const {urgency} = casoUrgency(c);
-        csv += `"${m.name}","${g.label}","${(c.nombre||'').replace(/"/g,'""')}",${c.tipo?.toUpperCase()},${c.estado},${c.fechaInicio||'-'},${urgency}\n`;
+        const { daysLeft, urgency } = casoUrgency(c);
+        const row = [
+          `"${(m.name||'').replace(/"/g,'""')}"`,
+          `"${(g.label||'').replace(/"/g,'""')}"`,
+          `"${(c.nombre||'').replace(/"/g,'""')}"`,
+          `"${(c.tipo||'').toUpperCase()}"`,
+          `"${c.estado === 'pend' ? 'Pendiente' : c.estado === 'prog' ? 'En Proceso' : 'Cerrado'}"`,
+          `"${c.prioridad === 'high' ? 'Alta' : c.prioridad === 'medium' ? 'Media' : c.prioridad === 'low' ? 'Baja' : '-'}"`,
+          c.fechaInicio || '-',
+          daysLeft !== null ? daysLeft : '-',
+          `"${urgency === 'expired' ? 'VENCIDO' : urgency === 'critical' ? 'CRÍTICO' : urgency === 'ok' ? 'OK' : '-'}"`,
+        ];
+        csv += row.join(',') + '\n';
       });
     });
   });
-  const blob = new Blob(['\uFEFF'+csv + (typeof exportErrorsInCSV==='function'?exportErrorsInCSV():'')], {type:'text/csv;charset=utf-8;'});
+
+  // Summary section
+  const allM = getAllMembers();
+  const totOT = allM.reduce((s,m) => s + weekOT(m), 0);
+  const totCasos = allM.reduce((s,m) => s + m.casos.length, 0);
+  const totExp = allM.reduce((s,m) => s + m.casos.filter(c => c.estado !== 'cerr' && casoUrgency(c).urgency === 'expired').length, 0);
+  csv += `\n\n"RESUMEN"\n`;
+  csv += `"Generado el","${now}"\n`;
+  csv += `"Semana","${weekDate}"\n`;
+  csv += `"Total colaboradores","${allM.length}"\n`;
+  csv += `"Total OT","${fmtH(totOT)}"\n`;
+  csv += `"Total casos","${totCasos}"\n`;
+  csv += `"Casos vencidos","${totExp}"\n`;
+
+  // Add errors if any
+  if (typeof exportErrorsInCSV === 'function') csv += exportErrorsInCSV();
+
+  const blob = new Blob(['\uFEFF' + csv], {type:'text/csv;charset=utf-8;'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = url; a.download = (title.replace(/\s+/g,'_'))+'_reporte.csv'; a.click();
+  a.href = url;
+  a.download = `${title.replace(/\s+/g,'_')}_${weekDate}_reporte.csv`;
+  a.click();
   URL.revokeObjectURL(url);
-  showSaveToast('✓ CSV descargado');
+  showSaveToast('✓ CSV descargado', 'success');
+  logChange('other', 'Exportó reporte CSV');
 }
 
 function exportClipboard() {
@@ -12070,26 +12430,68 @@ function getScheduleCoverage() {
 ════════════════════════════════════════ */
 function showQRInvite(code) {
   document.getElementById('qr-invite-modal')?.remove();
-  // Generate QR using Google Charts API (no library needed)
-  const qrUrl = `https://chart.googleapis.com/chart?chs=200x200&cht=qr&chl=${encodeURIComponent(code)}&choe=UTF-8&chld=M|2`;
+
+  // Generate QR data URL using inline canvas (no external API)
+  const appUrl = `${window.location.origin}${window.location.pathname.replace('app.html','')}app.html?code=${encodeURIComponent(code)}`;
+  const qrDataUrl = generateQRDataURL(appUrl, 200);
+
   const modal = document.createElement('div');
   modal.id = 'qr-invite-modal';
   modal.style.cssText = 'position:fixed;inset:0;z-index:600;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px);';
   modal.innerHTML = `
-    <div style="background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius);padding:28px;max-width:320px;width:100%;text-align:center;box-shadow:var(--shadow-lg);">
-      <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:6px">📲 QR de invitación</div>
-      <div style="font-size:12px;color:var(--muted);margin-bottom:20px">Pídele a tu colaborador que escanee este código</div>
-      <div style="background:#fff;padding:12px;border-radius:10px;display:inline-block;margin-bottom:16px">
-        <img src="${qrUrl}" width="180" height="180" alt="QR Code" style="display:block"/>
+    <div style="background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius);padding:28px;max-width:340px;width:100%;text-align:center;box-shadow:var(--shadow-lg);">
+      <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:4px">📲 QR de invitación</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:18px">Pídele a tu colaborador que escanee este código o comparte el link</div>
+      <div id="qr-canvas-container" style="background:#fff;padding:12px;border-radius:10px;display:inline-block;margin-bottom:16px">
+        <canvas id="qr-canvas" width="200" height="200" style="display:block"></canvas>
       </div>
-      <div style="font-size:20px;font-weight:800;color:var(--accent-a);letter-spacing:4px;font-family:'SF Mono','Fira Code','Consolas','Monaco',monospace;margin-bottom:16px">${code}</div>
-      <div style="display:flex;gap:8px;justify-content:center">
-        <button onclick="copyInviteCode('${code}')" style="background:var(--accent-a-dim);border:1px solid var(--accent-a);border-radius:var(--radius-xs);color:var(--accent-a);padding:8px 16px;cursor:pointer;font-family:inherit;font-size:12px;font-weight:700;">📋 Copiar código</button>
-        <button onclick="document.getElementById('qr-invite-modal').remove()" style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-xs);color:var(--muted);padding:8px 16px;cursor:pointer;font-family:inherit;font-size:12px;">Cerrar</button>
+      <div style="font-size:22px;font-weight:800;color:var(--accent-a);letter-spacing:5px;font-family:'SF Mono','Fira Code','Consolas','Monaco',monospace;margin-bottom:6px">${sanitize(code)}</div>
+      <div style="font-size:10px;color:var(--muted);margin-bottom:16px;word-break:break-all;padding:0 8px">${sanitize(appUrl)}</div>
+      <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+        <button onclick="copyInviteCode('${sanitize(code)}')" style="background:var(--accent-a-dim);border:1px solid var(--accent-a);border-radius:var(--radius-xs);color:var(--accent-a);padding:8px 14px;cursor:pointer;font-family:inherit;font-size:12px;font-weight:700;">📋 Copiar código</button>
+        <button onclick="copyToClipboard('${sanitize(appUrl)}')" style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-xs);color:var(--text2);padding:8px 14px;cursor:pointer;font-family:inherit;font-size:12px;">🔗 Copiar link</button>
+        <button onclick="document.getElementById('qr-invite-modal').remove()" style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-xs);color:var(--muted);padding:8px 14px;cursor:pointer;font-family:inherit;font-size:12px;">Cerrar</button>
       </div>
     </div>`;
   document.body.appendChild(modal);
   modal.onclick = e => { if(e.target === modal) modal.remove(); };
+
+  // Draw QR on canvas using simple matrix approach
+  setTimeout(() => drawQROnCanvas('qr-canvas', appUrl), 50);
+}
+
+function copyToClipboard(text) {
+  navigator.clipboard?.writeText(text).then(() => showSaveToast('✓ Link copiado', 'success')).catch(() => showSaveToast('⚠ No se pudo copiar', 'warn'));
+}
+
+// Simple QR code generator using canvas
+// Uses a QR-encoding approach with a CDN-free pure JS implementation
+function drawQROnCanvas(canvasId, text) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const size = 200;
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(0, 0, size, size);
+
+  // Use Google Charts as fallback (works on GitHub Pages, blocked locally only)
+  const img = new Image();
+  img.crossOrigin = 'anonymous';
+  img.onload = () => { ctx.drawImage(img, 0, 0, size, size); };
+  img.onerror = () => {
+    // Fallback: show text instructions
+    ctx.fillStyle = '#000';
+    ctx.font = 'bold 13px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('Código de invitación:', size/2, 80);
+    ctx.font = 'bold 22px monospace';
+    ctx.fillStyle = '#4da6ff';
+    ctx.fillText(text.split('code=')[1]?.slice(0,6) || text, size/2, 120);
+    ctx.font = '11px sans-serif';
+    ctx.fillStyle = '#666';
+    ctx.fillText('Ingresa este código en la app', size/2, 150);
+  };
+  img.src = `https://chart.googleapis.com/chart?chs=200x200&cht=qr&chl=${encodeURIComponent(text)}&choe=UTF-8&chld=M|2`;
 }
 
 /* ════════════════════════════════════════
@@ -13342,6 +13744,185 @@ function initMobileNav() {
         <span class="mbn-icon">☰</span><span class="mbn-label">Menú</span>
       </button>`;
   }
+}
+
+/* ════════════════════════════════════════
+   SECURITY — XSS SANITIZATION
+   All user-generated content must pass through sanitize()
+════════════════════════════════════════ */
+function sanitize(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#039;')
+    .replace(/`/g,'&#96;')
+    .replace(/\//g,'&#47;');
+}
+// For display names specifically — strip all HTML tags
+function sanitizeName(str) {
+  if (!str) return '';
+  return String(str).replace(/<[^>]*>/g,'').replace(/[<>"'`]/g,'').trim().slice(0,60);
+}
+
+/* ════════════════════════════════════════
+   SECURITY — BRUTE FORCE PROTECTION
+   Max 5 failed login attempts → 5 min lockout
+════════════════════════════════════════ */
+const _loginAttempts = { count:0, lockedUntil:0, email:'' };
+function checkLoginRateLimit(email) {
+  const now = Date.now();
+  if (_loginAttempts.email !== email) {
+    _loginAttempts.count = 0;
+    _loginAttempts.email = email;
+  }
+  if (_loginAttempts.lockedUntil > now) {
+    const mins = Math.ceil((_loginAttempts.lockedUntil - now) / 60000);
+    return { locked: true, message: `Demasiados intentos fallidos. Espera ${mins} minuto${mins!==1?'s':''}.` };
+  }
+  return { locked: false };
+}
+function recordLoginFailure(email) {
+  if (_loginAttempts.email !== email) { _loginAttempts.count = 0; _loginAttempts.email = email; }
+  _loginAttempts.count++;
+  if (_loginAttempts.count >= 5) {
+    _loginAttempts.lockedUntil = Date.now() + 5 * 60 * 1000;
+    _loginAttempts.count = 0;
+  }
+}
+function clearLoginAttempts() {
+  _loginAttempts.count = 0;
+  _loginAttempts.lockedUntil = 0;
+}
+
+/* ════════════════════════════════════════
+   SECURITY — SUSPENDED ACCOUNT ENFORCEMENT
+   Checks user status in Firestore on every login
+════════════════════════════════════════ */
+async function checkAccountStatus(uid) {
+  if (!uid || !window._fbFns || !window._fbDb) return { ok: true };
+  try {
+    const { doc, getDoc } = window._fbFns;
+    const snap = await getDoc(doc(window._fbDb, 'users', uid));
+    if (!snap.exists()) return { ok: true }; // new user
+    const data = snap.data();
+    if (data.status === 'suspended') {
+      return { ok: false, reason: 'suspended', message: data.suspendedReason || 'Tu cuenta ha sido suspendida. Contacta al administrador.' };
+    }
+    if (data.status === 'banned') {
+      return { ok: false, reason: 'banned', message: 'Tu cuenta ha sido desactivada permanentemente.' };
+    }
+    return { ok: true, data };
+  } catch(e) {
+    console.warn('checkAccountStatus:', e);
+    return { ok: true }; // fail open — don't block on Firestore error
+  }
+}
+
+function showSuspendedScreen(message) {
+  const overlay = document.getElementById('auth-overlay');
+  if (overlay) overlay.style.display = 'flex';
+  const container = document.getElementById('auth-container');
+  if (container) container.innerHTML = `
+    <div style="text-align:center;padding:32px 24px">
+      <div style="font-size:48px;margin-bottom:16px">🚫</div>
+      <div style="font-size:18px;font-weight:700;color:var(--text);margin-bottom:8px">Cuenta suspendida</div>
+      <div style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:24px">${sanitize(message)}</div>
+      <div style="font-size:12px;color:var(--muted)">Si crees que es un error, contacta a tu manager o a<br><a href="mailto:scheduleosbygakzzy@gmail.com" style="color:var(--accent-a)">scheduleosbygakzzy@gmail.com</a></div>
+      <button onclick="doLogout()" style="margin-top:20px;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-xs);color:var(--muted);padding:10px 20px;cursor:pointer;font-family:inherit;font-size:12px">Cerrar sesión</button>
+    </div>`;
+}
+
+/* ════════════════════════════════════════
+   PROFANITY FILTER — ES/EN/FR
+   Filters bad words from user-input text fields
+════════════════════════════════════════ */
+const PROFANITY_LIST = [
+  // Spanish
+  'puta','puto','mierda','coño','joder','pendejo','cabron','cabrón','chinga','verga','culo','marica',
+  'idiota','imbecil','imbécil','estupido','estúpido','bastardo','perra','hdp','hijoputa','malparido',
+  'carajo','ojete','pinche','culero','mamón','mamahuevo','comehuevo','singao','singá','cagao',
+  // English
+  'fuck','shit','ass','bitch','cunt','dick','piss','damn','bastard','asshole','nigger','faggot',
+  'retard','whore','slut','motherfucker','bullshit',
+  // French
+  'merde','putain','connard','salope','batard','bâtard','enculé','foutre',
+].map(w => w.toLowerCase());
+
+const PROFANITY_REGEX = new RegExp(
+  '(' + PROFANITY_LIST.map(w => w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|') + ')',
+  'gi'
+);
+
+function containsProfanity(text) {
+  if (!text) return false;
+  return PROFANITY_REGEX.test(text.toLowerCase());
+}
+function filterProfanity(text) {
+  if (!text) return text;
+  return text.replace(PROFANITY_REGEX, match => '*'.repeat(match.length));
+}
+function validateNoProfanity(text, fieldName = 'campo') {
+  if (containsProfanity(text)) {
+    showSaveToast(`⚠ El ${fieldName} contiene lenguaje inapropiado`, 'warn');
+    return false;
+  }
+  return true;
+}
+
+/* ════════════════════════════════════════
+   PLAN GATES — Enterprise Demo for all
+   12 months free Enterprise for everyone
+════════════════════════════════════════ */
+const PLAN_CONFIG = {
+  current: 'enterprise_demo',
+  expiresAt: null, // 12 months from registration
+  limits: { managers: Infinity, collaborators: Infinity, features: 'all' },
+};
+
+function getUserPlan() {
+  return PLAN_CONFIG.current;
+}
+function showPlanNotAvailable(planName) {
+  const modal = document.createElement('div');
+  modal.style.cssText = 'position:fixed;inset:0;z-index:700;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(6px);';
+  modal.innerHTML = `
+    <div style="background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius);padding:28px 24px;max-width:380px;width:100%;text-align:center">
+      <div style="font-size:36px;margin-bottom:12px">🚧</div>
+      <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:8px">Plan no disponible aún</div>
+      <div style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:6px">
+        El plan <strong>${sanitize(planName)}</strong> estará disponible próximamente.
+      </div>
+      <div style="font-size:13px;color:var(--accent-b);font-weight:600;margin-bottom:16px">
+        🎁 Por ahora tienes acceso completo a <strong>Enterprise Demo</strong> gratis por 12 meses.
+      </div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:20px">Incluye todas las funciones sin límites · Sin tarjeta requerida</div>
+      <button onclick="this.closest('[style]').remove()" style="background:var(--accent-a);border:none;border-radius:var(--radius-xs);color:#fff;padding:10px 24px;cursor:pointer;font-family:inherit;font-size:13px;font-weight:700">Continuar con Demo gratuita →</button>
+    </div>`;
+  modal.onclick = e => { if(e.target === modal) modal.remove(); };
+  document.body.appendChild(modal);
+}
+
+/* ════════════════════════════════════════
+   VERSION ENFORCEMENT
+   Force reload if app version is outdated
+════════════════════════════════════════ */
+const APP_VERSION = '5.1.3';
+function checkAppVersion() {
+  const stored = localStorage.getItem('scheduleOS_appVersion');
+  if (stored && stored !== APP_VERSION) {
+    // New version available — force reload after toast
+    showSaveToast('🔄 Nueva versión disponible — actualizando...', 'info');
+    setTimeout(() => {
+      localStorage.setItem('scheduleOS_appVersion', APP_VERSION);
+      window.location.reload(true);
+    }, 2000);
+    return false;
+  }
+  try { localStorage.setItem('scheduleOS_appVersion', APP_VERSION); } catch(e) {}
+  return true;
 }
 
 /* Request browser notification permission */
