@@ -368,10 +368,28 @@ section{position:relative;z-index:1;}
   font-size:52px;font-weight:800;
   letter-spacing:-2px;line-height:1;
   margin-bottom:4px;
+  display:flex;align-items:baseline;gap:3px;
 }
-.plan-price sup{font-size:24px;vertical-align:top;margin-top:10px;}
-.plan-price span{font-size:16px;font-weight:400;color:var(--muted);}
-.plan-period{font-size:12px;color:var(--muted);margin-bottom:20px;}
+.plan-price sup{
+  font-size:26px;font-weight:700;
+  vertical-align:baseline;
+  line-height:1;
+  margin-bottom:4px;
+}
+.plan-price span{font-size:52px;font-weight:800;letter-spacing:-2px;}
+.plan-period{font-size:12px;color:var(--muted);margin-bottom:20px;line-height:1.5;}
+.plan-per-team{
+  display:inline-block;
+  font-size:10px;font-weight:700;
+  background:rgba(0,224,168,0.1);
+  color:var(--accent-b);
+  border:1px solid rgba(0,224,168,0.2);
+  border-radius:99px;
+  padding:1px 8px;
+  margin-left:4px;
+  vertical-align:middle;
+  letter-spacing:.3px;
+}
 .plan-desc{font-size:13px;color:var(--text2);margin-bottom:24px;line-height:1.5;}
 .plan-divider{border:none;border-top:1px solid var(--border);margin:20px 0;}
 .plan-features{list-style:none;display:flex;flex-direction:column;gap:10px;margin-bottom:28px;}
@@ -819,8 +837,8 @@ footer{
       <!-- Starter -->
       <div class="pricing-card">
         <div class="plan-name">Starter</div>
-        <div class="plan-price"><sup>$</sup><span id="price-starter">0</span></div>
-        <div class="plan-period" id="period-starter">Para siempre gratis</div>
+        <div class="plan-price"><sup>$</sup><b id="price-starter" style="font-size:52px;font-weight:800;letter-spacing:-2px;line-height:1">0</b></div>
+        <div class="plan-period" id="period-starter">Para siempre gratis <span class="plan-per-team">por equipo</span></div>
         <div class="plan-desc">Perfecto para managers que recién empiezan o quieren probar la plataforma.</div>
         <hr class="plan-divider"/>
         <ul class="plan-features">
@@ -839,8 +857,8 @@ footer{
       <div class="pricing-card popular">
         <div class="popular-badge">Más popular</div>
         <div class="plan-name">Pro</div>
-        <div class="plan-price"><sup>$</sup><span id="price-pro">12</span></div>
-        <div class="plan-period" id="period-pro">por mes · facturado mensualmente</div>
+        <div class="plan-price"><sup>$</sup><b id="price-pro" style="font-size:52px;font-weight:800;letter-spacing:-2px;line-height:1">12</b></div>
+        <div class="plan-period" id="period-pro">por mes · facturado mensualmente <span class="plan-per-team">por equipo</span></div>
         <div class="plan-desc">Para equipos en crecimiento que necesitan toda la potencia de Schedule OS.</div>
         <hr class="plan-divider"/>
         <ul class="plan-features">
@@ -858,8 +876,8 @@ footer{
       <!-- Business -->
       <div class="pricing-card">
         <div class="plan-name">Business</div>
-        <div class="plan-price"><sup>$</sup><span id="price-business">29</span></div>
-        <div class="plan-period" id="period-business">por mes · facturado mensualmente</div>
+        <div class="plan-price"><sup>$</sup><b id="price-business" style="font-size:52px;font-weight:800;letter-spacing:-2px;line-height:1">29</b></div>
+        <div class="plan-period" id="period-business">por mes · facturado mensualmente <span class="plan-per-team">por equipo</span></div>
         <div class="plan-desc">Para organizaciones que necesitan control total y múltiples equipos.</div>
         <hr class="plan-divider"/>
         <ul class="plan-features">
@@ -877,8 +895,8 @@ footer{
       <!-- Enterprise -->
       <div class="pricing-card" style="border-color:rgba(192,132,252,0.3);background:rgba(192,132,252,0.03)">
         <div class="plan-name" style="color:var(--brand-purple)">Enterprise</div>
-        <div class="plan-price"><sup>$</sup><span id="price-enterprise">79</span></div>
-        <div class="plan-period" id="period-enterprise">por mes · facturado mensualmente</div>
+        <div class="plan-price"><sup>$</sup><b id="price-enterprise" style="font-size:52px;font-weight:800;letter-spacing:-2px;line-height:1">79</b></div>
+        <div class="plan-period" id="period-enterprise">por mes · facturado mensualmente <span class="plan-per-team">por equipo</span></div>
         <div class="plan-desc">Para grandes operaciones con necesidades específicas y SLA garantizado.</div>
         <hr class="plan-divider"/>
         <ul class="plan-features">
@@ -1133,9 +1151,12 @@ function toggleBilling() {
     const el = document.getElementById('price-' + plan);
     const periodEl = document.getElementById('period-' + plan);
     if (el) el.textContent = Math.round(prices[plan] * mult);
-    if (periodEl) periodEl.textContent = isAnnual
-      ? `por mes · facturado anualmente (${Math.round(prices[plan]*mult*12)}/año)`
-      : 'por mes · facturado mensualmente';
+    if (periodEl) {
+      const periodText = isAnnual
+        ? `por mes · facturado anualmente (${Math.round(prices[plan]*mult*12)}/año)`
+        : 'por mes · facturado mensualmente';
+      periodEl.innerHTML = `${periodText} <span class="plan-per-team">por equipo</span>`;
+    }
   });
 }
 
