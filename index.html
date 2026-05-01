@@ -95,6 +95,14 @@ nav{
   font-family:var(--font-display);
 }
 .nav-cta:hover{background:#5ab5ff;transform:translateY(-1px);}
+.nav-login{
+  padding:8px 16px;border-radius:8px;
+  font-size:13px;font-weight:600;
+  color:var(--text2);text-decoration:none;
+  border:1px solid var(--border2);
+  transition:all .15s;
+}
+.nav-login:hover{background:var(--surface);color:var(--text);border-color:var(--border2);}
 
 /* ── SECTIONS ── */
 section{position:relative;z-index:1;}
@@ -489,6 +497,7 @@ footer{
 @media(max-width:768px){
   nav{padding:0 16px;}
   .nav-links .nav-link{display:none;}
+  .nav-links .nav-login{display:flex;}
   .preview-inner{grid-template-columns:1fr;}
   .preview-sidebar{display:none;}
   .footer-inner{grid-template-columns:1fr 1fr;}
@@ -532,6 +541,7 @@ footer{
     <a href="#industries" class="nav-link">Industrias</a>
     <a href="#pricing" class="nav-link">Precios</a>
     <a href="app.html" class="nav-link">Demo</a>
+    <a href="app.html" class="nav-login">Iniciar sesión</a>
     <a href="app.html" class="nav-cta">Comenzar gratis →</a>
   </div>
 </nav>
@@ -555,10 +565,13 @@ footer{
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
       Comenzar gratis
     </a>
-    <a href="#features" class="btn-secondary">
-      Ver características →
+    <a href="app.html" class="btn-secondary">
+      Iniciar sesión →
     </a>
   </div>
+  <p style="font-size:12px;color:var(--muted);margin-top:-8px;margin-bottom:48px">
+    ¿Ya tienes cuenta? <a href="app.html" style="color:var(--brand-blue);text-decoration:none;font-weight:600">Inicia sesión aquí →</a>
+  </p>
   <!-- App Preview -->
   <div class="hero-preview">
     <div class="hero-preview-bar">
