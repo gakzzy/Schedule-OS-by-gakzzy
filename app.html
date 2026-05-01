@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
-<meta name="app-version" content="5.1.3"/>
+<meta name="app-version" content="5.2.0"/>
 <meta http-equiv="X-Content-Type-Options" content="nosniff"/>
 <meta name="referrer" content="strict-origin-when-cross-origin"/>
 <meta name="mobile-web-app-capable" content="yes"/>
@@ -11,12 +11,12 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <meta name="theme-color" content="#07090d"/>
 <meta name="description" content="Schedule OS — Gestión de equipos y turnos inteligente para BPO, retail, logística, salud y más."/>
-<meta property="og:title" content="Schedule OS BETA v5.1"/>
+<meta property="og:title" content="Schedule OS BETA v5.2"/>
 <meta property="og:description" content="Horarios, casos, llamadas y reportes en una sola plataforma."/>
 <meta property="og:type" content="website"/>
 <link rel="manifest" href="manifest.json"/>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='url(%23g)'/%3E%3Crect x='8' y='9' width='16' height='2.5' rx='1.25' fill='white' opacity='.9'/%3E%3Crect x='8' y='14.75' width='12' height='2.5' rx='1.25' fill='white' opacity='.7'/%3E%3Crect x='8' y='20.5' width='9' height='2.5' rx='1.25' fill='white' opacity='.5'/%3E%3Ccircle cx='23' cy='21.5' r='4' fill='%2300e0a8'/%3E%3Cpath d='M21 21.5l1.5 1.5 2.5-2.5' stroke='white' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='32' y2='32'%3E%3Cstop offset='0%25' stop-color='%234da6ff'/%3E%3Cstop offset='100%25' stop-color='%23c084fc'/%3E%3C/linearGradient%3E%3C/defs%3E%3C/svg%3E"/>
-<title>Schedule OS BETA v5.1</title>
+<title>Schedule OS BETA v5.2</title>
 <style>
 /* Load fonts non-blocking via JS — no render-blocking link */
 
@@ -474,10 +474,12 @@ body.minimal .nav-item.active{background:var(--accent-a-dim);border-left-color:v
   }
   .content-area{margin-left:0;}
   .app-layout{display:block;}
-  /* On mobile the sidebar overlays content */
+}
+@media(max-width:600px){
+  .sidebar{top:56px;height:calc(100vh - 56px);}
 }
 @media(max-width:480px){
-  .sidebar{top:84px;height:calc(100vh - 84px);}
+  .sidebar{top:56px;height:calc(100vh - 56px);}
 }
 
 
@@ -2727,11 +2729,140 @@ button, [onclick], .nav-item, .country-card, .lang-card, .kpi-card[style*="curso
   .kpi-label { font-size:9px!important; }
   .kpi-card { padding:12px 10px 10px!important; }
   .dash-kpi-row { gap:6px!important; }
-  .topbar { padding:0 12px!important; }
-  .content-area { padding:12px!important; }
+  .topbar { padding:0 10px!important; }
   /* QA bar icons only */
   .qa-btn span:last-child { display:none!important; }
   .qa-btn { padding:7px 10px!important; }
+}
+
+/* ════════════════════════════════════════
+   MOBILE — Comprehensive overhaul
+════════════════════════════════════════ */
+@media(max-width:600px){
+  /* ── Bottom nav ── */
+  .mobile-bottom-nav{display:flex;}
+  .quick-actions{bottom:max(72px,calc(env(safe-area-inset-bottom)+64px));}
+  .aria-fab{bottom:max(128px,calc(env(safe-area-inset-bottom)+120px));}
+
+  /* ── Topbar ── */
+  .topbar{padding:0 12px;height:56px;gap:8px;}
+  .logo-main{gap:0;}
+  .logo-name{font-size:13px;letter-spacing:-.3px;}
+  .logo-sub{display:none;}
+  .topbar>svg{width:24px;height:24px;}
+  /* Hide topbar subtitle on mobile */
+  .topbar-subtitle{display:none;}
+  /* Topbar action buttons smaller */
+  .topbar-btn{width:34px;height:34px;}
+  .topbar-btn svg{width:16px;height:16px;}
+
+  /* ── KPI Cards ── */
+  .dash-kpi-row{
+    grid-template-columns:repeat(2,1fr)!important;
+    gap:8px!important;
+  }
+  .kpi-card{padding:14px 14px 12px!important;}
+  .kpi-value{font-size:22px!important;}
+  .kpi-icon{width:26px;height:26px;margin-bottom:4px;}
+  .kpi-sparkline{height:20px!important;}
+
+  /* ── Tab panels ── */
+  .tab-panel{padding:1rem 1rem 6rem!important;}
+  .week-controls-bar{
+    padding:8px 1rem!important;
+    margin:-1rem -1rem 1rem!important;
+    flex-wrap:wrap;
+    gap:6px;
+  }
+
+  /* ── Casos table ── */
+  .caso-table thead th:nth-child(5),
+  .caso-table tbody td:nth-child(5){display:none;} /* hide SLA col */
+  .caso-table thead th:nth-child(7),
+  .caso-table tbody td:nth-child(7){display:none;} /* hide priority col */
+  .caso-name-input{font-size:11px!important;max-width:120px;}
+  .caso-select{font-size:10px!important;padding:3px 4px!important;}
+  .caso-date-input{font-size:10px!important;width:90px!important;}
+
+  /* ── Member rows ── */
+  .caso-member-header{padding:10px 12px!important;}
+  .caso-member-name{font-size:12px!important;}
+  .caso-member-meta{flex-wrap:wrap;gap:3px;}
+  .caso-member-avatar{width:28px;height:28px;font-size:10px;}
+
+  /* ── Settings drawer ── */
+  .settings-drawer{width:100%!important;max-width:none!important;}
+  .settings-section{padding:14px 16px!important;}
+  .settings-header{padding:16px 16px 14px!important;}
+
+  /* ── Stand-up / modals bottom sheet ── */
+  .standup-modal{
+    top:auto!important;
+    bottom:0!important;
+    left:0!important;
+    right:0!important;
+    max-height:85vh!important;
+    border-radius:16px 16px 0 0!important;
+    overflow-y:auto;
+  }
+
+  /* ── Dashboard grid ── */
+  .dash-grid-2{grid-template-columns:1fr!important;gap:10px!important;}
+  .dash-card{padding:14px 16px!important;}
+
+  /* ── Section titles ── */
+  .section-title{font-size:12px!important;}
+
+  /* ── Pulse bar ── */
+  .pulse-bar{padding:0 12px!important;}
+  .pulse-shift-label{display:none!important;}
+
+  /* ── Group separator ── */
+  .caso-group-sep{padding:8px 12px!important;font-size:11px!important;}
+
+  /* ── Import zone ── */
+  .import-zone{padding:12px!important;}
+  .drop-area{padding:16px 12px!important;}
+  .import-preview-row{flex-wrap:wrap;gap:6px!important;}
+
+  /* ── Notes ── */
+  .notes-layout{grid-template-columns:1fr!important;}
+  .notes-sidebar{max-height:200px!important;}
+
+  /* ── Calls layout ── */
+  .calls-layout{grid-template-columns:1fr!important;}
+
+  /* ── Notification panel ── */
+  #notif-panel{
+    top:56px!important;
+    right:0!important;
+    left:0!important;
+    width:auto!important;
+    max-height:70vh!important;
+    border-radius:0 0 12px 12px!important;
+  }
+
+  /* ── ARIA panel ── */
+  .aria-panel{
+    bottom:max(130px,calc(env(safe-area-inset-bottom)+122px))!important;
+    right:8px!important;
+    left:8px!important;
+    width:auto!important;
+    max-height:65vh!important;
+  }
+
+  /* ── Export modal ── */
+  #export-modal{width:calc(100vw - 24px)!important;right:12px!important;left:12px!important;}
+
+  /* ── Input font size — prevent iOS zoom ── */
+  input[type="text"],input[type="email"],input[type="password"],
+  input[type="date"],input[type="time"],select,textarea{
+    font-size:16px!important;
+  }
+  /* Override for small inputs inside tables */
+  .caso-select,
+  .caso-date-input,
+  .caso-name-input{font-size:12px!important;}
 }
 /* ════════════════════════════════════════
    ARIA — AI Assistant CSS
@@ -2972,7 +3103,7 @@ button, [onclick], .nav-item, .country-card, .lang-card, .kpi-card[style*="curso
         </defs>
       </svg>
       <div class="auth-logo-name">Schedule OS</div>
-      <div class="auth-logo-sub">by gakzzy · BETA v5.1</div>
+      <div class="auth-logo-sub">by gakzzy · BETA v5.2</div>
     </div>
     <div id="auth-form-container"></div>
   </div>
@@ -3415,13 +3546,13 @@ button, [onclick], .nav-item, .country-card, .lang-card, .kpi-card[style*="curso
     <div style="background:var(--surface3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 14px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;gap:10px">
       <div>
         <div style="font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px">Plan actual</div>
-        <div style="font-size:13px;font-weight:700;color:var(--text)">⭐ Starter <span style="font-size:10px;background:rgba(0,224,168,0.1);color:var(--accent-b);padding:1px 7px;border-radius:99px;font-weight:600;margin-left:4px">Gratis</span></div>
+        <div id="plan-badge-display" style="font-size:13px;font-weight:700;color:var(--text)">⭐ Starter <span style="font-size:10px;background:rgba(0,224,168,0.1);color:var(--accent-b);padding:1px 7px;border-radius:99px;font-weight:600;margin-left:4px">Gratis</span></div>
       </div>
       <a href="index.html#pricing" target="_blank" style="background:var(--accent-a-dim);border:1px solid var(--accent-a);border-radius:var(--radius-xs);color:var(--accent-a);padding:6px 12px;font-size:11px;font-weight:700;text-decoration:none;white-space:nowrap;font-family:inherit">Upgrade →</a>
     </div>
     <div style="display:flex;align-items:center;justify-content:space-between;width:100%;gap:8px;flex-wrap:wrap">
       <div>
-        <div class="madeby-line"><span data-i18n="made_by">Hecho por</span><span class="madeby-brand" style="margin-left:4px">gakzzy</span><span class="madeby-version" style="background:var(--accent-a-dim);color:var(--accent-a);padding:2px 7px;border-radius:99px;font-size:9px;margin-left:6px">BETA v5.1</span></div>
+        <div class="madeby-line"><span data-i18n="made_by">Hecho por</span><span class="madeby-brand" style="margin-left:4px">gakzzy</span><span class="madeby-version" style="background:var(--accent-a-dim);color:var(--accent-a);padding:2px 7px;border-radius:99px;font-size:9px;margin-left:6px">BETA v5.2</span></div>
         <div class="madeby-tagline" data-i18n="tagline">Schedule OS · Gestión de turnos y casos</div>
       </div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
@@ -4385,6 +4516,9 @@ function switchTab(tab) {
   if (moreBtn) moreBtn.classList.add('active');
   if (window.innerWidth <= 768) closeSidebar();
 
+  // Sync mobile bottom nav
+  updateMobileNav(tab);
+
   // Always scroll to top when switching tabs
   const ca = document.getElementById('content-area');
   if (ca) ca.scrollTop = 0;
@@ -5043,19 +5177,85 @@ let importedCases = []; // staging area before confirming
 // Route a case text to a group based on TASK_ROUTING keywords
 function routeCase(text) {
   const lower = text.toLowerCase();
+  // Score-based routing: count keyword matches per group
+  let bestGroup = null, bestScore = 0;
   for (const [gid, keywords] of Object.entries(TASK_ROUTING)) {
-    if (keywords.some(kw => lower.includes(kw.toLowerCase()))) return gid;
+    const score = keywords.reduce((s, kw) => s + (lower.includes(kw.toLowerCase()) ? kw.length : 0), 0);
+    if (score > bestScore) { bestScore = score; bestGroup = gid; }
   }
-  return null;
+  return bestGroup;
 }
+
 function taskLabelForGroup(gid) {
-  const map={A:'Transfer In / Adj / Reportes',B:'Transfer Out / Subs Non-ATON',C:'Internal / Redemptions',D:'ATON Transfers & Subs'};
-  return map[gid]||GROUP_DEFS.find(g=>g.id===gid)?.label||gid;
+  return GROUP_DEFS.find(g => g.id === gid)?.label || gid;
 }
+
+/* ════════════════════════════════════════
+   IMPROVED parseCaseText — smarter extraction
+   Works with PDF reports, CSV, Excel, plain text
+════════════════════════════════════════ */
 function parseCaseText(raw) {
-  const skipWords=['caso','case','#','no.','name','nombre','tipo','type','fecha','date','estado','status'];
-  return raw.split(/[\n\r]+/).map(l=>l.trim()).filter(l=>l.length>3)
-    .filter(l=>{const low=l.toLowerCase();return !skipWords.every(w=>low.includes(w));}).slice(0,60);
+  if (!raw || !raw.trim()) return [];
+
+  const lines = raw.split(/[\n\r]+/).map(l => l.trim()).filter(l => l.length > 2);
+
+  // Detect format
+  const isCSV = lines.some(l => l.split(',').length >= 3);
+  const hasCaseKeywords = lines.some(l => /transfer|aton|redemp|adjust|basket|follow|escalat|interno|internal|subs/i.test(l));
+
+  // Skip header/footer lines
+  const SKIP_PATTERNS = [
+    /^(caso|case|name|nombre|tipo|type|fecha|date|estado|status|#|no\.|id|ref|reference)$/i,
+    /^(total|page|pag|sheet|hoja|\d+\/\d+|©|confidential)$/i,
+    /^\d+$/, // pure numbers
+    /^[-=_]{3,}$/, // separator lines
+    /^(lun|mar|mié|jue|vie|sáb|dom|mon|tue|wed|thu|fri|sat|sun)/i, // day names
+    /^(january|february|march|april|may|june|july|august|september|october|november|december)/i,
+    /^(enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|octubre|noviembre|diciembre)/i,
+  ];
+
+  let candidates = lines.filter(l => {
+    if (SKIP_PATTERNS.some(p => p.test(l))) return false;
+    if (l.length > 200) return false; // too long — probably a paragraph
+    // Must contain at least one letter
+    if (!/[a-zA-ZáéíóúñÁÉÍÓÚÑ]/.test(l)) return false;
+    return true;
+  });
+
+  // If CSV, prefer extracting from specific columns
+  if (isCSV) {
+    const csvCandidates = [];
+    lines.forEach(l => {
+      const cols = l.split(',').map(c => c.replace(/^["']|["']$/g, '').trim());
+      // Look for a column that looks like a case name
+      cols.forEach(col => {
+        if (col.length > 3 && col.length < 120 && /[a-zA-Z]/.test(col) &&
+            !SKIP_PATTERNS.some(p => p.test(col))) {
+          csvCandidates.push(col);
+        }
+      });
+    });
+    if (csvCandidates.length > candidates.length) candidates = csvCandidates;
+  }
+
+  // De-duplicate
+  const seen = new Set();
+  const unique = candidates.filter(l => {
+    const key = l.toLowerCase().replace(/\s+/g, ' ');
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+
+  // If we have case keywords, prioritize those lines
+  if (hasCaseKeywords) {
+    const caseLike = unique.filter(l => /transfer|aton|redemp|adjust|basket|follow|escalat|interno|internal|subs/i.test(l));
+    const others = unique.filter(l => !/transfer|aton|redemp|adjust|basket|follow|escalat|interno|internal|subs/i.test(l));
+    // Return case-keyword lines first, then others
+    return [...caseLike, ...others].slice(0, 100);
+  }
+
+  return unique.slice(0, 100);
 }
 
 // ── LOCAL-ONLY file processing (no cloud upload) ──
@@ -5069,29 +5269,42 @@ const ALLOWED_TYPES = [
 ];
 const ALLOWED_EXTS = ['.pdf','.txt','.csv','.xls','.xlsx','.doc','.docx','.html','.htm','.png','.jpg','.jpeg','.webp'];
 
+// Track current uploaded file name
+let _currentImportFile = null;
+
 async function handleCaseFileUpload(file) {
-  const box = document.getElementById('casos-import-zone');
   if (!file) return;
 
-  // Validate file size
+  // Validate
   if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
-    showSaveToast(`⚠ Archivo demasiado grande (máx ${MAX_FILE_SIZE_MB}MB)`);
+    showSaveToast(`⚠ Archivo demasiado grande (máx ${MAX_FILE_SIZE_MB}MB)`, 'warn');
     return;
   }
-
-  // Validate file type
   const ext = '.' + file.name.split('.').pop().toLowerCase();
   if (!ALLOWED_EXTS.includes(ext)) {
-    showSaveToast(`⚠ Tipo de archivo no soportado: ${ext}`);
+    showSaveToast(`⚠ Tipo no soportado: ${ext}`, 'warn');
     return;
   }
 
-  const statusEl = box?.querySelector('.import-ai-status');
-  if (statusEl) { statusEl.style.display='flex'; statusEl.innerHTML = `<div class="ai-spinner"></div> Procesando ${file.name} (${(file.size/1024).toFixed(0)}KB)…`; }
+  _currentImportFile = file.name;
+
+  // Show loading state in import zone
+  const box = document.getElementById('casos-import-zone');
+  if (box) {
+    const statusArea = document.getElementById('import-status-area');
+    if (statusArea) {
+      statusArea.style.display = 'flex';
+      statusArea.innerHTML = `
+        <div class="ai-spinner"></div>
+        <div>
+          <div style="font-size:12px;font-weight:600;color:var(--text2)">Procesando <strong>${sanitize(file.name)}</strong> (${(file.size/1024).toFixed(0)}KB)…</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px">Extrayendo texto y detectando casos…</div>
+        </div>`;
+    }
+  }
 
   try {
     let rawText = '';
-
     if (file.type === 'application/pdf') {
       rawText = await readPDFLocally(file);
     } else if (file.type.startsWith('image/')) {
@@ -5103,24 +5316,44 @@ async function handleCaseFileUpload(file) {
     }
 
     const lines = parseCaseText(rawText);
+
     if (lines.length === 0) {
-      if (statusEl) statusEl.innerHTML = '⚠ No se detectaron casos. Verifica el formato del archivo.';
+      const statusArea = document.getElementById('import-status-area');
+      if (statusArea) statusArea.innerHTML = `<div style="color:var(--accent-c);font-size:12px">⚠ No se detectaron casos en "${sanitize(file.name)}". Verifica el formato del archivo.</div>`;
+      _currentImportFile = null;
       return;
     }
 
     importedCases = lines.map((line, i) => ({
-      id: 'imp_' + i, nombre: line.slice(0, 80),
-      routedGroup: routeCase(line), tipo: 'cpb', estado: 'pend',
-      fechaInicio: new Date().toISOString().split('T')[0], assignTo: null,
+      id: 'imp_' + i,
+      nombre: line.slice(0, 120),
+      routedGroup: routeCase(line),
+      tipo: detectCaseType(line),
+      estado: 'pend',
+      fechaInicio: new Date().toISOString().split('T')[0],
+      assignTo: null,
+      selected: false,
     }));
 
-    if (statusEl) statusEl.innerHTML = `✓ ${importedCases.length} caso${importedCases.length!==1?'s':''} detectado${importedCases.length!==1?'s':''} — revisa y confirma`;
-    renderImportPreview();
+    const routedCount = importedCases.filter(c => c.routedGroup).length;
+
+    // Rebuild import zone to show preview + actions
+    renderImportZone();
 
   } catch(err) {
-    if (statusEl) statusEl.innerHTML = `⚠ Error al procesar: ${err.message}`;
+    const statusArea = document.getElementById('import-status-area');
+    if (statusArea) statusArea.innerHTML = `<div style="color:var(--ot);font-size:12px">⚠ Error al procesar: ${sanitize(err.message)}</div>`;
     console.error('file upload error:', err);
+    _currentImportFile = null;
   }
+}
+
+// Detect case type from text
+function detectCaseType(text) {
+  const lower = text.toLowerCase();
+  if (/follow.?up|fup|seguimiento/.test(lower)) return 'fup';
+  if (/net.?new|nnd|nuevo/.test(lower)) return 'nnd';
+  return 'cpb'; // default
 }
 
 // Read PDF locally using pdf.js CDN
@@ -5229,39 +5462,124 @@ function renderImportPreview() {
   const box = document.getElementById('casos-import-zone');
   if (!box || importedCases.length === 0) return;
 
-  const unrouted = importedCases.filter(c => !c.routedGroup).length;
-  const routed = importedCases.length - unrouted;
-
-  let previewHtml = importedCases.map((c, i) => {
-    const g = GROUP_DEFS.find(x => x.id === c.routedGroup);
-    const memberOpts = c.routedGroup
-      ? (state[c.routedGroup]||[]).map((m,mi) => `<option value="${mi}">${m.name}</option>`).join('')
-      : GROUP_DEFS.map(gd => `<optgroup label="${gd.label}">${(state[gd.id]||[]).map((m,mi)=>`<option value="${gd.id}:${mi}">${m.name}</option>`).join('')}</optgroup>`).join('');
-
-    const badgeStyle = g ? `background:${GC_AVA[g.id]};color:${GC_COL[g.id]}` : 'background:rgba(248,113,113,0.12);color:#f87171';
-    const badgeLabel = g ? g.label : '⚠ Sin asignar';
-
-    return `<div class="import-preview-row" id="ipr-${i}">
-      <div class="import-preview-name" title="${c.nombre}">${c.nombre.length > 50 ? c.nombre.slice(0,48)+'…' : c.nombre}</div>
-      <span class="import-route-badge" style="${badgeStyle}">${badgeLabel}</span>
-      <select class="import-assign-sel" onchange="updateImportRoute(${i},this.value)" title="Asignar a miembro específico">
-        <option value="">Auto</option>
-        ${memberOpts}
-      </select>
-    </div>`;
-  }).join('');
+  const routed   = importedCases.filter(c => c.routedGroup).length;
+  const unrouted = importedCases.length - routed;
 
   const previewBox = box.querySelector('.import-preview');
-  if (previewBox) {
-    previewBox.innerHTML = `
-      <div class="import-preview-title">Vista previa — ${importedCases.length} casos · ${routed} ruteados · ${unrouted} sin asignar</div>
-      ${previewHtml}`;
-  }
+  if (!previewBox) return;
+
+  const rowsHtml = importedCases.map((c, i) => {
+    const g = GROUP_DEFS.find(x => x.id === c.routedGroup);
+    const color = g ? GC_COL[g.id] : 'var(--ot)';
+    const bgColor = g ? GC_AVA[g.id] : 'rgba(248,113,113,0.12)';
+    const label = g ? g.label : '⚠ Sin grupo';
+
+    // Member options
+    const memberOpts = c.routedGroup
+      ? (state[c.routedGroup]||[]).map((m,mi) =>
+          `<option value="${mi}"${c.assignTo===mi?' selected':''}>${sanitize(m.name)}</option>`
+        ).join('')
+      : GROUP_DEFS.map(gd =>
+          `<optgroup label="${gd.label}">${(state[gd.id]||[]).map((m,mi)=>
+            `<option value="${gd.id}:${mi}">${sanitize(m.name)}</option>`
+          ).join('')}</optgroup>`
+        ).join('');
+
+    // Group options for unrouted
+    const groupOpts = GROUP_DEFS.map(gd =>
+      `<option value="${gd.id}"${c.routedGroup===gd.id?' selected':''}>${gd.label}</option>`
+    ).join('');
+
+    return `
+      <div class="import-preview-row" id="ipr-${i}" style="border-left:3px solid ${color};padding-left:10px">
+        <div style="flex:1;min-width:0">
+          <div class="import-preview-name" title="${sanitize(c.nombre)}">${sanitize(c.nombre.length > 60 ? c.nombre.slice(0,58)+'…' : c.nombre)}</div>
+          <div style="display:flex;gap:6px;margin-top:4px;flex-wrap:wrap;align-items:center">
+            <span style="font-size:10px;background:${bgColor};color:${color};padding:1px 7px;border-radius:99px;font-weight:600">${label}</span>
+            ${!g ? `
+            <select onchange="reassignImportGroup(${i},this.value)"
+              style="font-size:10px;background:var(--surface3);border:1px solid var(--border2);border-radius:4px;color:var(--text2);padding:2px 6px;font-family:inherit">
+              <option value="">Asignar grupo…</option>
+              ${groupOpts}
+            </select>` : ''}
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+          <select class="import-assign-sel" onchange="updateImportRoute(${i},this.value)"
+            style="font-size:11px;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-xs);color:var(--text2);padding:4px 8px;font-family:inherit;max-width:130px"
+            title="Asignar a miembro específico">
+            <option value="">Auto (round-robin)</option>
+            ${memberOpts}
+          </select>
+          <select onchange="changeImportTipo(${i},this.value)"
+            style="font-size:11px;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-xs);color:var(--text2);padding:4px 8px;font-family:inherit">
+            <option value="cpb"${c.tipo==='cpb'?' selected':''}>CPB</option>
+            <option value="nnd"${c.tipo==='nnd'?' selected':''}>NND</option>
+            <option value="fup"${c.tipo==='fup'?' selected':''}>FUP</option>
+          </select>
+          <button onclick="removeImportCase(${i})" title="Quitar este caso"
+            style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:15px;padding:2px 4px;line-height:1">✕</button>
+        </div>
+      </div>`;
+  }).join('');
+
+  previewBox.innerHTML = `
+    <div style="padding:10px 14px 8px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px">
+      <div style="font-size:12px;color:var(--text2)">
+        <strong>${importedCases.length}</strong> casos · 
+        <span style="color:var(--accent-b)">${routed} ruteados</span>
+        ${unrouted > 0 ? ` · <span style="color:var(--ot)">${unrouted} sin grupo</span>` : ''}
+        ${_currentImportFile ? ` · <span style="color:var(--muted)">📎 ${sanitize(_currentImportFile)}</span>` : ''}
+      </div>
+      <div style="display:flex;gap:6px">
+        <button onclick="selectAllImportCases()" title="Seleccionar todos"
+          style="background:none;border:1px solid var(--border2);border-radius:4px;color:var(--muted);padding:4px 10px;cursor:pointer;font-family:inherit;font-size:11px">
+          ☑ Todos
+        </button>
+        <button onclick="removeSelectedImportCases()"
+          style="background:rgba(255,92,106,0.08);border:1px solid var(--ot);border-radius:4px;color:var(--ot);padding:4px 10px;cursor:pointer;font-family:inherit;font-size:11px">
+          🗑 Quitar selección
+        </button>
+      </div>
+    </div>
+    <div style="max-height:320px;overflow-y:auto;padding:4px 0">
+      ${rowsHtml}
+    </div>`;
+}
+
+function reassignImportGroup(idx, gid) {
+  if (!importedCases[idx]) return;
+  importedCases[idx].routedGroup = gid || null;
+  importedCases[idx].assignTo = null;
+  renderImportPreview();
+}
+
+function changeImportTipo(idx, tipo) {
+  if (importedCases[idx]) importedCases[idx].tipo = tipo;
+}
+
+function removeImportCase(idx) {
+  importedCases.splice(idx, 1);
+  if (importedCases.length === 0) { clearImport(); return; }
+  renderImportZone();
+}
+
+function selectAllImportCases() {
+  importedCases.forEach(c => c.selected = true);
+  renderImportPreview();
+}
+
+function removeSelectedImportCases() {
+  const before = importedCases.length;
+  importedCases = importedCases.filter(c => !c.selected);
+  if (importedCases.length === 0) { clearImport(); return; }
+  const removed = before - importedCases.length;
+  showSaveToast(`🗑 ${removed} caso${removed!==1?'s':''} quitado${removed!==1?'s':''}`, 'info');
+  renderImportZone();
 }
 
 function updateImportRoute(idx, val) {
-  if (!val) return;
-  // val is either "groupId:memberIdx" or just a memberIdx for pre-routed
+  if (!val || !importedCases[idx]) return;
   if (val.includes(':')) {
     const [gid, mi] = val.split(':');
     importedCases[idx].routedGroup = gid;
@@ -5272,14 +5590,13 @@ function updateImportRoute(idx, val) {
 }
 
 function confirmImport() {
-  let added = 0;
+  let added = 0, skipped = 0;
   importedCases.forEach(c => {
     const gid = c.routedGroup;
-    if (!gid || !state[gid]) return;
+    if (!gid || !state[gid] || state[gid].length === 0) { skipped++; return; }
     const members = state[gid];
-    if (members.length === 0) return;
-    // Assign to specific member or distribute round-robin
-    const targetIdx = c.assignTo != null ? Math.min(c.assignTo, members.length - 1)
+    const targetIdx = c.assignTo != null
+      ? Math.min(c.assignTo, members.length - 1)
       : added % members.length;
     members[targetIdx].casos.push({
       id: casoIdCounter++,
@@ -5287,18 +5604,32 @@ function confirmImport() {
       tipo: c.tipo || 'cpb',
       estado: 'pend',
       fechaInicio: c.fechaInicio,
+      prioridad: '',
     });
     added++;
   });
 
+  const fileName = _currentImportFile || 'archivo';
   importedCases = [];
-  showSaveToast(`✓ ${added} caso${added!==1?'s':''} importado${added!==1?'s':''}`);
-  logChange('add', `${added} ${t('log_cases_imported')||'casos importados desde archivo'}`);
+  _currentImportFile = null;
+
+  if (added === 0 && skipped > 0) {
+    showSaveToast(`⚠ ${skipped} caso${skipped!==1?'s':''} sin grupo asignado — no se importaron`, 'warn');
+  } else {
+    showSaveToast(`✓ ${added} caso${added!==1?'s':''} importado${added!==1?'s':''}${skipped>0?` (${skipped} sin grupo)`:''}`, 'success');
+    logChange('add', `${added} casos importados desde: ${fileName}`);
+    addToNotifHistory(`${added} casos importados desde ${fileName}`, 'success', '📋');
+  }
   renderAll();
+  renderImportZone();
 }
 
 function clearImport() {
   importedCases = [];
+  _currentImportFile = null;
+  // Reset file input too
+  const inp = document.getElementById('import-file-input');
+  if (inp) inp.value = '';
   renderImportZone();
 }
 
@@ -5306,65 +5637,79 @@ function renderImportZone() {
   const box = document.getElementById('casos-import-zone');
   if (!box) return;
 
+  const hasPreview = importedCases.length > 0;
+  const routed   = importedCases.filter(c => c.routedGroup).length;
+  const unrouted = importedCases.length - routed;
+
   const rulesHtml = Object.entries(TASK_ROUTING).map(([gid, kws]) => {
     const g = GROUP_DEFS.find(x => x.id === gid);
     const label = g ? g.label : gid;
     const col = GC_COL[gid] || 'var(--muted)';
-    return `<span class="rule-chip" style="border-color:${col};color:${col}"><strong>${label}:</strong> ${(kws||[]).slice(0,3).join(', ')}${kws?.length>3?'…':''}</span>`;
+    return `<span class="rule-chip" style="border-color:${col};color:${col}"><strong>${label}:</strong> ${(kws||[]).slice(0,3).join(', ')}${(kws||[]).length>3?'\u2026':''}</span>`;
   }).join('');
-
-  const hasPreview = importedCases.length > 0;
-  const routedCount = importedCases.filter(c => c.routedGroup).length;
-  const unroutedCount = importedCases.length - routedCount;
 
   box.innerHTML = `
     <div class="import-zone">
-      <div class="import-zone-header">
-        <div style="display:flex;align-items:center;gap:10px">
-          <div>
-            <div class="import-zone-title">📂 Importar casos</div>
-            <div style="font-size:11px;color:var(--muted)">Asignación automática por tipo · PDF · Imagen · Excel · CSV · Word</div>
-          </div>
+      <div class="import-zone-header" style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap">
+        <div>
+          <div class="import-zone-title">\u{1F4C2} Importar casos</div>
+          <div style="font-size:11px;color:var(--muted)">Asignaci\u00f3n autom\u00e1tica \u00b7 PDF \u00b7 Imagen \u00b7 Excel \u00b7 CSV \u00b7 Word \u00b7 TXT</div>
         </div>
         ${hasPreview ? `
-        <div style="display:flex;align-items:center;gap:8px">
-          <span style="font-size:12px;color:var(--accent-b);font-weight:600">${importedCases.length} casos detectados</span>
-          ${unroutedCount>0?`<span style="font-size:11px;color:var(--accent-c)">⚠ ${unroutedCount} sin asignar</span>`:''}
-          <button onclick="clearImport()" title="Limpiar y subir otro archivo"
-            style="background:var(--ot-dim);border:1px solid var(--ot);border-radius:var(--radius-xs);color:var(--ot);padding:5px 12px;cursor:pointer;font-family:inherit;font-size:11px;font-weight:700;display:flex;align-items:center;gap:4px">
-            🗑 Limpiar
+        <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;flex-wrap:wrap">
+          <span style="font-size:12px;color:var(--accent-b);font-weight:600">${importedCases.length} casos detectados${unrouted>0?` <span style="color:var(--accent-c)">\u00b7 ${unrouted} sin grupo</span>`:''}</span>
+          <button onclick="clearImport()" title="Limpiar archivo y lista — no borra casos ya asignados"
+            style="display:flex;align-items:center;gap:4px;background:rgba(255,92,106,0.08);border:1px solid var(--ot);border-radius:var(--radius-xs);color:var(--ot);padding:6px 12px;cursor:pointer;font-family:inherit;font-size:11px;font-weight:700">
+            \u{1F5D1} Limpiar archivo
           </button>
         </div>` : ''}
       </div>
+
       <div class="import-zone-body">
         ${!hasPreview ? `
         <div class="drop-area" id="drop-area"
           ondragover="event.preventDefault();this.classList.add('drag-over')"
           ondragleave="this.classList.remove('drag-over')"
           ondrop="this.classList.remove('drag-over');handleCaseFileUpload(event.dataTransfer.files[0])">
-          <input type="file" id="import-file-input" accept=".pdf,.png,.jpg,.jpeg,.webp,.txt,.csv,.xlsx,.xls,.docx,.doc,.html,.htm"
+          <input type="file" id="import-file-input"
+            accept=".pdf,.png,.jpg,.jpeg,.webp,.txt,.csv,.xlsx,.xls,.docx,.doc,.html,.htm"
             onchange="handleCaseFileUpload(this.files[0])"/>
-          <div class="drop-icon">📎</div>
-          <div class="drop-title">Arrastra un archivo aquí o haz clic para seleccionar</div>
-          <div class="drop-sub">PDF · Imagen · Excel · Word · HTML · TXT · CSV · máx 10MB</div>
-        </div>` : ''}
-        <div class="import-ai-status" id="import-ai-status" style="${hasPreview?'':'display:none'}"></div>
-        <div style="margin-top:${hasPreview?'0':'8px'};">
-          <div style="font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px;">
-            Reglas de asignación activas
-            <span style="font-weight:400;text-transform:none;letter-spacing:0;margin-left:6px;color:var(--muted2)">(configura en Configuración → Asignación)</span>
+          <div class="drop-icon">\u{1F4CE}</div>
+          <div class="drop-title">Arrastra un archivo aqu\u00ed o haz clic para seleccionar</div>
+          <div class="drop-sub">PDF \u00b7 Imagen \u00b7 Excel \u00b7 Word \u00b7 HTML \u00b7 TXT \u00b7 CSV \u00b7 m\u00e1x 10MB</div>
+        </div>` : `
+        <div style="display:flex;align-items:center;gap:8px;background:var(--surface3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 12px;margin-bottom:8px">
+          <span style="font-size:16px">\u{1F4CE}</span>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:12px;font-weight:600;color:var(--text2)">${sanitize(_currentImportFile||'Archivo cargado')}</div>
+            <div style="font-size:10px;color:var(--muted)">${importedCases.length} casos \u00b7 ${routed} asignados autom\u00e1ticamente</div>
           </div>
-          <div class="import-rule-chips">${rulesHtml || '<span style="font-size:11px;color:var(--muted)">Sin reglas configuradas</span>'}</div>
-        </div>
-        ${hasPreview ? `
-        <div class="import-preview"></div>
-        <div class="import-actions">
-          <button class="btn-import-confirm" onclick="confirmImport()">
-            ✓ Confirmar y asignar ${importedCases.length} caso${importedCases.length!==1?'s':''}
-            ${routedCount<importedCases.length?`<span style="font-size:10px;opacity:.7;margin-left:6px">(${unroutedCount} necesitan grupo manual)</span>`:''}
+          <button onclick="clearImport()"
+            style="background:none;border:1px solid var(--border2);border-radius:4px;color:var(--muted);padding:4px 10px;cursor:pointer;font-family:inherit;font-size:11px">
+            Cambiar archivo
           </button>
-          <button class="btn-import-clear" onclick="clearImport()" style="display:flex;align-items:center;gap:4px">
-            🗑 Cancelar y limpiar
+        </div>`}
+
+        <div id="import-status-area" style="display:none;align-items:center;gap:10px;padding:8px 0;font-size:12px;color:var(--text2)"></div>
+
+        <div style="margin-top:6px">
+          <div style="font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px">
+            Reglas de asignaci\u00f3n activas
+            <span style="font-weight:400;text-transform:none;letter-spacing:0;margin-left:6px;color:var(--muted2)">(Configuraci\u00f3n \u2192 Asignaci\u00f3n)</span>
+          </div>
+          <div class="import-rule-chips">${rulesHtml || '<span style="font-size:11px;color:var(--muted)">Sin reglas \u2014 casos quedar\u00e1n sin grupo</span>'}</div>
+        </div>
+
+        ${hasPreview ? `
+        <div class="import-preview" style="margin-top:10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden"></div>
+        <div class="import-actions" style="margin-top:10px">
+          <button class="btn-import-confirm" onclick="confirmImport()">
+            \u2713 Confirmar e importar ${importedCases.length} caso${importedCases.length!==1?'s':''}
+            ${unrouted>0?`<span style="font-size:10px;opacity:.7;margin-left:6px">(${unrouted} sin grupo ser\u00e1n omitidos)</span>`:''}
+          </button>
+          <button onclick="clearImport()"
+            style="display:flex;align-items:center;gap:5px;background:rgba(255,92,106,0.08);border:1px solid var(--ot);border-radius:var(--radius-xs);color:var(--ot);padding:8px 16px;cursor:pointer;font-family:inherit;font-size:12px;font-weight:600">
+            \u{1F5D1} Cancelar y limpiar
           </button>
         </div>` : ''}
       </div>
@@ -5372,6 +5717,7 @@ function renderImportZone() {
 
   if (hasPreview) renderImportPreview();
 }
+
 
 /* ════════════════════════════════════════
    CASOS METRICS
@@ -8078,6 +8424,7 @@ whenFirebaseReady(() => {
         loadNotifHistory();
         loadOLEDPref();
         initMobileNav();
+        renderPlanBadge();
         // Handle invite code from URL
         if (window._pendingJoinCode) {
           const code = window._pendingJoinCode;
@@ -9562,7 +9909,7 @@ function setCasoPrioridad(casoId, memberName, prioridad) {
 /* ── Version badge update ── */
 document.addEventListener('DOMContentLoaded', () => {
   const verEl = document.querySelector('.madeby-version');
-  if (verEl) verEl.textContent = 'BETA v5.1';
+  if (verEl) verEl.textContent = 'BETA v5.2';
   const qa = document.getElementById('quick-actions');
   if (qa) setTimeout(() => { qa.classList.remove('hidden'); renderQAButtons(); }, 1000);
   // Close QA customize panel when clicking outside
@@ -12494,10 +12841,7 @@ function drawQROnCanvas(canvasId, text) {
   img.src = `https://chart.googleapis.com/chart?chs=200x200&cht=qr&chl=${encodeURIComponent(text)}&choe=UTF-8&chld=M|2`;
 }
 
-/* ════════════════════════════════════════
-   WHAT'S NEW MODAL — v5.1
-════════════════════════════════════════ */
-const CURRENT_VERSION = 'v5.1';
+const CURRENT_VERSION = 'v5.2';
 function checkShowWhatsNew() {
   const seen = localStorage.getItem('scheduleOS_whatsNewSeen');
   if (seen === CURRENT_VERSION) return;
@@ -12510,14 +12854,14 @@ function showWhatsNew() {
   modal.id = 'whats-new-modal';
   modal.style.cssText = 'position:fixed;inset:0;z-index:600;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px);';
   const features = [
-    ['🏢','Equipos en tiempo real','Códigos de invitación + sync instantáneo'],
-    ['👤','Vista de Colaborador','Mi Horario, Mis Casos, Mis Solicitudes'],
-    ['📋','Sistema de solicitudes','Permisos, OT, 1on1 y cambio de turno'],
-    ['⭐','Role Team Lead','Nuevo nivel de acceso entre Manager y Colaborador'],
-    ['🔍','Filtros en casos','Búsqueda, filtro por estado y acciones masivas'],
-    ['⌨️','Atajos de teclado','Ctrl+K paleta de comandos, Ctrl+S guardar'],
-    ['🏭','Plantillas de industria','BPO, Retail, Logística, Salud y más'],
-    ['📱','App instalable (PWA)','Instala Schedule OS en tu teléfono o PC'],
+    ['🎁','Enterprise Demo 12 meses','Todos los usuarios tienen acceso completo gratis'],
+    ['🔒','Seguridad reforzada','XSS corregido · Brute force protection · CSP headers'],
+    ['🤬','Filtro de contenido','60+ palabras bloqueadas en ES/EN/FR'],
+    ['📊','CSV mejorado','SLA, prioridad, resumen ejecutivo incluidos'],
+    ['🚫','Cuentas suspendidas','Bloquea el acceso inmediatamente al suspender'],
+    ['📋','Casos v2','SLA badge, prioridad, checkbox bulk, tipos personalizados'],
+    ['🔄','Actualización forzada','Detecta versiones viejas y actualiza automáticamente'],
+    ['📱','Bottom nav móvil','Navegación inferior nativa en pantallas pequeñas'],
   ];
   modal.innerHTML = `
     <div style="background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius);width:100%;max-width:480px;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-lg);">
@@ -13722,11 +14066,9 @@ function updateMobileNav(tab) {
   if (btn) btn.classList.add('active');
 }
 function initMobileNav() {
-  // Only show for manager-type roles
   const nav = document.getElementById('mobile-bottom-nav');
   if (!nav) return;
   if (userRole === 'collaborator') {
-    // Show collab-specific tabs
     nav.innerHTML = `
       <button class="mbn-btn active" id="mbn-dash" onclick="switchTab('dash');updateMobileNav('dash')">
         <span class="mbn-icon">◈</span><span class="mbn-label">Dashboard</span>
@@ -13744,6 +14086,11 @@ function initMobileNav() {
         <span class="mbn-icon">☰</span><span class="mbn-label">Menú</span>
       </button>`;
   }
+  // Mark dashboard active by default
+  updateMobileNav('dash');
+  // Sync with current active tab
+  const curTab = document.querySelector('.tab-panel.active')?.id?.replace('tab-','');
+  if (curTab) updateMobileNav(curTab);
 }
 
 /* ════════════════════════════════════════
@@ -13878,12 +14225,44 @@ function validateNoProfanity(text, fieldName = 'campo') {
 ════════════════════════════════════════ */
 const PLAN_CONFIG = {
   current: 'enterprise_demo',
-  expiresAt: null, // 12 months from registration
-  limits: { managers: Infinity, collaborators: Infinity, features: 'all' },
+  label: 'Enterprise Demo',
+  emoji: '🏆',
+  color: 'var(--accent-d)',
+  colorBg: 'rgba(192,132,252,0.12)',
+  expiresMonths: 12,
+};
+
+const PLAN_META = {
+  starter:          { label:'Starter',        emoji:'⭐', color:'var(--accent-b)',  colorBg:'rgba(0,224,168,0.1)',  tag:'Gratis' },
+  pro:              { label:'Pro',             emoji:'💎', color:'var(--accent-a)',  colorBg:'rgba(77,166,255,0.1)', tag:'$12/mes' },
+  business:         { label:'Business',        emoji:'🏢', color:'var(--accent-c)',  colorBg:'rgba(255,180,68,0.1)', tag:'$29/mes' },
+  enterprise:       { label:'Enterprise',      emoji:'🏆', color:'var(--accent-d)',  colorBg:'rgba(192,132,252,0.1)',tag:'$79/mes' },
+  enterprise_demo:  { label:'Enterprise Demo', emoji:'🎁', color:'var(--accent-d)',  colorBg:'rgba(192,132,252,0.12)',tag:'12 meses gratis' },
 };
 
 function getUserPlan() {
+  // Check localStorage for plan set by admin/payment
+  try {
+    const stored = localStorage.getItem('scheduleOS_plan');
+    if (stored && PLAN_META[stored]) return stored;
+  } catch(e) {}
   return PLAN_CONFIG.current;
+}
+
+function setUserPlan(planKey) {
+  if (!PLAN_META[planKey]) return;
+  PLAN_CONFIG.current = planKey;
+  try { localStorage.setItem('scheduleOS_plan', planKey); } catch(e) {}
+  renderPlanBadge();
+}
+
+function renderPlanBadge() {
+  const plan = getUserPlan();
+  const meta = PLAN_META[plan] || PLAN_META.enterprise_demo;
+  const el = document.getElementById('plan-badge-display');
+  if (el) {
+    el.innerHTML = `${meta.emoji} ${meta.label} <span style="font-size:10px;background:${meta.colorBg};color:${meta.color};padding:1px 7px;border-radius:99px;font-weight:600;margin-left:4px">${meta.tag}</span>`;
+  }
 }
 function showPlanNotAvailable(planName) {
   const modal = document.createElement('div');
@@ -13891,15 +14270,24 @@ function showPlanNotAvailable(planName) {
   modal.innerHTML = `
     <div style="background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius);padding:28px 24px;max-width:380px;width:100%;text-align:center">
       <div style="font-size:36px;margin-bottom:12px">🚧</div>
-      <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:8px">Plan no disponible aún</div>
-      <div style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:6px">
-        El plan <strong>${sanitize(planName)}</strong> estará disponible próximamente.
+      <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:8px">Plan ${sanitize(planName)} no disponible aún</div>
+      <div style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:10px">
+        Este plan estará disponible próximamente.
       </div>
-      <div style="font-size:13px;color:var(--accent-b);font-weight:600;margin-bottom:16px">
-        🎁 Por ahora tienes acceso completo a <strong>Enterprise Demo</strong> gratis por 12 meses.
+      <div style="background:rgba(192,132,252,0.08);border:1px solid rgba(192,132,252,0.2);border-radius:10px;padding:14px;margin-bottom:20px">
+        <div style="font-size:14px;color:var(--accent-d);font-weight:700;margin-bottom:4px">🎁 Ya tienes Enterprise Demo</div>
+        <div style="font-size:13px;color:var(--text2);line-height:1.5">
+          Acceso completo a <strong>todas las funciones</strong> sin límites por <strong>12 meses gratis</strong>. Sin tarjeta requerida.
+        </div>
       </div>
-      <div style="font-size:11px;color:var(--muted);margin-bottom:20px">Incluye todas las funciones sin límites · Sin tarjeta requerida</div>
-      <button onclick="this.closest('[style]').remove()" style="background:var(--accent-a);border:none;border-radius:var(--radius-xs);color:#fff;padding:10px 24px;cursor:pointer;font-family:inherit;font-size:13px;font-weight:700">Continuar con Demo gratuita →</button>
+      <button onclick="setUserPlan('enterprise_demo');this.closest('[style]').remove();showSaveToast('🎁 Enterprise Demo activo — 12 meses gratis','success')"
+        style="background:linear-gradient(135deg,var(--accent-d),var(--accent-a));border:none;border-radius:var(--radius-xs);color:#fff;padding:11px 24px;cursor:pointer;font-family:inherit;font-size:13px;font-weight:700;width:100%;margin-bottom:8px">
+        Activar Enterprise Demo →
+      </button>
+      <button onclick="this.closest('[style]').remove()"
+        style="background:none;border:1px solid var(--border2);border-radius:var(--radius-xs);color:var(--muted);padding:9px 20px;cursor:pointer;font-family:inherit;font-size:12px;width:100%">
+        Cerrar
+      </button>
     </div>`;
   modal.onclick = e => { if(e.target === modal) modal.remove(); };
   document.body.appendChild(modal);
@@ -13909,7 +14297,7 @@ function showPlanNotAvailable(planName) {
    VERSION ENFORCEMENT
    Force reload if app version is outdated
 ════════════════════════════════════════ */
-const APP_VERSION = '5.1.3';
+const APP_VERSION = '5.2.0';
 function checkAppVersion() {
   const stored = localStorage.getItem('scheduleOS_appVersion');
   if (stored && stored !== APP_VERSION) {

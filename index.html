@@ -128,12 +128,15 @@ section{position:relative;z-index:1;}
 .hero-badge span{width:6px;height:6px;background:var(--brand-green);border-radius:50%;animation:pulse 2s infinite;}
 .hero-title{
   font-family:var(--font-display);
-  font-size:clamp(42px,7vw,84px);
+  font-size:clamp(36px,7vw,84px);
   font-weight:800;
-  line-height:1.0;
+  line-height:1.05;
   letter-spacing:-3px;
   margin-bottom:20px;
   animation:fadeUp .6s .1s ease both;
+  overflow-wrap:break-word;
+  word-break:break-word;
+  max-width:100%;
 }
 .hero-title .line1{color:var(--text);}
 .hero-title .line2{
@@ -512,6 +515,45 @@ footer{
   .footer-inner{grid-template-columns:1fr;}
   .stats-row{grid-template-columns:1fr 1fr;}
   .pricing-card.popular{order:-1;}
+
+  /* Hero title — prevent overflow on small screens */
+  .hero-title{
+    font-size:clamp(32px,9vw,52px)!important;
+    letter-spacing:-1.5px!important;
+    word-break:break-word;
+    overflow-wrap:break-word;
+    hyphens:auto;
+  }
+
+  /* Nav — keep login + CTA visible and compact */
+  nav{padding:0 12px;height:56px;}
+  .nav-logo{font-size:14px;gap:6px;}
+  .nav-logo svg{width:26px;height:26px;}
+  .nav-cta{padding:6px 12px!important;font-size:12px!important;}
+  .nav-login{padding:5px 10px!important;font-size:12px!important;}
+  .nav-links{gap:4px!important;}
+
+  /* Hero section */
+  .hero{padding:80px 16px 60px!important;}
+  .hero-subtitle{font-size:15px!important;margin-bottom:24px!important;}
+
+  /* Sections */
+  section{padding:48px 16px!important;}
+
+  /* Stats numbers */
+  .stat-number{font-size:36px!important;}
+
+  /* FAQ */
+  .faq-item button{padding:14px 16px!important;font-size:13px!important;}
+
+  /* Footer */
+  .footer-links{flex-direction:column;gap:4px!important;}
+}
+
+@media(max-width:380px){
+  .hero-title{font-size:28px!important;letter-spacing:-1px!important;}
+  .nav-cta{display:none!important;}  /* Too cramped — remove on very small */
+  .nav-login{font-size:11px!important;padding:5px 8px!important;}
 }
 </style>
 </head>
