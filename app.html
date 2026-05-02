@@ -14543,23 +14543,24 @@ async function doGoogleSignIn() {
    6. Pega el site key donde dice TU_RECAPTCHA_SITE_KEY abajo
    7. Descomenta el bloque completo
 ════════════════════════════════════════ */
-/*
+
 async function initAppCheck() {
   try {
     const { initializeAppCheck, ReCaptchaV3Provider } = await import(
       'https://www.gstatic.com/firebasejs/10.12.0/firebase-app-check.js'
     );
     initializeAppCheck(window._fbApp, {
-      provider: new ReCaptchaV3Provider('TU_RECAPTCHA_SITE_KEY'),
+      provider: new ReCaptchaV3Provider('6Ldw2dQsAAAANT6Mj9L7e8XotyvqrEt5yGn2nQz'),
       isTokenAutoRefreshEnabled: true,
     });
     console.log('App Check initialized');
   } catch(e) {
     console.warn('App Check init failed:', e);
   }
-}
-// Llama initAppCheck() después de inicializar Firebase
-*/
+} 
+   initAppCheck();
+ Llama initAppCheck() después de inicializar Firebase
+
 
 /* ════════════════════════════════════════
    STRIPE INTEGRATION — LISTO PARA ACTIVAR
