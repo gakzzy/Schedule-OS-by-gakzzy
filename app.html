@@ -1,13 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-   <script type="text/javascript">
-    (function(c,l,a,r,i,t,y){
-        c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
-        t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
-        y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
-    })(window, document, "clarity", "script", "wklspg2tvn");
-</script>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
 <meta name="app-version" content="5.2.0"/>
@@ -8373,6 +8366,11 @@ setTimeout(() => {
       window._pendingJoinCode = code;
       window.history.replaceState({}, '', window.location.pathname);
     }
+    const ref = params.get('ref');
+    if (ref) {
+      window._pendingReferralCode = ref.toUpperCase();
+      window.history.replaceState({}, '', window.location.pathname);
+    }
   } catch(e) {}
 })();
 
@@ -8462,6 +8460,13 @@ whenFirebaseReady(() => {
         initMobileNav();
         renderPlanBadge();
         checkShowNPS();
+        saveUserReferralCode(user.uid);
+        // Apply referral if came via ref link
+        if (window._pendingReferralCode) {
+          const ref = window._pendingReferralCode;
+          window._pendingReferralCode = null;
+          setTimeout(() => applyReferralCode(ref), 2000);
+        }
         // Add to Brevo email list on registration
         if (isNewAccount) {
           addToBrevoList(user.email, sanitizeName(user.displayName || ''));
@@ -9021,7 +9026,14 @@ function renderAccountInto(el) {
   el.innerHTML = `
     <div class="account-card">
 
-      <!-- Avatar + info -->
+        <div class="settings-section">
+          <div class="settings-section-label">Invita y gana</div>
+          <div style="font-size:11px;color:var(--muted);margin-bottom:10px;line-height:1.5">Invita a otro manager. Cuando se registre con tu código, ambos reciben 1 mes gratis en cualquier plan.</div>
+          <button onclick="showReferralModal();toggleSettings()"
+            style="width:100%;background:linear-gradient(135deg,var(--accent-a-dim),var(--accent-d-dim));border:1px solid var(--accent-a);border-radius:var(--radius-xs);color:var(--accent-a);padding:10px 16px;cursor:pointer;font-family:inherit;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px">
+            🎁 Ver mi código de referido
+          </button>
+        </div>
       <div class="account-avatar-row">
         <div style="position:relative;cursor:pointer" onclick="document.getElementById('photo-upload-inp').click()" title="Cambiar foto de perfil">
           ${currentUser.photoURL
@@ -14220,6 +14232,178 @@ async function uploadProfilePhoto(file) {
   }
 }
 
+/* ════════════════════════════════════════
+   REFERRAL SYSTEM
+   Genera y rastrea códigos de referido.
+   Cada usuario tiene un código único.
+   Si se registra via referral → ambos ganan 1 mes.
+════════════════════════════════════════ */
+function getReferralCode(uid) {
+  // Deterministic code from UID — 6 chars alphanumeric
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code = '';
+  for (let i = 0; i < 6; i++) {
+    code += chars[uid.charCodeAt(i % uid.length) % chars.length];
+  }
+  return code;
+}
+
+async function applyReferralCode(refCode) {
+  if (!currentUser || !refCode) return;
+  const { collection, query, where, getDocs, doc, updateDoc, getDoc } = window._fbFns;
+  try {
+    // Find referrer by code
+    const q = query(collection(window._fbDb, 'users'),
+      where('referralCode', '==', refCode.toUpperCase()));
+    const snap = await getDocs(q);
+    if (snap.empty) {
+      showSaveToast('⚠ Código de referido no válido', 'warn');
+      return;
+    }
+    const referrerDoc = snap.docs[0];
+    if (referrerDoc.id === currentUser.uid) {
+      showSaveToast('⚠ No puedes usar tu propio código', 'warn');
+      return;
+    }
+    // Check not already used
+    const myDoc = await getDoc(doc(window._fbDb, 'users', currentUser.uid));
+    if (myDoc.data()?.referredBy) {
+      showSaveToast('⚠ Ya usaste un código de referido', 'warn');
+      return;
+    }
+    // Apply referral — mark both users
+    await updateDoc(doc(window._fbDb, 'users', currentUser.uid), {
+      referredBy: referrerDoc.id,
+      referralBonus: 1, // 1 month free
+    });
+    await updateDoc(doc(window._fbDb, 'users', referrerDoc.id), {
+      referralCount: (referrerDoc.data().referralCount || 0) + 1,
+      referralBonus: (referrerDoc.data().referralBonus || 0) + 1,
+    });
+    showSaveToast('🎉 Código aplicado — ¡1 mes gratis para ti y tu referido!', 'success');
+    logChange('other', 'Código de referido aplicado: ' + refCode);
+  } catch(e) {
+    console.error('applyReferralCode:', e);
+    showSaveToast('⚠ Error al aplicar el código', 'warn');
+  }
+}
+
+async function saveUserReferralCode(uid) {
+  if (!uid || !window._fbFns) return;
+  const { doc, updateDoc, getDoc } = window._fbFns;
+  try {
+    const snap = await getDoc(doc(window._fbDb, 'users', uid));
+    if (!snap.data()?.referralCode) {
+      await updateDoc(doc(window._fbDb, 'users', uid), {
+        referralCode: getReferralCode(uid),
+      });
+    }
+  } catch(e) {}
+}
+
+function showReferralModal() {
+  if (!currentUser) return;
+  const code = getReferralCode(currentUser.uid);
+  const link = `https://scheduleos.app/app.html?action=register&ref=${code}`;
+  const modal = document.createElement('div');
+  modal.style.cssText = 'position:fixed;inset:0;z-index:700;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(6px)';
+  modal.innerHTML = `
+    <div style="background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius);padding:28px 24px;max-width:400px;width:100%;text-align:center">
+      <div style="font-size:32px;margin-bottom:12px">🎁</div>
+      <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:6px">Invita y gana 1 mes gratis</div>
+      <div style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:18px">Comparte tu código con otro manager. Cuando se registren y activen su equipo, <strong>ambos reciben 1 mes gratis</strong> en cualquier plan.</div>
+      <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:14px;margin-bottom:14px">
+        <div style="font-size:28px;font-weight:800;color:var(--accent-a);letter-spacing:6px;font-family:'SF Mono','Fira Code',monospace">${sanitize(code)}</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:4px">Tu código único de referido</div>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:16px">
+        <button onclick="copyToClipboard('${sanitize(link)}');showSaveToast('✓ Link copiado','success')"
+          style="background:var(--accent-a-dim);border:1px solid var(--accent-a);border-radius:var(--radius-xs);color:var(--accent-a);padding:8px 16px;cursor:pointer;font-family:inherit;font-size:12px;font-weight:700">🔗 Copiar link</button>
+        <button onclick="copyToClipboard('${sanitize(code)}');showSaveToast('✓ Código copiado','success')"
+          style="background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-xs);color:var(--text2);padding:8px 16px;cursor:pointer;font-family:inherit;font-size:12px">📋 Copiar código</button>
+      </div>
+      <button onclick="shareReferral('${sanitize(link)}','${sanitize(code)}')"
+        style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-xs);color:var(--text2);padding:9px 16px;cursor:pointer;font-family:inherit;font-size:12px;margin-bottom:12px">
+        📤 Compartir por WhatsApp / Email
+      </button>
+      <button onclick="this.closest('[style]').remove()"
+        style="background:none;border:none;color:var(--muted);cursor:pointer;font-family:inherit;font-size:12px">Cerrar</button>
+    </div>`;
+  modal.onclick = e => { if(e.target === modal) modal.remove(); };
+  document.body.appendChild(modal);
+}
+
+function shareReferral(link, code) {
+  const text = `¡Te invito a probar Schedule OS! Úsalo gratis con mi código *${code}* o entra directo aquí: ${link}`;
+  if (navigator.share) {
+    navigator.share({ title: 'Schedule OS — Invitación', text, url: link }).catch(() => {});
+  } else {
+    const wa = `https://wa.me/?text=${encodeURIComponent(text)}`;
+    window.open(wa, '_blank');
+  }
+}
+
+// Check if user came via referral code
+(function checkReferralParam() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const ref = params.get('ref');
+    if (ref) {
+      window._pendingReferralCode = ref.toUpperCase();
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  } catch(e) {}
+})();
+
+/* ════════════════════════════════════════
+   2FA — TWO FACTOR AUTHENTICATION
+   ⚠ PARA ACTIVAR:
+   1. Firebase Console → Authentication → Sign-in method
+   2. Scroll a "Multi-factor authentication" → Enable
+   3. Habilitar TOTP (Time-based One-Time Password)
+   4. Descomentar las funciones de abajo
+   5. El flujo: login → detecta MFA enrolled → pide código → verificar
+
+   NOTA: Firebase MFA requiere plan Blaze (pay-as-you-go)
+   Blaze es gratis hasta el límite free tier, luego cobra
+════════════════════════════════════════ */
+/*
+async function enroll2FA() {
+  try {
+    const { multiFactor, TotpMultiFactorGenerator, TotpSecret } = await import(
+      'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js'
+    );
+    const multiFactorUser = multiFactor(currentUser);
+    const session = await multiFactorUser.getSession();
+    const totpSecret = await TotpMultiFactorGenerator.generateSecret(session);
+    // Show QR code to user for scanning with Google Authenticator
+    const qrUrl = totpSecret.generateQrCodeUrl(currentUser.email, 'Schedule OS');
+    show2FASetupModal(qrUrl, totpSecret);
+  } catch(e) {
+    showSaveToast('⚠ Error activando 2FA: ' + e.message, 'warn');
+  }
+}
+
+async function verify2FACode(secret, code) {
+  try {
+    const { TotpMultiFactorGenerator, multiFactor } = await import(
+      'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js'
+    );
+    const multiFactorAssertion = TotpMultiFactorGenerator.assertionForEnrollment(secret, code);
+    await multiFactor(currentUser).enroll(multiFactorAssertion, 'Schedule OS TOTP');
+    showSaveToast('✓ 2FA activado correctamente', 'success');
+    logChange('other', '2FA activado');
+  } catch(e) {
+    showSaveToast('⚠ Código incorrecto', 'warn');
+  }
+}
+
+function show2FASetupModal(qrUrl, secret) {
+  // Show modal with QR code and input for verification code
+  // User scans QR with Google Authenticator → enters 6-digit code → verifies
+}
+*/
+
 function saveTeamTimezone(tz) {
   try { localStorage.setItem('scheduleOS_timezone', tz); } catch(e) {}
   showSaveToast(`✓ Zona horaria: ${tz}`, 'success');
@@ -14550,24 +14734,23 @@ async function doGoogleSignIn() {
    6. Pega el site key donde dice TU_RECAPTCHA_SITE_KEY abajo
    7. Descomenta el bloque completo
 ════════════════════════════════════════ */
-
+/*
 async function initAppCheck() {
   try {
     const { initializeAppCheck, ReCaptchaV3Provider } = await import(
       'https://www.gstatic.com/firebasejs/10.12.0/firebase-app-check.js'
     );
     initializeAppCheck(window._fbApp, {
-      provider: new ReCaptchaV3Provider('6Ldw2dQsAAAANT6Mj9L7e8XotyvqrEt5yGn2nQz'),
+      provider: new ReCaptchaV3Provider('TU_RECAPTCHA_SITE_KEY'),
       isTokenAutoRefreshEnabled: true,
     });
     console.log('App Check initialized');
   } catch(e) {
     console.warn('App Check init failed:', e);
   }
-} 
-   initAppCheck();
+}
 // Llama initAppCheck() después de inicializar Firebase
-
+*/
 
 /* ════════════════════════════════════════
    STRIPE INTEGRATION — LISTO PARA ACTIVAR
