@@ -8448,7 +8448,7 @@ whenFirebaseReady(() => {
         if (userRole === 'manager' || userRole === 'superadmin' || userRole === 'team_lead') {
           setTimeout(addManagerInboxToMenu, 500);
         }
-        if (userRole === 'superadmin') setTimeout(addAdminPanelLink, 600);
+        setTimeout(checkAndAddAdminLink, 600);
         startIdleTimer();
         setTimeout(() => checkShowTutorial(), 1200);
         setTimeout(() => checkShowWhatsNew(), 3500);
@@ -8994,7 +8994,7 @@ async function loadUserProfile() {
       } else if (userRole === 'manager' || userRole === 'superadmin') {
         subscribeToSchedule();
         addManagerInboxToMenu();
-        if (userRole === 'superadmin') addAdminPanelLink();
+        checkAndAddAdminLink();
       } else if (userRole === 'team_lead') {
         // Team lead — full schedule access + limited inbox
         subscribeToSchedule();
@@ -12017,7 +12017,6 @@ async function respondRequest(requestId, status) {
 function addAdminPanelLink() {
   const dd = document.getElementById('topbar-dropdown');
   if (!dd || document.getElementById('dd-admin-link')) return;
-  // Insert at the top of the dropdown after the user header
   const header = document.getElementById('dd-user-header');
   if (!header) return;
   const btn = document.createElement('button');
@@ -12026,7 +12025,7 @@ function addAdminPanelLink() {
   btn.style.cssText = 'background:var(--accent-d-dim);border-bottom:1px solid var(--border);';
   btn.onclick = () => { window.open('admin.html', '_blank'); closeMenu(); };
   btn.innerHTML = `
-    <span class="dd-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span>
+    <span class="dd-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent-d)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span>
     <span class="dd-label" style="color:var(--accent-d)">Admin Panel<span class="dd-sub" style="color:var(--accent-d);opacity:.7">Consola de administración</span></span>`;
   header.insertAdjacentElement('afterend', btn);
   const sep = document.createElement('div');
@@ -12034,9 +12033,20 @@ function addAdminPanelLink() {
   btn.insertAdjacentElement('afterend', sep);
 }
 
+// Show Admin Panel for superadmin AND manager who owns the team
+function checkAndAddAdminLink() {
+  if (userRole === 'superadmin') {
+    addAdminPanelLink();
+  } else if (userRole === 'manager' && currentUser && currentTeamId === currentUser.uid) {
+    addAdminPanelLink();
+  }
+}
+
 // Add requests inbox button to manager's dropdown menu
 function addManagerInboxToMenu() {
-  if (userRole !== 'manager') return;
+  // Show for manager, superadmin, and team_lead
+  const managerRoles = ['manager', 'superadmin', 'team_lead'];
+  if (!managerRoles.includes(userRole)) return;
   const dd = document.getElementById('topbar-dropdown');
   if (!dd || document.getElementById('dd-inbox-btn')) return;
   const sep = dd.querySelector('.dd-sep');
@@ -12049,8 +12059,9 @@ function addManagerInboxToMenu() {
     <span class="dd-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z"/></svg></span>
     <span class="dd-label">Solicitudes<span class="dd-sub" id="inbox-badge-sub">Bandeja del equipo</span></span>`;
   sep.insertAdjacentElement('beforebegin', btn);
-  sep.insertAdjacentElement('beforebegin', document.createElement('div'));
-  sep.previousSibling.className = 'dd-sep';
+  const newSep = document.createElement('div');
+  newSep.className = 'dd-sep';
+  btn.insertAdjacentElement('afterend', newSep);
 }
 
 /* ════════════════════════════════════════
