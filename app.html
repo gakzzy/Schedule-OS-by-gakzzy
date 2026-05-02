@@ -3453,6 +3453,23 @@ button, [onclick], .nav-item, .country-card, .lang-card, .kpi-card[style*="curso
       </div>
 
       <div class="settings-section">
+        <div class="settings-section-label">Zona horaria del equipo</div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:8px;line-height:1.4">Todos los turnos y horarios se mostrarán en esta zona horaria. Útil para equipos con managers en diferentes países.</div>
+        <select id="team-timezone-sel" onchange="saveTeamTimezone(this.value)"
+          style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-xs);color:var(--text);padding:8px 12px;font-family:inherit;font-size:12px;cursor:pointer">
+          <option value="America/Santo_Domingo">🇩🇴 América/Santo Domingo (AST, UTC-4)</option>
+          <option value="America/New_York">🇺🇸 América/Nueva York (ET, UTC-5/-4)</option>
+          <option value="America/Chicago">🇺🇸 América/Chicago (CT, UTC-6/-5)</option>
+          <option value="America/Los_Angeles">🇺🇸 América/Los Ángeles (PT, UTC-8/-7)</option>
+          <option value="America/Bogota">🇨🇴 América/Bogotá (COT, UTC-5)</option>
+          <option value="America/Lima">🇵🇪 América/Lima (PET, UTC-5)</option>
+          <option value="America/Mexico_City">🇲🇽 América/Ciudad de México (CST, UTC-6)</option>
+          <option value="Europe/Madrid">🇪🇸 Europa/Madrid (CET, UTC+1)</option>
+          <option value="UTC">🌐 UTC (Universal)</option>
+        </select>
+      </div>
+
+      <div class="settings-section">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
           <div>
             <div class="settings-section-label" style="margin-bottom:2px">Asistente ARIA</div>
@@ -8434,8 +8451,14 @@ whenFirebaseReady(() => {
         setTimeout(() => { addDashboardSparklines(); }, 2500);
         loadNotifHistory();
         loadOLEDPref();
+        loadTeamTimezone();
         initMobileNav();
         renderPlanBadge();
+        checkShowNPS();
+        // Add to Brevo email list on registration
+        if (isNewAccount) {
+          addToBrevoList(user.email, sanitizeName(user.displayName || ''));
+        }
         // Handle invite code from URL
         if (window._pendingJoinCode) {
           const code = window._pendingJoinCode;
@@ -8553,6 +8576,17 @@ function showAuthScreen(mode) {
       </div>
       <button class="auth-btn" onclick="doLogin()">
         ${isEn ? 'Sign in' : isEs ? 'Iniciar sesión' : 'Se connecter'}
+      </button>
+      <!-- Google SSO divider -->
+      <div style="display:flex;align-items:center;gap:10px;margin:14px 0 10px">
+        <div style="flex:1;height:1px;background:var(--border2)"></div>
+        <span style="font-size:11px;color:var(--muted)">${isEn ? 'or' : isEs ? 'o' : 'ou'}</span>
+        <div style="flex:1;height:1px;background:var(--border2)"></div>
+      </div>
+      <button onclick="doGoogleSignIn()" style="width:100%;display:flex;align-items:center;justify-content:center;gap:10px;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--radius-xs);color:var(--text);padding:10px 16px;cursor:pointer;font-family:inherit;font-size:13px;font-weight:500;transition:background .15s"
+        onmouseover="this.style.background='var(--surface3)'" onmouseout="this.style.background='var(--surface2)'">
+        <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+        ${isEn ? 'Continue with Google' : isEs ? 'Continuar con Google' : 'Continuer avec Google'}
       </button>
       <div class="auth-switch">
         ${isEn ? "Don't have an account?" : isEs ? '¿No tienes cuenta?' : "Pas encore de compte ?"}
@@ -8982,7 +9016,13 @@ function renderAccountInto(el) {
 
       <!-- Avatar + info -->
       <div class="account-avatar-row">
-        <div class="account-avatar">${initials2}</div>
+        <div style="position:relative;cursor:pointer" onclick="document.getElementById('photo-upload-inp').click()" title="Cambiar foto de perfil">
+          ${currentUser.photoURL
+            ? `<img src="${currentUser.photoURL}" style="width:52px;height:52px;border-radius:50%;object-fit:cover;border:2px solid var(--border2)" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/><div class="account-avatar" style="display:none">${initials2}</div>`
+            : `<div class="account-avatar">${initials2}</div>`}
+          <div style="position:absolute;bottom:-2px;right:-2px;width:18px;height:18px;background:var(--accent-a);border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid var(--surface);font-size:9px">✏</div>
+        </div>
+        <input type="file" id="photo-upload-inp" accept="image/jpeg,image/png,image/webp" style="display:none" onchange="uploadProfilePhoto(this.files[0])"/>
         <div class="account-info">
           <div class="account-name">${currentUser.displayName || 'Sin nombre'}</div>
           <div class="account-email">${currentUser.email}</div>
@@ -12921,16 +12961,23 @@ function openMonthlySummary() {
   const rows = allM.map(m => {
     const ot = weekOT(m);
     const casos = m.casos || [];
-    const cerrados = casos.filter(c => c.estado === 'cerr').length;
+    const cerrados  = casos.filter(c => c.estado === 'cerr').length;
     const pendientes = casos.filter(c => c.estado === 'pend').length;
-    const ausencias = DAYS.filter(d => m.days[d].dayoff || m.days[d].fault || m.days[d].perm).length;
-    return { name: m.name, ot, cerrados, pendientes, ausencias, totalCasos: casos.length };
-  }).sort((a,b) => b.cerrados - a.cerrados);
+    const enProceso = casos.filter(c => c.estado === 'prog').length;
+    // Real absences = fault only (falta injustificada)
+    // Permisos = separate column, not counted as absences
+    const ausencias = DAYS.filter(d => m.days[d]?.fault).length;
+    const permisos  = DAYS.filter(d => m.days[d]?.perm).length;
+    const libres    = DAYS.filter(d => m.days[d]?.dayoff).length;
+    return { name: m.name, ot, cerrados, pendientes, enProceso, ausencias, permisos, libres, totalCasos: casos.length };
+  }).sort((a,b) => b.cerrados - a.cerrados || a.ausencias - b.ausencias);
 
-  const totalOT = rows.reduce((s,r) => s+r.ot, 0);
+  const totalOT   = rows.reduce((s,r) => s+r.ot, 0);
   const totalCerr = rows.reduce((s,r) => s+r.cerrados, 0);
-  const totalAus = rows.reduce((s,r) => s+r.ausencias, 0);
-  const coverage = getScheduleCoverage();
+  const totalPend = rows.reduce((s,r) => s+r.pendientes, 0);
+  const totalAus  = rows.reduce((s,r) => s+r.ausencias, 0);
+  const totalPerm = rows.reduce((s,r) => s+r.permisos, 0);
+  const coverage  = getScheduleCoverage();
 
   modal.innerHTML = `
     <div style="background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius) var(--radius) 0 0;width:100%;max-width:700px;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-lg);">
@@ -12946,18 +12993,26 @@ function openMonthlySummary() {
         </div>
       </div>
       <!-- Summary KPIs -->
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;padding:16px 20px;border-bottom:1px solid var(--border)">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;padding:16px 20px;border-bottom:1px solid var(--border)">
         <div style="text-align:center">
           <div style="font-size:24px;font-weight:800;color:var(--accent-b)">${totalCerr}</div>
           <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">Casos cerrados</div>
         </div>
         <div style="text-align:center">
-          <div style="font-size:24px;font-weight:800;color:var(--ot)">${totalOT > 0 ? fmtH(totalOT) : '0h'}</div>
-          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">OT total equipo</div>
+          <div style="font-size:24px;font-weight:800;color:var(--accent-c)">${totalPend}</div>
+          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">Pendientes</div>
         </div>
         <div style="text-align:center">
-          <div style="font-size:24px;font-weight:800;color:var(--accent-c)">${totalAus}</div>
-          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">Ausencias</div>
+          <div style="font-size:24px;font-weight:800;color:var(--ot)">${totalOT > 0 ? fmtH(totalOT) : '0h'}</div>
+          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">OT total</div>
+        </div>
+        <div style="text-align:center">
+          <div style="font-size:24px;font-weight:800;color:${totalAus>0?'var(--danger)':'var(--muted)'}">${totalAus}</div>
+          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">Faltas</div>
+        </div>
+        <div style="text-align:center">
+          <div style="font-size:24px;font-weight:800;color:var(--accent-d)">${totalPerm}</div>
+          <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">Permisos</div>
         </div>
         <div style="text-align:center">
           <div style="font-size:24px;font-weight:800;color:var(--accent-a)">${coverage}%</div>
@@ -12971,19 +13026,21 @@ function openMonthlySummary() {
             <tr style="background:var(--surface2)">
               <th style="padding:10px 20px;text-align:left;color:var(--muted);font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.4px">Colaborador</th>
               <th style="padding:10px 12px;text-align:center;color:var(--muted);font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.4px">Cerrados</th>
-              <th style="padding:10px 12px;text-align:center;color:var(--muted);font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.4px">Pendientes</th>
+              <th style="padding:10px 12px;text-align:center;color:var(--muted);font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.4px">Pend.</th>
               <th style="padding:10px 12px;text-align:center;color:var(--muted);font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.4px">OT</th>
-              <th style="padding:10px 12px;text-align:center;color:var(--muted);font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.4px">Ausencias</th>
+              <th style="padding:10px 12px;text-align:center;color:var(--muted);font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.4px">Faltas</th>
+              <th style="padding:10px 12px;text-align:center;color:var(--muted);font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.4px">Permisos</th>
             </tr>
           </thead>
           <tbody>
             ${rows.map(r => `
               <tr style="border-bottom:1px solid var(--border)">
-                <td style="padding:10px 20px;font-weight:600;color:var(--text)">${r.name}</td>
-                <td style="padding:10px 12px;text-align:center;color:var(--accent-b);font-weight:700">${r.cerrados}</td>
-                <td style="padding:10px 12px;text-align:center;color:var(--accent-c)">${r.pendientes}</td>
+                <td style="padding:10px 20px;font-weight:600;color:var(--text)">${sanitize(r.name)}</td>
+                <td style="padding:10px 12px;text-align:center;color:var(--accent-b);font-weight:700">${r.cerrados || '—'}</td>
+                <td style="padding:10px 12px;text-align:center;color:${r.pendientes>0?'var(--accent-c)':'var(--muted)'}">${r.pendientes || '—'}</td>
                 <td style="padding:10px 12px;text-align:center;color:${r.ot>0?'var(--ot)':'var(--muted)'};font-weight:${r.ot>0?'700':'400'}">${r.ot>0?fmtH(r.ot):'—'}</td>
-                <td style="padding:10px 12px;text-align:center;color:${r.ausencias>0?'var(--accent-c)':'var(--muted)'}">${r.ausencias || '—'}</td>
+                <td style="padding:10px 12px;text-align:center;color:${r.ausencias>0?'var(--danger)':'var(--muted)'};font-weight:${r.ausencias>0?'700':'400'}">${r.ausencias || '—'}</td>
+                <td style="padding:10px 12px;text-align:center;color:${r.permisos>0?'var(--accent-d)':'var(--muted)'}">${r.permisos || '—'}</td>
               </tr>`).join('')}
           </tbody>
         </table>
@@ -12993,16 +13050,16 @@ function openMonthlySummary() {
   modal.onclick = e => { if(e.target === modal) modal.remove(); };
 
   // Store rows for CSV export
-  window._monthlyReportRows = { rows, weekDate, totalOT, totalCerr, totalAus, coverage };
+  window._monthlyReportRows = { rows, weekDate, totalOT, totalCerr, totalPend, totalAus, totalPerm, coverage };
 }
 
 function exportMonthlySummaryCSV() {
   const d = window._monthlyReportRows;
   if (!d) return;
   let csv = `Semana del ${d.weekDate}\n`;
-  csv += `Colaborador,Casos Cerrados,Pendientes,OT,Ausencias\n`;
-  d.rows.forEach(r => csv += `"${r.name}",${r.cerrados},${r.pendientes},"${r.ot>0?fmtH(r.ot):'0h'}",${r.ausencias}\n`);
-  csv += `\nTotales,${d.totalCerr},,${d.totalOT>0?fmtH(d.totalOT):'0h'},${d.totalAus}\n`;
+  csv += `Colaborador,Casos Cerrados,Pendientes,En Proceso,OT,Faltas,Permisos,Días Libres\n`;
+  d.rows.forEach(r => csv += `"${r.name}",${r.cerrados},${r.pendientes},${r.enProceso||0},"${r.ot>0?fmtH(r.ot):'0h'}",${r.ausencias},${r.permisos},${r.libres||0}\n`);
+  csv += `\nTotales,${d.totalCerr},${d.totalPend},,${d.totalOT>0?fmtH(d.totalOT):'0h'},${d.totalAus},${d.totalPerm}\n`;
   csv += `Cobertura de semana: ${d.coverage}%\n`;
   const blob = new Blob(['\uFEFF'+csv], {type:'text/csv;charset=utf-8;'});
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
@@ -13340,13 +13397,37 @@ function processARIAQuery(q, ctx) {
   if (q.match(/stand.?up|reunión|reunion|meeting/)) {
     return { text: '⚡ Abriendo la vista Stand-up para tu reunión de equipo...', actions: [{ label:'Abrir Stand-up', fn:"toggleStandup();toggleARIA()", cls:'green' }] };
   }
-  // ── CONFIGURE NOTIFICATIONS ──
+  // ── SUSPENDED / BLOCKED USERS ──
+  if (q.match(/suspend|bloqueado|blocked|cuenta.*suspendida|acceso/)) {
+    return ariaSuspendedInfo(ctx);
+  }
+  // ── PRICING / PLAN HELP ──
+  if (q.match(/plan|precio|price|suscripcion|upgrade|pro|business|enterprise/)) {
+    return ariaPlanInfo(ctx);
+  }
+  // ── HELP WITH IMPORTING ──
+  if (q.match(/import|importar|subir.*archivo|archivo.*casos/)) {
+    return { text: '📂 **Importar casos:**\n\nVe a la pestaña **Casos** y usa la zona de importación. Acepta PDF, Excel, CSV, imágenes y Word.\n\nEl sistema detecta y asigna los casos automáticamente según las reglas de enrutamiento configuradas.', actions: [{ label:'Ir a Casos', fn:"switchTab('casos');toggleARIA()" }] };
+  }
+  // ── STAND UP ──
+  if (q.match(/stand.?up|reunión|reunion|meeting/)) {
+    return { text: '⚡ Abriendo la vista Stand-up para tu reunión de equipo...', actions: [{ label:'Abrir Stand-up', fn:"toggleStandup();toggleARIA()", cls:'green' }] };
+  }
+  // ── GENERATE REPORT ──
+  if (q.match(/generar.*reporte|generate.*report|exportar.*resumen/)) {
+    return { text: '📊 Abriendo el resumen semanal...', actions: [{ label:'Abrir resumen', fn:"openMonthlySummary();toggleARIA()", cls:'green' }] };
+  }
+  // ── COPY WEEK ──
+  if (q.match(/copiar.*semana|copy.*week|siguiente.*semana/)) {
+    return { text: '📅 ¿Quieres copiar los turnos de esta semana a la próxima?', actions: [{ label:'✓ Copiar semana →', fn:"copyWeekToNext();toggleARIA()", cls:'green' }, { label:'Cancelar', fn:"sendARIAMessage('cancelar')" }] };
+  }
+  // ── CONFIGURE / SETTINGS ──
   if (q.match(/notif|notificacion|configurar|settings/)) {
     return { text: '⚙ Puedes configurar todas las notificaciones y preferencias en Configuración.', actions: [{ label:'Ir a Configuración', fn:"toggleSettings();toggleARIA()" }] };
   }
   // ── WHO HAS THE DAY OFF ──
   if (q.match(/libre|día.*libre|day.*off/)) {
-    const off = ctx.membersOnShiftList ? ctx.allM.filter(m => m.days[ctx.today]?.dayoff) : [];
+    const off = ctx.allM ? ctx.allM.filter(m => m.days[ctx.today]?.dayoff) : [];
     if (!off.length) return { text: `Hoy nadie tiene día libre. Los **${ctx.totalMembers}** miembros del equipo están activos.` };
     return { text: `Hoy tienen día libre:\n\n${off.map(m=>`• ${m.name}`).join('\n')}` };
   }
@@ -13354,7 +13435,7 @@ function processARIAQuery(q, ctx) {
   const groupMatch = ctx.groups > 0 && GROUP_DEFS.find(g => q.includes(g.label.toLowerCase()) || q.includes(g.id.toLowerCase()));
   if (groupMatch) return ariaGroupStatus(groupMatch, ctx);
   // ── MEMBER SPECIFIC ──
-  const memberMatch = ctx.allM.find(m => q.includes(m.name.toLowerCase().split(' ')[0].toLowerCase()));
+  const memberMatch = ctx.allM?.find(m => q.includes(m.name.toLowerCase().split(' ')[0].toLowerCase()));
   if (memberMatch) return ariaMemberStatus(memberMatch, ctx);
   // ── CANCEL ──
   if (q.match(/cancelar|cancel|no|nada/)) {
@@ -13366,6 +13447,22 @@ function processARIAQuery(q, ctx) {
   }
   // ── DEFAULT ──
   return ariaDefault(q, ctx);
+}
+
+function ariaSuspendedInfo(ctx) {
+  return {
+    text: `🔒 **Gestión de acceso de cuentas:**\n\nPara suspender o bloquear el acceso de un colaborador:\n\n1. Ve al **Admin Panel** → Usuarios\n2. Selecciona el colaborador\n3. Cambia el status a "Suspended"\n\nLa cuenta quedará bloqueada inmediatamente — no podrán iniciar sesión hasta que el acceso sea restaurado.\n\n⚠ Solo **superadmins** pueden eliminar cuentas permanentemente.`,
+    actions: [{ label:'Ir a Admin Panel', fn:"window.open('admin.html','_blank')" }]
+  };
+}
+
+function ariaPlanInfo(ctx) {
+  const plan = getUserPlan ? getUserPlan() : 'enterprise_demo';
+  const planLabel = PLAN_META?.[plan]?.label || 'Enterprise Demo';
+  return {
+    text: `💎 **Tu plan actual: ${planLabel}**\n\nPlanes disponibles:\n\n• **Starter** — $0/mes · 1 manager · 5 colabs\n• **Pro** — $49/mes · 3 managers · 30 colabs · ARIA\n• **Business** — $99/mes · Ilimitados managers · 100 colabs\n• **Enterprise** — $199/mes · Todo ilimitado · SLA 99.9%\n\nPrecio fijo por equipo — no por agente. Con 30 personas, Deputy cuesta $180/mes. Schedule OS Pro son $49.`,
+    actions: [{ label:'Ver planes', fn:"window.open('index.html#pricing','_blank')" }]
+  };
 }
 
 /* ── Response generators ── */
@@ -14062,6 +14159,74 @@ function setOLED(enabled) {
   try { localStorage.setItem('scheduleOS_oled', enabled ? '1' : '0'); } catch(e) {}
   showSaveToast(enabled ? '⬛ OLED activado' : '✓ OLED desactivado');
 }
+async function uploadProfilePhoto(file) {
+  if (!file || !currentUser) return;
+  if (file.size > 3 * 1024 * 1024) {
+    showSaveToast('⚠ La foto debe ser menor de 3MB', 'warn');
+    return;
+  }
+  showSaveToast('Subiendo foto...', 'info');
+  try {
+    // Use Firebase Storage
+    const storageRef = window._fbStorage
+      ? window._fbStorage.ref(`profile_photos/${currentUser.uid}`)
+      : null;
+
+    if (storageRef) {
+      // Full Firebase Storage path
+      await storageRef.put(file);
+      const url = await storageRef.getDownloadURL();
+      const { updateProfile } = window._fbFns;
+      await updateProfile(currentUser, { photoURL: url });
+      showSaveToast('✓ Foto de perfil actualizada', 'success');
+      renderSettingsAccount();
+    } else {
+      // Fallback: use FileReader to set as data URL (local only)
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const dataURL = e.target.result;
+        // Resize via canvas to ~200x200
+        const img = new Image();
+        img.onload = async () => {
+          const canvas = document.createElement('canvas');
+          const size = Math.min(img.width, img.height, 200);
+          canvas.width = size;
+          canvas.height = size;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img,
+            (img.width - size) / 2, (img.height - size) / 2, size, size,
+            0, 0, size, size
+          );
+          const resized = canvas.toDataURL('image/jpeg', 0.85);
+          const { updateProfile } = window._fbFns;
+          await updateProfile(currentUser, { photoURL: resized });
+          showSaveToast('✓ Foto actualizada', 'success');
+          renderSettingsAccount();
+        };
+        img.src = dataURL;
+      };
+      reader.readAsDataURL(file);
+    }
+  } catch(e) {
+    showSaveToast('⚠ Error al subir la foto: ' + (e.message || ''), 'warn');
+    console.error('uploadProfilePhoto:', e);
+  }
+}
+
+function saveTeamTimezone(tz) {
+  try { localStorage.setItem('scheduleOS_timezone', tz); } catch(e) {}
+  showSaveToast(`✓ Zona horaria: ${tz}`, 'success');
+}
+function loadTeamTimezone() {
+  const tz = localStorage.getItem('scheduleOS_timezone') || 'America/Santo_Domingo';
+  const sel = document.getElementById('team-timezone-sel');
+  if (sel) sel.value = tz;
+  return tz;
+}
+function getTeamTimezone() {
+  return localStorage.getItem('scheduleOS_timezone') || 'America/Santo_Domingo';
+}
+
 function loadOLEDPref() {
   if (localStorage.getItem('scheduleOS_oled') === '1') {
     document.body.classList.add('oled');
@@ -14322,6 +14487,193 @@ function checkAppVersion() {
   }
   try { localStorage.setItem('scheduleOS_appVersion', APP_VERSION); } catch(e) {}
   return true;
+}
+
+/* ════════════════════════════════════════
+   GOOGLE SIGN-IN (SSO)
+   ⚠ PARA ACTIVAR:
+   1. Firebase Console → Authentication → Sign-in method → Google → Enable
+   2. Agrega tu dominio en "Authorized domains"
+   3. Descomenta el import de GoogleAuthProvider en el script type=module
+════════════════════════════════════════ */
+async function doGoogleSignIn() {
+  try {
+    // Dynamic import — works once Google provider is enabled in Firebase Console
+    const { GoogleAuthProvider, signInWithPopup } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js');
+    const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: 'select_account' });
+    const result = await signInWithPopup(window._fbAuth, provider);
+    const user = result.user;
+    // Create Firestore user doc if new
+    const { doc, getDoc, setDoc } = window._fbFns;
+    const snap = await getDoc(doc(window._fbDb, 'users', user.uid));
+    if (!snap.exists()) {
+      await setDoc(doc(window._fbDb, 'users', user.uid), {
+        email: user.email,
+        displayName: sanitizeName(user.displayName || user.email.split('@')[0]),
+        photoURL: user.photoURL || '',
+        plan: 'enterprise_demo',
+        status: 'active',
+        createdAt: new Date().toISOString(),
+        provider: 'google',
+      });
+    }
+    // onAuthStateChanged handles the rest
+  } catch(e) {
+    const msgs = {
+      'auth/popup-closed-by-user': '',
+      'auth/cancelled-popup-request': '',
+      'auth/popup-blocked': 'El popup fue bloqueado. Permite popups para este sitio.',
+      'auth/account-exists-with-different-credential': 'Ya tienes una cuenta con ese email. Inicia sesión con contraseña.',
+    };
+    const msg = msgs[e.code] || 'Error al iniciar sesión con Google.';
+    if (msg) showAuthError(msg);
+    console.warn('Google SSO error:', e.code);
+  }
+}
+
+/* ════════════════════════════════════════
+   FIREBASE APP CHECK — LISTO PARA ACTIVAR
+   ⚠ PARA ACTIVAR:
+   1. Ve a https://console.firebase.google.com
+   2. Tu proyecto → App Check → Get started
+   3. Registra tu app web con reCAPTCHA v3
+   4. Ve a https://www.google.com/recaptcha/admin
+   5. Crea un site key para reCAPTCHA v3 con tu dominio scheduleos.app
+   6. Pega el site key donde dice TU_RECAPTCHA_SITE_KEY abajo
+   7. Descomenta el bloque completo
+════════════════════════════════════════ */
+/*
+async function initAppCheck() {
+  try {
+    const { initializeAppCheck, ReCaptchaV3Provider } = await import(
+      'https://www.gstatic.com/firebasejs/10.12.0/firebase-app-check.js'
+    );
+    initializeAppCheck(window._fbApp, {
+      provider: new ReCaptchaV3Provider('TU_RECAPTCHA_SITE_KEY'),
+      isTokenAutoRefreshEnabled: true,
+    });
+    console.log('App Check initialized');
+  } catch(e) {
+    console.warn('App Check init failed:', e);
+  }
+}
+// Llama initAppCheck() después de inicializar Firebase
+*/
+
+/* ════════════════════════════════════════
+   STRIPE INTEGRATION — LISTO PARA ACTIVAR
+   ⚠ PARA ACTIVAR:
+   1. Crea cuenta en https://stripe.com con tu empresa RD
+   2. Dashboard Stripe → Products → Create product para cada plan
+   3. Crea Payment Links para Pro ($49), Business ($99), Enterprise ($199)
+   4. Instala Firebase Extension "Run Payments with Stripe" en Firebase Console
+   5. Reemplaza los URLs abajo con tus Payment Links reales
+   6. Descomenta las líneas openLink() en showPlanNotAvailable()
+════════════════════════════════════════ */
+const STRIPE_LINKS = {
+  pro:        'https://buy.stripe.com/TU_LINK_PRO',        // $49/mes
+  pro_annual: 'https://buy.stripe.com/TU_LINK_PRO_ANUAL',  // $470/año (20% off)
+  business:   'https://buy.stripe.com/TU_LINK_BUSINESS',   // $99/mes
+  business_annual: 'https://buy.stripe.com/TU_LINK_BUSINESS_ANUAL', // $950/año
+  enterprise: 'https://buy.stripe.com/TU_LINK_ENTERPRISE', // $199/mes
+};
+// Para redirigir: window.open(STRIPE_LINKS.pro, '_blank');
+
+/* ════════════════════════════════════════
+   EMAIL SEQUENCES — BREVO (gratis 300/día)
+   ⚠ PARA ACTIVAR:
+   1. Crea cuenta gratis en https://www.brevo.com
+   2. Crea 4 campañas de automation:
+      - Día 1: Bienvenida + primer paso con ARIA
+      - Día 3: Cómo importar casos desde Excel/PDF
+      - Día 7: Genera tu primer stand-up
+      - Día 14: Oferta upgrade al plan Pro
+   3. En cada automation: trigger = "Contact added to list"
+   4. Copia tu API key de Brevo → Account → SMTP & API
+   5. Reemplaza TU_BREVO_API_KEY y TU_LIST_ID abajo
+════════════════════════════════════════ */
+async function addToBrevoList(email, name) {
+  // Descomenta cuando tengas las credenciales:
+  /*
+  try {
+    await fetch('https://api.brevo.com/v3/contacts', {
+      method: 'POST',
+      headers: {
+        'api-key': 'TU_BREVO_API_KEY',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email,
+        listIds: [TU_LIST_ID],
+        updateEnabled: true,
+        attributes: {
+          FIRSTNAME: name || '',
+          SOURCE: 'app_registration',
+          PLAN: 'enterprise_demo',
+        },
+      }),
+    });
+  } catch(e) { console.warn('Brevo:', e); }
+  */
+}
+
+/* ════════════════════════════════════════
+   NPS SURVEY — cada 90 días
+   Muestra la encuesta solo a usuarios activos
+════════════════════════════════════════ */
+function checkShowNPS() {
+  if (!currentUser) return;
+  const lastShown = parseInt(localStorage.getItem('scheduleOS_nps_last') || '0');
+  const daysSince = (Date.now() - lastShown) / (1000 * 60 * 60 * 24);
+  if (daysSince < 90 && lastShown > 0) return;
+  // Show after 2 min on first visit or every 90 days
+  setTimeout(showNPSSurvey, 2 * 60 * 1000);
+}
+
+function showNPSSurvey() {
+  if (document.getElementById('nps-modal')) return;
+  const modal = document.createElement('div');
+  modal.id = 'nps-modal';
+  modal.style.cssText = 'position:fixed;bottom:20px;right:20px;z-index:500;max-width:320px;width:calc(100vw - 40px);background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow-lg);';
+  modal.innerHTML = `
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px">
+      <div style="font-size:13px;font-weight:700;color:var(--text)">¿Recomendarías Schedule OS?</div>
+      <button onclick="document.getElementById('nps-modal').remove()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;line-height:1;padding:0 0 0 8px">×</button>
+    </div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:14px">Del 0 (nada probable) al 10 (muy probable)</div>
+    <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:12px" id="nps-btns">
+      ${[0,1,2,3,4,5,6,7,8,9,10].map(n => `
+        <button onclick="submitNPS(${n},this)"
+          style="flex:1;min-width:24px;background:var(--surface2);border:1px solid var(--border2);border-radius:4px;color:var(--text2);padding:6px 2px;cursor:pointer;font-size:12px;font-family:inherit;transition:all .15s"
+          onmouseover="this.style.background='var(--accent-a-dim)';this.style.borderColor='var(--accent-a)'"
+          onmouseout="this.style.background='var(--surface2)';this.style.borderColor='var(--border2)'">${n}</button>`).join('')}
+    </div>`;
+  document.body.appendChild(modal);
+}
+
+function submitNPS(score, btn) {
+  localStorage.setItem('scheduleOS_nps_last', Date.now().toString());
+  localStorage.setItem('scheduleOS_nps_score', score.toString());
+  const modal = document.getElementById('nps-modal');
+  if (modal) {
+    modal.innerHTML = `<div style="text-align:center;padding:8px 0">
+      <div style="font-size:20px;margin-bottom:8px">${score >= 9 ? '🎉' : score >= 7 ? '😊' : '🙏'}</div>
+      <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px">${score >= 9 ? '¡Gracias!' : 'Gracias por tu feedback'}</div>
+      <div style="font-size:12px;color:var(--muted)">Tu opinión nos ayuda a mejorar Schedule OS.</div>
+      <button onclick="this.closest('#nps-modal').remove()" style="margin-top:12px;background:none;border:1px solid var(--border2);border-radius:4px;color:var(--muted);padding:6px 16px;cursor:pointer;font-family:inherit;font-size:11px">Cerrar</button>
+    </div>`;
+    setTimeout(() => modal?.remove(), 4000);
+  }
+  // Save to Firestore
+  try {
+    const { doc, setDoc } = window._fbFns;
+    if (doc && setDoc && currentUser) {
+      setDoc(doc(window._fbDb, 'nps', currentUser.uid), {
+        score, date: new Date().toISOString(), uid: currentUser.uid,
+      }, { merge: true });
+    }
+  } catch(e) {}
 }
 
 /* Request browser notification permission */

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Página no encontrada — Schedule OS</title>
+<meta name="robots" content="noindex"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;}
+body{
+  background:#0d1117;
+  color:#e6edf3;
+  font-family:'DM Sans',sans-serif;
+  display:flex;align-items:center;justify-content:center;
+  min-height:100vh;padding:24px;text-align:center;
+}
+.container{max-width:480px;}
+.logo{
+  display:inline-flex;align-items:center;gap:10px;
+  margin-bottom:48px;text-decoration:none;
+}
+.logo-icon{
+  width:40px;height:40px;border-radius:10px;
+  background:linear-gradient(135deg,#4da6ff,#c084fc);
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;
+}
+.logo-name{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:#e6edf3;}
+.code{
+  font-family:'Syne',sans-serif;
+  font-size:clamp(80px,20vw,120px);
+  font-weight:800;
+  background:linear-gradient(135deg,#4da6ff,#c084fc);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;line-height:1;
+  margin-bottom:16px;
+}
+.title{font-size:22px;font-weight:700;color:#e6edf3;margin-bottom:8px;}
+.subtitle{font-size:14px;color:#8b949e;line-height:1.6;margin-bottom:32px;}
+.actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+.btn-primary{
+  background:linear-gradient(135deg,#4da6ff,#c084fc);
+  border:none;border-radius:10px;color:#fff;
+  padding:12px 24px;font-family:inherit;font-size:14px;font-weight:700;
+  cursor:pointer;text-decoration:none;display:inline-block;
+  transition:opacity .2s;
+}
+.btn-primary:hover{opacity:.85;}
+.btn-secondary{
+  background:none;border:1px solid #30363d;border-radius:10px;
+  color:#8b949e;padding:12px 24px;font-family:inherit;font-size:14px;
+  cursor:pointer;text-decoration:none;display:inline-block;
+  transition:border-color .2s,color .2s;
+}
+.btn-secondary:hover{border-color:#8b949e;color:#e6edf3;}
+.suggestions{
+  margin-top:40px;padding:20px;
+  background:#161b22;border:1px solid #21262d;border-radius:12px;
+  text-align:left;
+}
+.suggestions-title{font-size:11px;font-weight:700;color:#8b949e;text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px;}
+.suggestion-link{
+  display:flex;align-items:center;gap:10px;padding:8px 0;
+  text-decoration:none;color:#e6edf3;font-size:13px;
+  border-bottom:1px solid #21262d;transition:color .15s;
+}
+.suggestion-link:last-child{border-bottom:none;}
+.suggestion-link:hover{color:#4da6ff;}
+.suggestion-icon{font-size:14px;width:20px;text-align:center;}
+</style>
+</head>
+<body>
+<div class="container">
+  <a href="/" class="logo">
+    <div class="logo-icon">☑</div>
+    <div class="logo-name">Schedule OS</div>
+  </a>
+  <div class="code">404</div>
+  <div class="title">Página no encontrada</div>
+  <div class="subtitle">
+    La página que buscas no existe o fue movida.<br/>
+    Puede que el link esté desactualizado o hayas escrito mal la URL.
+  </div>
+  <div class="actions">
+    <a href="/" class="btn-primary">Volver al inicio →</a>
+    <a href="app.html" class="btn-secondary">Abrir la app</a>
+  </div>
+  <div class="suggestions">
+    <div class="suggestions-title">¿Buscabas algo de esto?</div>
+    <a href="/" class="suggestion-link">
+      <span class="suggestion-icon">🏠</span>
+      <span>Página principal — scheduleos.app</span>
+    </a>
+    <a href="app.html?action=register" class="suggestion-link">
+      <span class="suggestion-icon">✨</span>
+      <span>Crear cuenta gratis</span>
+    </a>
+    <a href="app.html?action=login" class="suggestion-link">
+      <span class="suggestion-icon">🔑</span>
+      <span>Iniciar sesión</span>
+    </a>
+    <a href="legal.html" class="suggestion-link">
+      <span class="suggestion-icon">📄</span>
+      <span>Términos y privacidad</span>
+    </a>
+    <a href="mailto:scheduleosbygakzzy@gmail.com" class="suggestion-link">
+      <span class="suggestion-icon">✉</span>
+      <span>Contactar soporte</span>
+    </a>
+  </div>
+</div>
+</body>
+</html>

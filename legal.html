@@ -149,7 +149,7 @@ a.link:hover{text-decoration:underline;}
 
       <div class="changelog-item">
         <div class="changelog-version">BETA v5.2 <span class="version-badge">Actual</span></div>
-        <div class="changelog-date">Abril 2025</div>
+        <div class="changelog-date">Mayo 2026</div>
         <ul class="changelog-changes">
           <li>Sistema de equipos en tiempo real (invite code + Firebase onSnapshot)</li>
           <li>Vista completa de colaborador: Mi Horario, Mis Casos, Mis Solicitudes</li>
@@ -167,7 +167,16 @@ a.link:hover{text-decoration:underline;}
       </div>
       <div class="changelog-item">
         <div class="changelog-version">BETA v5.0</div>
-        <div class="changelog-date">Marzo 2025</div>
+        <div class="changelog-date">Mayo 2026 — v5.2</div>
+        <ul>
+          <li>Implementación de consentimiento de cookies (Ley 172-13 RD / GDPR)</li>
+          <li>Política de cookies actualizada con base legal explícita</li>
+          <li>Sistema de foto de perfil de usuario</li>
+          <li>Corrección de reporte semanal (faltas vs permisos)</li>
+          <li>Mejoras de seguridad: brute force protection, XSS sanitization, CSP headers</li>
+          <li>Asistente ARIA v2 — 30+ intents, proactive monitoring</li>
+        </ul>
+        <div class="changelog-date">Abril 2025</div>
         <ul class="changelog-changes">
           <li>Sidebar colapsable estilo Hotmart</li>
           <li>Dashboard con KPIs SVG animados</li>
@@ -243,7 +252,7 @@ a.link:hover{text-decoration:underline;}
     <div class="doc-section" id="terms">
       <div class="doc-tag">Legal</div>
       <h1 class="doc-title">Términos de Uso</h1>
-      <div class="doc-date">Última actualización: 30 de abril de 2025</div>
+      <div class="doc-date">Última actualización: 1 de mayo de 2026</div>
 
       <p>Bienvenido a Schedule OS ("la Plataforma", "nosotros", "nuestro"). Al acceder o usar Schedule OS, aceptas estos Términos de Uso. Léelos cuidadosamente.</p>
 
@@ -301,7 +310,7 @@ a.link:hover{text-decoration:underline;}
     <div class="doc-section" id="privacy">
       <div class="doc-tag">Legal</div>
       <h1 class="doc-title">Política de Privacidad</h1>
-      <div class="doc-date">Última actualización: 30 de abril de 2025</div>
+      <div class="doc-date">Última actualización: 1 de mayo de 2026</div>
 
       <p>Esta política describe cómo Schedule OS recopila, usa y protege tu información personal.</p>
 
@@ -364,7 +373,7 @@ a.link:hover{text-decoration:underline;}
     <div class="doc-section" id="cookies">
       <div class="doc-tag">Legal</div>
       <h1 class="doc-title">Política de Cookies</h1>
-      <div class="doc-date">Última actualización: 30 de abril de 2025</div>
+      <div class="doc-date">Última actualización: 1 de mayo de 2026</div>
 
       <p>Schedule OS usa cookies y tecnologías similares (localStorage, sessionStorage) para mejorar tu experiencia.</p>
 
@@ -385,11 +394,21 @@ a.link:hover{text-decoration:underline;}
         <li><strong>scheduleOS_qaVisible</strong> — Configuración de acciones rápidas</li>
       </ul>
 
-      <h3>Cookies de analítica</h3>
-      <p>Firebase Analytics puede usar cookies para análisis de uso anónimo. Puedes optar por no participar desactivando JavaScript (no recomendado) o usando extensiones de privacidad del navegador.</p>
+      <h3>Cookies de analítica (requieren consentimiento)</h3>
+      <p>Solo se activan si aceptas las cookies analíticas en el banner de consentimiento:</p>
+      <ul>
+        <li><strong>Microsoft Clarity</strong> — Grabaciones de sesión anónimas para mejorar la UX. No identifica personas.</li>
+        <li><strong>Firebase Analytics</strong> — Métricas de uso agregadas y anónimas.</li>
+        <li><strong>sos_cookie_consent</strong> — Guarda tu decisión sobre el consentimiento de cookies.</li>
+      </ul>
+
+      <h3>Base legal — Ley 172-13 de la República Dominicana</h3>
+      <p>De conformidad con la <strong>Ley No. 172-13 sobre Protección de Datos Personales</strong> de la República Dominicana y el <strong>Reglamento General de Protección de Datos (GDPR)</strong> de la Unión Europea, el uso de cookies no esenciales requiere tu consentimiento previo, informado y explícito.</p>
+      <p>Tienes derecho a: acceder a tus datos, rectificarlos, cancelarlos u oponerte a su tratamiento. Para ejercer estos derechos, contacta: <a href="mailto:scheduleosbygakzzy@gmail.com">scheduleosbygakzzy@gmail.com</a></p>
 
       <h3>Gestión de cookies</h3>
-      <p>Puedes eliminar todas las cookies de Schedule OS limpiando el localStorage de tu navegador. Esto cerrará tu sesión y borrará tus preferencias locales.</p>
+      <p>Puedes cambiar tu preferencia en cualquier momento limpiando el valor <code>sos_cookie_consent</code> del localStorage de tu navegador, o contactándonos para solicitar la eliminación de tus datos de analytics.</p>
+      <p>Eliminar todas las cookies de Schedule OS limpiando el localStorage cerrará tu sesión y borrará tus preferencias locales.</p>
     </div>
 
     <hr class="divider"/>
