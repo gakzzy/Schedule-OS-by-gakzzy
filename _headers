@@ -5,19 +5,21 @@
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: camera=(), microphone=(), geolocation=()
   Strict-Transport-Security: max-age=63072000; includeSubDomains; preload
+  X-DNS-Prefetch-Control: off
 
 /index.html
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://fonts.googleapis.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.googleapis.com https://*.firebaseapp.com https://*.firebaseio.com https://api.brevo.com; frame-src 'none'; object-src 'none'
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://fonts.googleapis.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.googleapis.com https://*.firebaseapp.com https://*.firebaseio.com https://api.brevo.com https://*.tawk.to wss://*.tawk.to; frame-src 'none'; object-src 'none'
 
 /app.html
   Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://www.googleapis.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://*.googleapis.com https://*.firebaseapp.com https://*.firebaseio.com wss://*.firebaseio.com https://api.anthropic.com https://api.emailjs.com https://api.brevo.com; frame-src 'none'; object-src 'none'
+  Cross-Origin-Opener-Policy: same-origin-allow-popups
 
 /admin.html
   Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://www.googleapis.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.googleapis.com https://*.firebaseapp.com https://*.firebaseio.com wss://*.firebaseio.com; frame-src 'none'; object-src 'none'
+  X-Robots-Tag: noindex, nofollow
 
 # ──────────────────────────────────────────────────────────────
 # GOOGLE SEARCH CONSOLE VERIFICATION
-# Instructions:
 # 1. Go to https://search.google.com/search-console
 # 2. Add property: https://scheduleos.app
 # 3. Choose "HTML tag" verification method

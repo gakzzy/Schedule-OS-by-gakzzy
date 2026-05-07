@@ -3069,7 +3069,7 @@ button, [onclick], .nav-item, .country-card, .lang-card, .kpi-card[style*="curso
 <!-- Firebase SDKs -->
 <script type="module">
   import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile, browserLocalPersistence, setPersistence, sendPasswordResetEmail, sendEmailVerification, EmailAuthProvider, reauthenticateWithCredential, deleteUser } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile, browserLocalPersistence, setPersistence, sendPasswordResetEmail, sendEmailVerification, EmailAuthProvider, reauthenticateWithCredential, deleteUser, GoogleAuthProvider, signInWithPopup } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
   import { getFirestore, doc, setDoc, getDoc, onSnapshot, collection, addDoc, deleteDoc, updateDoc, query, where, getDocs, serverTimestamp, arrayUnion, arrayRemove, orderBy, limit } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
   const firebaseConfig = {
@@ -3090,7 +3090,7 @@ button, [onclick], .nav-item, .country-card, .lang-card, .kpi-card[style*="curso
 
   window._fbAuth = auth;
   window._fbDb  = getFirestore(app);
-  window._fbFns = { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile, doc, setDoc, getDoc, onSnapshot, collection, addDoc, deleteDoc, updateDoc, query, where, getDocs, serverTimestamp, sendPasswordResetEmail, sendEmailVerification, EmailAuthProvider, reauthenticateWithCredential, deleteUser, arrayUnion, arrayRemove, orderBy, limit };
+  window._fbFns = { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile, doc, setDoc, getDoc, onSnapshot, collection, addDoc, deleteDoc, updateDoc, query, where, getDocs, serverTimestamp, sendPasswordResetEmail, sendEmailVerification, EmailAuthProvider, reauthenticateWithCredential, deleteUser, arrayUnion, arrayRemove, orderBy, limit, GoogleAuthProvider, signInWithPopup };
   window._fbReady = true;
   document.dispatchEvent(new Event('firebase-ready'));
 </script>
@@ -3295,11 +3295,11 @@ button, [onclick], .nav-item, .country-card, .lang-card, .kpi-card[style*="curso
 
   <button class="nav-item" id="nav-reglas" onclick="switchTab('reglas')">
     <span class="nav-icon"><svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></span>
-    <span class="nav-label">Reglas</span>
+    <span class="nav-label" data-i18n="tab_reglas">Reglas</span>
   </button>
   <button class="nav-item" id="nav-errores" onclick="switchTab('errores')">
     <span class="nav-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span>
-    <span class="nav-label">Errores</span>
+    <span class="nav-label" data-i18n="tab_errores">Errores</span>
     <span class="nav-badge" id="errores-badge" style="display:none"></span>
   </button>
   <button class="nav-item" id="nav-notas" onclick="switchTab('notas')">
@@ -3616,11 +3616,11 @@ button, [onclick], .nav-item, .country-card, .lang-card, .kpi-card[style*="curso
       <div class="wcb-sep"></div>
       <div class="wcb-field">
         <label class="wcb-label" id="lbl-title">Título</label>
-        <input type="text" id="schedule-title" class="wcb-input" placeholder="Horario Semanal" value="Horario Semanal" style="width:160px" onchange="scheduleSave()"/>
+        <input type="text" id="schedule-title" class="wcb-input" maxlength="80" placeholder="Horario Semanal" value="Horario Semanal" style="width:160px" onchange="scheduleSave()"/>
       </div>
       <div class="wcb-field">
         <label class="wcb-label" id="lbl-shift">Turno</label>
-        <input type="text" id="shift-label" class="wcb-input" placeholder="Turno Mañana" id="shift-placeholder" value="Turno Mañana" style="width:140px" onchange="scheduleSave()"/>
+        <input type="text" id="shift-label" class="wcb-input" maxlength="40" placeholder="Turno Mañana" id="shift-placeholder" value="Turno Mañana" style="width:140px" onchange="scheduleSave()"/>
       </div>
     </div>
     <div class="wcb-right">
@@ -3897,7 +3897,7 @@ button, [onclick], .nav-item, .country-card, .lang-card, .kpi-card[style*="curso
         <div class="ef-row">
           <div class="ef-field">
             <div class="ef-label">Proceso / Caso</div>
-            <input type="text" class="ef-input" id="ef-proceso" placeholder="ej: Transfer In ATON, CPB #2341..."/>
+            <input type="text" class="ef-input" id="ef-proceso" maxlength="120" placeholder="ej: Transfer In ATON, CPB #2341..."/>
           </div>
           <div class="ef-field">
             <div class="ef-label">Severidad</div>
@@ -3923,7 +3923,7 @@ button, [onclick], .nav-item, .country-card, .lang-card, .kpi-card[style*="curso
         </div>
         <div class="ef-field">
           <div class="ef-label">Acción correctiva tomada</div>
-          <input type="text" class="ef-input" id="ef-accion" placeholder="Qué se hizo para corregir o prevenir..."/>
+          <input type="text" class="ef-input" id="ef-accion" maxlength="200" placeholder="Qué se hizo para corregir o prevenir..."/>
         </div>
       </div>
       <div class="error-form-footer">
@@ -4643,7 +4643,7 @@ function applyTeamLeadView() {
     const banner = document.createElement('div');
     banner.id = 'role-banner';
     banner.style.cssText = `background:${meta.bg};border-bottom:1px solid ${meta.color}40;padding:6px 2rem;display:flex;align-items:center;gap:8px;font-size:11px;font-weight:600;color:${meta.color};position:sticky;top:0;z-index:50;`;
-    banner.innerHTML = `<span>${meta.icon}</span> Team Lead — Gestionas tu grupo y apruebas solicitudes de tus miembros`;
+    banner.innerHTML = `<span>${sanitize(meta.icon || "")}</span> Team Lead — Gestionas tu grupo y apruebas solicitudes de tus miembros`;
     ca.insertBefore(banner, ca.firstChild);
   }
   switchTab('dash');
@@ -4662,6 +4662,39 @@ function renderDashboard() {
     renderMiniCal();
     return;
   }
+
+  // ── Empty state: new account with no members yet ──
+  const totalM = getAllMembers().length;
+  if (totalM === 0 && userRole === 'manager') {
+    const box = document.getElementById('dash-kpis');
+    if (box) box.innerHTML = '';
+    const grid = document.getElementById('dash-grid-top');
+    if (grid) {
+      grid.innerHTML = `
+        <div style="grid-column:1/-1;text-align:center;padding:48px 24px;background:var(--surface2);border:1.5px dashed var(--border2);border-radius:var(--radius);max-width:560px;margin:0 auto;width:100%">
+          <div style="font-size:40px;margin-bottom:14px">👥</div>
+          <div style="font-size:18px;font-weight:700;color:var(--text);margin-bottom:8px">Bienvenido a Schedule OS</div>
+          <div style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:24px;max-width:360px;margin-left:auto;margin-right:auto">
+            Tu equipo está vacío. Empieza invitando colaboradores con tu código QR o agrega personas manualmente al horario.
+          </div>
+          <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+            <button id="dash-qr-btn" onclick="loadAndShowQR()" style="background:var(--accent-a);border:none;border-radius:var(--radius-xs);color:#fff;padding:10px 20px;cursor:pointer;font-family:inherit;font-size:13px;font-weight:700">
+              📲 Invitar con QR
+            </button>
+            <button onclick="switchTab('horarios');setTimeout(()=>{const gid=GROUP_DEFS[0]?.id;if(gid)toggleAdd(gid);},500)" style="background:var(--surface3);border:1px solid var(--border2);border-radius:var(--radius-xs);color:var(--text2);padding:10px 20px;cursor:pointer;font-family:inherit;font-size:13px">
+              ➕ Agregar persona manualmente
+            </button>
+          </div>
+          <div style="margin-top:20px;font-size:11px;color:var(--muted)">Código de tu equipo: <span id="dash-invite-code" style="font-family:monospace;font-weight:700;color:var(--accent-a);letter-spacing:2px">cargando...</span></div>
+        </div>`;
+
+      // Load invite code — async, fires and updates DOM when ready
+      loadInviteCodeForDisplay();
+    }
+    renderMiniCal();
+    return;
+  }
+
   const stateHash = _hash({
     groups: GROUP_DEFS.map(g=>({id:g.id,len:(state[g.id]||[]).length})),
     casos: getAllMembers().reduce((s,m)=>s+m.casos.length,0),
@@ -4669,7 +4702,6 @@ function renderDashboard() {
     sel: selectedAgents.size
   });
   if (!_changed('dashboard_state', stateHash)) {
-    // Still re-render calendar (it's month-based, cheap)
     renderMiniCal();
     return;
   }
@@ -4678,8 +4710,67 @@ function renderDashboard() {
   renderDashGridBottom();
   renderMiniCal();
   renderUpcomingHolidays();
-  // V5: update pulse bar and quick actions
   setTimeout(() => { if(typeof updatePulseBar==='function') updatePulseBar(); if(typeof updateQuickActionsBar==='function') updateQuickActionsBar(); }, 150);
+}
+
+// Load invite code from Firestore and display in empty-state dashboard
+async function loadInviteCodeForDisplay() {
+  const el = document.getElementById('dash-invite-code');
+  if (!el || !currentUser || !window._fbFns) return;
+  try {
+    // Try localStorage first (cached by loadUserProfile)
+    const cached = localStorage.getItem('scheduleOS_inviteCode');
+    if (cached) { el.textContent = cached; return; }
+    // Fallback: fetch from Firestore
+    const { doc, getDoc } = window._fbFns;
+    const snap = await getDoc(doc(window._fbDb, 'users', currentUser.uid));
+    const code = snap.data()?.inviteCode || '';
+    if (code) {
+      try { localStorage.setItem('scheduleOS_inviteCode', code); } catch(e) {}
+      el.textContent = code;
+    } else {
+      el.textContent = 'no disponible';
+    }
+  } catch(e) {
+    const el2 = document.getElementById('dash-invite-code');
+    if (el2) el2.textContent = 'error';
+    console.warn('loadInviteCodeForDisplay:', e);
+  }
+}
+
+// Load invite code then open QR modal
+async function loadAndShowQR() {
+  // Try localStorage cache first
+  const cached = localStorage.getItem('scheduleOS_inviteCode');
+  if (cached) { showQRInvite(cached); return; }
+  // Fetch from Firestore
+  if (!currentUser || !window._fbFns) return;
+  const btn = document.getElementById('dash-qr-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Cargando...'; }
+  try {
+    const { doc, getDoc } = window._fbFns;
+    const snap = await getDoc(doc(window._fbDb, 'users', currentUser.uid));
+    const code = snap.data()?.inviteCode || '';
+    if (code) {
+      try { localStorage.setItem('scheduleOS_inviteCode', code); } catch(e) {}
+      showQRInvite(code);
+    } else {
+      showSaveToast('⚠ No se encontró tu código de invitación. Contacta al soporte.', 'warn');
+    }
+  } catch(e) {
+    showSaveToast('⚠ Error al cargar el código QR', 'warn');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '📲 Invitar con QR'; }
+  }
+}
+
+function inviteCodeForTeam() {
+  // Return stored invite code (set during confirmRole)
+  try {
+    const stored = localStorage.getItem('scheduleOS_inviteCode');
+    if (stored) return stored;
+  } catch(e) {}
+  return '';
 }
 
 function renderDashKPIs() {
@@ -4845,7 +4936,7 @@ function renderDashGridTop() {
     row.innerHTML=`
       <div class="ot-rank">${i+1}</div>
       <div class="ot-avatar" style="background:${g?GC_AVA[g.id]:'rgba(255,255,255,0.05)'};color:${g?GC_COL[g.id]:'var(--muted)'}">${initials(l.name)}</div>
-      <div class="ot-name">${l.name}</div>
+      <div class="ot-name">${sanitize(l.name)}</div>
       ${g?`<span class="ot-group-badge" style="background:${GC_AVA[g.id]};color:${GC_COL[g.id]}">${g.label}</span>`:''}
       <div class="ot-bar-wrap"><div class="ot-bar-fill" style="width:${l.ot/maxOT*100}%"></div></div>
       <div class="ot-value">${fmtH(l.ot)}</div>`;
@@ -4899,7 +4990,7 @@ function renderDashGridBottom() {
     row.innerHTML=`
       <span class="urgency-badge ${cls}">${lbl}</span>
       <div class="urgency-name">${c.nombre||'(sin nombre)'}</div>
-      <div class="urgency-member">${c.memberName}</div>
+      <div class="urgency-member">${sanitize(c.memberName)}</div>
       ${c.g?`<span style="font-size:10px;padding:1px 6px;border-radius:99px;background:${GC_AVA[c.g.id]};color:${GC_COL[c.g.id]}">${c.g.label}</span>`:''}`;
     body3.appendChild(row);
   });
@@ -5769,7 +5860,7 @@ function renderMetrics() {
    {cls:'metric-fup',label:'Follow Ups',value:totFUP,sub:`${pct(totFUP)}% ${t('del_total')}`,pct:pct(totFUP)},
   ].forEach(c=>{
     const card=document.createElement('div');card.className=`metric-card ${c.cls}`;
-    card.innerHTML=`<div class="metric-label">${c.label}</div><div class="metric-value">${c.value}</div><div class="metric-sub">${c.sub}</div><div class="metric-bar"><div class="metric-bar-fill" style="width:${c.pct}%"></div></div>`;
+    card.innerHTML=`<div class="metric-label">${sanitize(c.label)}</div><div class="metric-value">${sanitize(c.value)}</div><div class="metric-sub">${sanitize(c.sub || '')}</div><div class="metric-bar"><div class="metric-bar-fill" style="width:${c.pct}%"></div></div>`;
     grid.appendChild(card);
   });
   box.appendChild(grid);
@@ -5875,7 +5966,7 @@ function renderCasoList() {
       ].filter(Boolean).join('');
       mhdr.innerHTML = `
         <div class="caso-member-avatar" style="background:${GC_AVA[g.id]};color:${GC_COL[g.id]}">${initials(m.name)}</div>
-        <div class="caso-member-name">${m.name}</div>
+        <div class="caso-member-name">${sanitize(m.name)}</div>
         <div class="caso-member-meta">${metaBadges}</div>
         <span class="caso-chevron ${isOpen?'open':''}">&#9654;</span>`;
       mhdr.onclick = () => { isOpen ? openCasos.delete(key) : openCasos.add(key); renderCasoList(); };
@@ -6115,7 +6206,7 @@ function renderSummary() {
       const tr=document.createElement('tr');
       const dayOTs=DAYS.map(d=>calcOT(m.days[d].exit,d,m.days[d]));
       const total=dayOTs.reduce((s,v)=>s+v,0);
-      let html=`<td class="ws-name">${m.name}</td><td><span class="ws-group" style="background:${bgMap[g.id]};color:${accentMap[g.id]}">${g.label}</span></td>`;
+      let html=`<td class="ws-name">${sanitize(m.name)}</td><td><span class="ws-group" style="background:${bgMap[g.id]};color:${accentMap[g.id]}">${g.label}</span></td>`;
       DAYS.forEach((d,i)=>{const dd=m.days[d];const ot=dayOTs[i];let cell=ot>0?fmtH(ot):'-';if(dd.perm)cell='P';if(dd.fault)cell='F';html+=`<td class="${ot>0?'ws-day has-ot':'ws-day'}">${cell}</td>`;});
       html+=`<td class="${total>0?'ws-total':'ws-total zero'}">${total>0?fmtH(total):'-'}</td>`;
       const wCPB=memberWeekCasos(m,'cpb'),wNND=memberWeekCasos(m,'nnd'),wFUP=memberWeekCasos(m,'fup'),wTot=wCPB+wNND+wFUP;
@@ -6306,7 +6397,7 @@ function toggleCommandPalette() {
             transition:background .1s;
             ${i===0?'background:var(--surface2)':''}">
             <span style="font-size:14px;width:20px;text-align:center">${c.icon}</span>
-            <span style="font-size:13px;flex:1;color:var(--text)">${c.label}</span>
+            <span style="font-size:13px;flex:1;color:var(--text)">${sanitize(c.label)}</span>
             ${c.key?`<kbd style="font-size:10px;color:var(--muted2);background:var(--surface3);padding:2px 6px;border-radius:4px;font-family:inherit">${c.key}</kbd>`:''}
           </div>`).join('')}
       </div>
@@ -6472,9 +6563,23 @@ async function deleteMember(gid, idx, name) {
 function toggleAdd(gid){const r=document.getElementById(`add-${gid}`);if(!r)return;r.classList.toggle('open');if(r.classList.contains('open'))document.getElementById(`newinp-${gid}`)?.focus();}
 function confirmAdd(gid){
   const inp=document.getElementById(`newinp-${gid}`);const name=inp?.value?.trim();if(!name)return;
+  // ── Plan member limit ──
+  const plan = getUserPlan();
+  const maxM = PLAN_META[plan]?.maxMembers ?? 9999;
+  const currentTotal = getAllMembers().length;
+  if (currentTotal >= maxM) {
+    showSaveToast(`⚠ Tu plan ${PLAN_META[plan]?.label || plan} permite máximo ${maxM} colaboradores.`, 'warn');
+    if (typeof showPlanNotAvailable === 'function') showPlanNotAvailable();
+    if(inp) inp.value='';
+    return;
+  }
+  // ── Name validation ──
+  const cleanName = sanitizeName(name);
+  if (!cleanName) return;
   if(!state[gid])state[gid]=[];
-  state[gid].push(defaultMember(name));
-  logChange('add', `${t('log_member_added')||'Agregado'}: "${name}"`, GROUP_DEFS.find(g=>g.id===gid)?.label || gid);
+  state[gid].push(defaultMember(cleanName));
+  if(inp) inp.value='';
+  logChange('add', `${t('log_member_added')||'Agregado'}: "${cleanName}"`, GROUP_DEFS.find(g=>g.id===gid)?.label || gid);
   renderAll();
 }
 
@@ -6524,7 +6629,7 @@ function renderAgentPicker() {
     item.innerHTML = `
       <div class="agent-pick-cb">${selectedAgents.has(m.name) ? '✓' : ''}</div>
       <div class="ot-avatar" style="width:22px;height:22px;font-size:9px;background:${g ? GC_AVA[g.id] : 'rgba(255,255,255,0.05)'};color:${g ? GC_COL[g.id] : 'var(--muted)'};">${initials(m.name)}</div>
-      <div class="agent-pick-name">${m.name}</div>
+      <div class="agent-pick-name">${sanitize(m.name)}</div>
       ${g ? `<span class="agent-pick-group" style="background:${GC_AVA[g.id]};color:${GC_COL[g.id]}">${g.id}</span>` : ''}`;
     item.onclick = () => {
       if (selectedAgents.has(m.name)) selectedAgents.delete(m.name);
@@ -7422,7 +7527,7 @@ const I18N={
     settings:'Config',settings_title:'Configuración',settings_sub:'Personaliza tu experiencia',
     theme_label:'Tema',theme_dark:'Oscuro',theme_dark_sub:'Modo nocturno',theme_light:'Claro',theme_light_sub:'Modo diurno',
     lang_label:'Idioma',accent_label:'Color de acento',made_by:'Hecho por',tagline:'Schedule OS · Gestión de turnos y casos',
-    tab_dash:'Dashboard',tab_horarios:'Horarios',tab_casos:'Casos',tab_llamadas:'Llamadas',tab_notas:'Notas',
+    tab_dash:'Dashboard',tab_horarios:'Horarios',tab_casos:'Casos',tab_llamadas:'Llamadas',tab_notas:'Notas',tab_reglas:'Reglas',tab_errores:'Errores',
     days:['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'],view_all:'Ver semana',
     add_member:'+ Agregar',add_name_ph:'Nombre completo',add_confirm:'Agregar',
     entry:'Entrada',exit:'Salida',ot_weekly:'OT semanal',ot_week_label:'semana',no_ot:'0h esta semana',sin_ot:'Sin OT',
@@ -7462,7 +7567,7 @@ const I18N={
     settings:'Config',settings_title:'Settings',settings_sub:'Customize your experience',
     theme_label:'Theme',theme_dark:'Dark',theme_dark_sub:'Night mode',theme_light:'Light',theme_light_sub:'Day mode',
     lang_label:'Language',accent_label:'Accent color',made_by:'Made by',tagline:'Schedule OS · Shift & case management',
-    tab_dash:'Dashboard',tab_horarios:'Schedules',tab_casos:'Cases',tab_llamadas:'Calls',tab_notas:'Notes',
+    tab_dash:'Dashboard',tab_horarios:'Schedules',tab_casos:'Cases',tab_llamadas:'Calls',tab_notas:'Notes',tab_reglas:'Rules',tab_errores:'Errors',
     days:['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'],view_all:'View week',
     add_member:'+ Add',add_name_ph:'Full name',add_confirm:'Add',
     entry:'Start',exit:'End',ot_weekly:'Weekly OT',ot_week_label:'week',no_ot:'0h this week',sin_ot:'No OT',
@@ -7499,7 +7604,7 @@ const I18N={
     settings:'Config',settings_title:'Paramètres',settings_sub:'Personnalisez votre expérience',
     theme_label:'Thème',theme_dark:'Sombre',theme_dark_sub:'Mode nuit',theme_light:'Clair',theme_light_sub:'Mode jour',
     lang_label:'Langue',accent_label:"Couleur d'accent",made_by:'Créé par',tagline:'Schedule OS · Gestion des quarts et dossiers',
-    tab_dash:'Tableau de bord',tab_horarios:'Horaires',tab_casos:'Dossiers',tab_llamadas:'Appels',tab_notas:'Notes',
+    tab_dash:'Tableau de bord',tab_horarios:'Horaires',tab_casos:'Dossiers',tab_llamadas:'Appels',tab_notas:'Notes',tab_reglas:'Règles',tab_errores:'Erreurs',
     days:['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi','Dimanche'],view_all:'Voir semaine',
     add_member:'+ Ajouter',add_name_ph:'Nom complet',add_confirm:'Ajouter',
     entry:'Début',exit:'Fin',ot_weekly:'HS semaine',ot_week_label:'semaine',no_ot:'0h cette semaine',sin_ot:'Pas de HS',
@@ -7664,9 +7769,28 @@ function setTheme(theme){
   document.getElementById('theme-light').classList.toggle('selected',theme==='light');
   localStorage.setItem('scheduleOS_theme',theme);
 }
-function setLang(lang){
-  currentLang=lang;['es','en','fr'].forEach(l=>{const el=document.getElementById('lang-'+l);if(el)el.classList.toggle('selected',lang===l);});
-  localStorage.setItem('scheduleOS_lang',lang);applyI18n();
+function setLang(lang) {
+  currentLang = lang;
+  // Update selected state on lang cards
+  ['es','en','fr'].forEach(l => {
+    const el = document.getElementById('lang-' + l);
+    if (el) el.classList.toggle('selected', lang === l);
+  });
+  // Persist locally
+  try { localStorage.setItem('scheduleOS_lang', lang); } catch(e) {}
+  // Persist to Firestore for cross-device consistency
+  if (currentUser && window._fbFns && window._fbDb) {
+    const { doc, updateDoc } = window._fbFns;
+    updateDoc(doc(window._fbDb, 'users', currentUser.uid), { lang }).catch(e =>
+      console.warn('setLang Firestore:', e)
+    );
+  }
+  // Apply translations
+  applyI18n();
+  // Re-render the current tab so dynamic content also updates
+  if (typeof switchTab === 'function' && activeTab) {
+    switchTab(activeTab);
+  }
 }
 function setAccent(color,el){
   currentAccent=color;document.documentElement.style.setProperty('--accent-a',color);
@@ -8245,7 +8369,7 @@ function updateDropdownHeader() {
     if (n) n.textContent = currentUser.displayName || currentUser.email;
     if (e) {
       const meta = getRoleMeta(userRole);
-      e.innerHTML = `${currentUser.email} &nbsp;<span style="font-size:9px;font-weight:800;padding:1px 7px;border-radius:99px;background:${meta.bg};color:${meta.color};text-transform:uppercase;letter-spacing:.6px;border:1px solid ${meta.color}40">${meta.icon} ${meta.badge}</span>${isBetaTester() ? ' &nbsp;' + getBetaBadge() : ''}`;
+      e.innerHTML = `${sanitize(currentUser.email)} &nbsp;<span style="font-size:9px;font-weight:800;padding:1px 7px;border-radius:99px;background:${meta.bg};color:${meta.color};text-transform:uppercase;letter-spacing:.6px;border:1px solid ${meta.color}40">${meta.icon} ${meta.badge}</span>${isBetaTester() ? ' &nbsp;' + getBetaBadge() : ''}`;
     }
   }
 }
@@ -8394,8 +8518,6 @@ function whenFirebaseReady(fn) {
 
 /* ── Clear all preloaded data for new accounts ── */
 function clearAppData() {
-  // Reset GROUP_DEFS to empty
-  GROUP_DEFS.length = 0;
   // Clear all state
   Object.keys(state).forEach(k => delete state[k]);
   // Reset callSchedule
@@ -8420,9 +8542,9 @@ whenFirebaseReady(() => {
       if (prevUid && prevUid !== user.uid) fullSessionReset();
 
       // Check suspended/banned status first
-      const status = await checkAccountStatus(user.uid);
+      const status = checkAccountStatus(user.uid);
       if (!status.ok) {
-        await window._fbFns.signOut(auth);
+        window._fbFns.signOut(auth);
         showSuspendedScreen(status.message);
         return;
       }
@@ -8440,7 +8562,7 @@ whenFirebaseReady(() => {
         // Show role selection for new accounts
         setTimeout(() => showRoleSelection(user), 600);
       } else {
-        await loadUserProfile(); // handles role-based subscriptions internally
+        loadUserProfile(); // handles role-based subscriptions internally
         subscribeToNotes();
         subscribeToTeam();
         logChange('other', `${t('log_session')||'Sesión iniciada'}: ${user.displayName || user.email}`);
@@ -8638,7 +8760,7 @@ function showAuthScreen(mode) {
         <label class="auth-label">${isEn ? 'Your name' : isEs ? 'Tu nombre' : 'Votre nom'}</label>
         <input class="auth-input" id="auth-name" type="text"
           placeholder="${isEn ? 'Alex Smith' : isEs ? 'Ana López' : 'Marie Dupont'}"
-          autocomplete="name"/>
+          autocomplete="name" maxlength="80">>
       </div>
       <div class="auth-field">
         <label class="auth-label">${isEn ? 'Email' : isEs ? 'Correo electrónico' : 'Adresse e-mail'}</label>
@@ -8984,6 +9106,14 @@ async function loadUserProfile() {
       currentTeamId = data.teamId || (['manager','superadmin'].includes(userRole) ? currentUser.uid : null);
       if (data.lang && I18N[data.lang]) { currentLang = data.lang; applyI18n(); }
 
+      // Cache inviteCode for QR access — works for existing accounts on any device
+      if (data.inviteCode) {
+        try { localStorage.setItem('scheduleOS_inviteCode', data.inviteCode); } catch(e) {}
+      }
+
+      // Apply plan from Firestore — authoritative source for cross-device sync
+      applyPlanFromFirestore(data);
+
       if (userRole === 'collaborator') {
         if (currentTeamId) {
           subscribeToTeamSchedule(currentTeamId);
@@ -8996,15 +9126,15 @@ async function loadUserProfile() {
         addManagerInboxToMenu();
         checkAndAddAdminLink();
       } else if (userRole === 'team_lead') {
-        // Team lead — full schedule access + limited inbox
         subscribeToSchedule();
         addManagerInboxToMenu();
         applyTeamLeadView();
       } else {
-        // support / dev / security — read access
         subscribeToSchedule();
         applyCollaboratorView();
       }
+      // Notes are personal (uid-scoped) — always subscribe regardless of team
+      subscribeToNotes();
     }
   } catch(e) { console.warn('loadUserProfile:', e); }
 }
@@ -9171,7 +9301,7 @@ let _syncPending = false;
 // Timestamp of last LOCAL write — cloud snapshots older than this are ignored
 let _lastLocalWriteAt = 0;
 
-function subscribeToSchedule() {
+async function subscribeToSchedule() {
   if (!currentUser) return;
   _isFirstSync = true;
   const { doc, onSnapshot } = window._fbFns;
@@ -9209,12 +9339,31 @@ async function pushScheduleToCloud() {
   _syncPending = true;
   _lastLocalWriteAt = Date.now(); // mark so onSnapshot ignores echo
   try {
-    const { doc, setDoc, serverTimestamp } = window._fbFns;
+    const { doc, setDoc, updateDoc, serverTimestamp } = window._fbFns;
     const payload = JSON.stringify(serializeState());
+
+    // 1. Save to schedules/{uid} — manager's primary record (rule: own uid writes)
     await setDoc(doc(window._fbDb, 'schedules', currentUser.uid), {
       payload, updatedAt: serverTimestamp(),
       updatedBy: currentUser.displayName || currentUser.email
     });
+
+    // 2. ALSO save snapshot to teams/{uid} — allows collaborators to read it
+    // teams/{teamId} read: any auth (existing rule — no change needed)
+    // teams/{teamId} update: auth.uid == teamId OR admin
+    // Manager's UID == teamId, so this write is allowed by current rules
+    if (currentTeamId && currentTeamId === currentUser.uid) {
+      try {
+        await updateDoc(doc(window._fbDb, 'teams', currentUser.uid), {
+          schedulePayload: payload,
+          scheduleUpdatedAt: serverTimestamp(),
+        });
+      } catch(e) {
+        // Non-critical — schedule still saved in schedules/{uid}
+        console.warn('pushSchedule team mirror:', e.code);
+      }
+    }
+
     const dot = document.getElementById('save-dot');
     if(dot) dot.title = 'Nube: ' + new Date().toLocaleTimeString('es-DO',{hour:'2-digit',minute:'2-digit'});
   } catch(e) { console.warn('pushSchedule:', e); }
@@ -9277,7 +9426,7 @@ function renderNotesList() {
   }).join('');
 }
 
-function openNote(id) {
+async function openNote(id) {
   activeNoteId = id;
   const note = notes.find(n => n.id === id);
   if (!note) return;
@@ -9291,7 +9440,7 @@ function openNote(id) {
     { key:'red', color:'var(--ot)', label:'Rojo' },
   ];
   const colorBtns = NOTE_COLORS.map(c =>
-    `<div class="note-color-btn${(note.color||'default')===c.key?' selected':''}" style="background:${c.color}" title="${c.label}" onclick="setNoteColor('${id}','${c.key}')"></div>`
+    `<div class="note-color-btn${(note.color||'default')===c.key?' selected':''}" style="background:${c.color}" title="${sanitize(c.label)}" onclick="setNoteColor('${id}','${c.key}')"></div>`
   ).join('');
   const isPinned = note.pinned || false;
   editor.innerHTML = `
@@ -9499,7 +9648,7 @@ function detectMentions() {
 }
 
 let _noteSaveTimer = null;
-function scheduleNoteSave() {
+async function scheduleNoteSave() {
   clearTimeout(_noteSaveTimer);
   _noteSaveTimer = setTimeout(() => forceSaveNote(), 1500);
 }
@@ -9518,23 +9667,47 @@ async function forceSaveNote() {
 
 async function newNote() {
   if (!currentUser) return;
+  const noteId = 'note_' + Date.now() + '_' + Math.random().toString(36).slice(2,7);
+  const newNoteData = {
+    id: noteId, uid: currentUser.uid,
+    title: 'Nueva nota', body: '',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    color: 'default', pinned: false,
+  };
+  // Optimistic local update — UI responds immediately
+  notes.unshift(newNoteData);
+  activeNoteId = noteId;
+  renderNotesList();
+  openNote(noteId);
+  // Then persist to Firestore
   try {
     const { collection, addDoc, serverTimestamp } = window._fbFns;
     const ref = await addDoc(collection(window._fbDb, 'notes'), {
       uid: currentUser.uid, title: 'Nueva nota', body: '',
-      createdAt: serverTimestamp(), updatedAt: serverTimestamp()
+      createdAt: serverTimestamp(), updatedAt: serverTimestamp(),
+      color: 'default', pinned: false,
     });
-    activeNoteId = ref.id;
-    logChange('add', t('log_note_created')||'Nota creada');
+    // Replace temp ID with real Firestore ID
+    const localIdx = notes.findIndex(n => n.id === noteId);
+    if (localIdx >= 0) {
+      notes[localIdx].id = ref.id;
+      activeNoteId = ref.id;
+    }
+    logChange('add', t('log_note_created') || 'Nota creada');
   } catch(e) {
     if (e.code === 'permission-denied') {
-      showSaveToast('⚠ Permisos insuficientes. Revisa las reglas de Firestore en Firebase Console.');
+      // Notes rule requires resource.data.uid == auth.uid
+      // Current Firebase rules support this — if still blocked, verify rules are deployed
+      console.warn('Notes permission-denied — verify Firestore rules include notes/{noteId}');
+      showSaveToast('⚠ Verifica que las reglas de Firestore estén publicadas (notes)', 'warn');
     } else {
-      showSaveToast('Error al crear nota: ' + e.message);
+      console.error('newNote:', e);
+      showSaveToast('Error al crear nota: ' + e.message, 'warn');
     }
-    console.error('newNote:', e);
   }
 }
+
 
 async function deleteNote(id) {
   if (!confirm('¿Eliminar esta nota?')) return;
@@ -9742,7 +9915,7 @@ function renderPulseAvatars() {
     const g = groupOf(m.name);
     const bg = g ? GC_AVA[g.id] : 'rgba(255,255,255,0.08)';
     const col = g ? GC_COL[g.id] : 'var(--muted)';
-    return `<div class="pulse-avatar-sm" style="background:${bg};color:${col}" title="${m.name}">${initials(m.name)}</div>`;
+    return `<div class="pulse-avatar-sm" style="background:${bg};color:${col}" title="${sanitize(m.name)}">${initials(m.name)}</div>`;
   }).join('');
   el.innerHTML = avatars + (extra > 0 ? `<div class="pulse-more">+${extra}</div>` : '');
 }
@@ -9830,7 +10003,7 @@ function renderStandupView() {
       <div class="smc-header">
         <div class="smc-avatar" style="background:${gBg};color:${gCol}">${initials(m.name)}</div>
         <div style="flex:1;min-width:0">
-          <div class="smc-name">${m.name}</div>
+          <div class="smc-name">${sanitize(m.name)}</div>
           <div style="display:flex;align-items:center;gap:4px;margin-top:2px;flex-wrap:wrap">
             <span class="smc-group">${g ? g.label : ''}</span>
             ${m.role && m.role !== 'collaborator' ? `<span style="font-size:9px;font-weight:800;padding:1px 5px;border-radius:99px;background:${getRoleMeta(m.role||'collaborator').bg};color:${getRoleMeta(m.role||'collaborator').color};opacity:.9">${getRoleMeta(m.role||'collaborator').icon} ${getRoleMeta(m.role||'collaborator').badge}</span>` : ''}
@@ -10419,7 +10592,7 @@ function exportPrintView() {
       const wOT = weekOT(m);
       const casos = m.casos.length;
       return `<tr>
-        <td style="font-weight:600;padding:5px 8px">${m.name}</td>
+        <td style="font-weight:600;padding:5px 8px">${sanitize(m.name)}</td>
         ${daysCells}
         <td style="text-align:center;font-weight:700;color:${wOT>0?'#dc2626':'#666'}">${wOT>0?fmtH(wOT):'—'}</td>
         <td style="text-align:center">${casos}</td>
@@ -10614,7 +10787,7 @@ function exportClipboard() {
     members.forEach(m => {
       const wOT = weekOT(m);
       const casos = m.casos.filter(c=>c.estado!=='cerr').length;
-      text += `  • ${m.name}${wOT>0?' OT:'+fmtH(wOT):''}${casos>0?' '+casos+'c':''}\n`;
+      text += `  • ${sanitize(m.name)}${wOT>0?' OT:'+fmtH(wOT):''}${casos>0?' '+casos+'c':''}\n`;
     });
     text += '\n';
   });
@@ -11029,14 +11202,18 @@ async function confirmRole() {
         name: `Equipo de ${currentUser.displayName || 'Manager'}`,
       });
 
-      // Save user profile with teamId
+      // Save user profile with teamId and plan
+      const demoExpiresAt = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(); // 3 months
       await setDoc(doc(window._fbDb, 'users', currentUser.uid), {
         role: 'manager', teamId, inviteCode,
         country: selectedCountry, lang: currentLang,
         createdAt: new Date().toISOString(),
+        plan: 'enterprise_demo',
+        demoExpiresAt,
       }, { merge: true });
 
       currentTeamId = teamId;
+      try { localStorage.setItem('scheduleOS_inviteCode', inviteCode); } catch(e) {}
       document.getElementById('role-select-overlay')?.remove();
 
       // Show industry selection, then invite code
@@ -11047,6 +11224,7 @@ async function confirmRole() {
       await setDoc(doc(window._fbDb, 'users', currentUser.uid), {
         role: 'collaborator', country: selectedCountry, lang: currentLang,
         createdAt: new Date().toISOString(),
+        plan: 'starter',
       }, { merge: true });
 
       document.getElementById('role-select-overlay')?.remove();
@@ -11308,7 +11486,6 @@ async function previewTeam(code) {
 }
 
 async function joinTeamWithCode() {
-  const code = document.getElementById('join-code-inp')?.value?.trim().toUpperCase();
   const btn = document.getElementById('join-team-btn');
   const errEl = document.getElementById('join-team-error');
   if (!code || code.length < 6) {
@@ -11353,15 +11530,22 @@ async function joinTeamWithCode() {
       joinedTeamAt: new Date().toISOString(),
     }, { merge: true });
 
-    // Add to team members array (needs Firestore rule to allow)
+    // --- Attempt to add to team members array ---
+    // RULE CONTEXT: teams/{teamId} update requires auth.uid == teamId OR admin.
+    // A collaborator's UID != teamId → this write will be BLOCKED by current rules.
+    // This is intentional — the schedule sync works via teams/{teamId}.schedulePayload
+    // which the manager writes (allowed as owner). The collaborator's access is
+    // established via their users/{uid}.teamId field (written above, allowed as own doc).
+    // The members array is best-effort for display purposes only.
     try {
       await updateDoc(doc(window._fbDb, 'teams', teamId), {
         members: arrayUnion({ uid: currentUser.uid, name: currentUser.displayName || currentUser.email, email: currentUser.email, joinedAt: new Date().toISOString() })
       });
     } catch(teamErr) {
-      // If team write fails due to rules, user doc is already saved
-      // The team subscription will still work via teamId in user doc
-      console.warn('Could not update team members array:', teamErr.code);
+      // Expected with current rules — non-blocking, join still works via user doc
+      if (teamErr.code !== 'permission-denied') {
+        console.warn('Could not update team members array:', teamErr.code);
+      }
     }
 
     currentTeamId = teamId;
@@ -11440,22 +11624,31 @@ function subscribeToTeam() {
 }
 
 function subscribeToTeamSchedule(teamId) {
-  // Collaborator subscribes to manager's schedule (read-only view)
+  // Collaborator reads schedule from teams/{teamId}.schedulePayload
+  // WHY: teams/{teamId} read is allowed for any authenticated user (existing rule).
+  //      schedules/{teamId} read would require auth.uid == teamId (BLOCKED for colabs).
+  // Manager mirrors schedule to teams doc via pushScheduleToCloud().
   if (!currentUser) return;
   const { doc, onSnapshot } = window._fbFns;
-  const ref = doc(window._fbDb, 'schedules', teamId);
+  const ref = doc(window._fbDb, 'teams', teamId);
   _unsubSchedule = onSnapshot(ref, snap => {
     if (!snap.exists()) return;
     const data = snap.data();
-    if (!data.payload) return;
+    // Use schedulePayload (new field) or fallback to legacy payload field
+    const payload = data.schedulePayload || data.payload;
+    if (!payload) return;
     try {
-      const parsed = JSON.parse(data.payload);
+      const parsed = JSON.parse(payload);
       applySerializedState(parsed);
       _invalidateAll();
-      // Collaborator: only show their own data
       renderCollaboratorDashboard();
     } catch(e) { console.warn('teamSchedule apply:', e); }
-  }, err => console.warn('teamSchedule snapshot:', err));
+  }, err => {
+    console.warn('teamSchedule snapshot error:', err.code);
+    if (err.code === 'permission-denied') {
+      showSaveToast('⚠ Sin acceso al horario del equipo. Contacta a tu manager.', 'warn');
+    }
+  });
 }
 
 function renderTeamPresence(teamData) {
@@ -12935,7 +13128,7 @@ function showWhatsNew() {
   modal.id = 'whats-new-modal';
   modal.style.cssText = 'position:fixed;inset:0;z-index:600;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px);';
   const features = [
-    ['🎁','Enterprise Demo 12 meses','Todos los usuarios tienen acceso completo gratis'],
+    ['🎁','Enterprise Demo 3 meses','Todos los usuarios tienen acceso completo gratis'],
     ['🔒','Seguridad reforzada','XSS corregido · Brute force protection · CSP headers'],
     ['🤬','Filtro de contenido','60+ palabras bloqueadas en ES/EN/FR'],
     ['📊','CSV mejorado','SLA, prioridad, resumen ejecutivo incluidos'],
@@ -13459,7 +13652,7 @@ function processARIAQuery(q, ctx) {
   if (q.match(/libre|día.*libre|day.*off/)) {
     const off = ctx.allM ? ctx.allM.filter(m => m.days[ctx.today]?.dayoff) : [];
     if (!off.length) return { text: `Hoy nadie tiene día libre. Los **${ctx.totalMembers}** miembros del equipo están activos.` };
-    return { text: `Hoy tienen día libre:\n\n${off.map(m=>`• ${m.name}`).join('\n')}` };
+    return { text: `Hoy tienen día libre:\n\n${off.map(m=>`• ${sanitize(m.name)}`).join('\n')}` };
   }
   // ── GROUP SPECIFIC ──
   const groupMatch = ctx.groups > 0 && GROUP_DEFS.find(g => q.includes(g.label.toLowerCase()) || q.includes(g.id.toLowerCase()));
@@ -13519,25 +13712,25 @@ function ariaOnShift(ctx) {
   if (!ctx.membersOnShiftList.length) return { text: `Hoy (${ctx.today}) no hay colaboradores con turno configurado. ¿Quieres configurar los horarios?`, actions: [{ label:'Ir a Horarios', fn:"switchTab('horarios');toggleARIA()" }] };
   const list = ctx.membersOnShiftList.map(m => {
     const d = m.days[ctx.today];
-    return `• **${m.name}** — ${fmtTime(d.entry||'08:00')} → ${fmtTime(d.exit||'17:30')}${weekOT(m)>0?` (+${fmtH(weekOT(m))} OT)`:''}`;
+    return `• **${sanitize(m.name)}** — ${fmtTime(d.entry||'08:00')} → ${fmtTime(d.exit||'17:30')}${weekOT(m)>0?` (+${fmtH(weekOT(m))} OT)`:''}`;
   }).join('\n');
   return { text: `**${ctx.membersOnShift} colaboradores en turno hoy (${ctx.today}):**\n\n${list}`, actions: [{ label:'Ver horarios completos', fn:"switchTab('horarios');toggleARIA()" }] };
 }
 
 function ariaAbsences(ctx) {
   const lines = [];
-  if (ctx.membersAbsentList.length) lines.push(`❌ **Faltas hoy:**\n${ctx.membersAbsentList.map(m=>`• ${m.name}`).join('\n')}`);
+  if (ctx.membersAbsentList.length) lines.push(`❌ **Faltas hoy:**\n${ctx.membersAbsentList.map(m=>`• ${sanitize(m.name)}`).join('\n')}`);
   const onLeave = ctx.allM.filter(m => m.days[ctx.today]?.perm);
-  if (onLeave.length) lines.push(`📋 **Permisos hoy:**\n${onLeave.map(m=>`• ${m.name}`).join('\n')}`);
+  if (onLeave.length) lines.push(`📋 **Permisos hoy:**\n${onLeave.map(m=>`• ${sanitize(m.name)}`).join('\n')}`);
   const offDay = ctx.allM.filter(m => m.days[ctx.today]?.dayoff);
-  if (offDay.length) lines.push(`😌 **Día libre:**\n${offDay.map(m=>`• ${m.name}`).join('\n')}`);
+  if (offDay.length) lines.push(`😌 **Día libre:**\n${offDay.map(m=>`• ${sanitize(m.name)}`).join('\n')}`);
   if (!lines.length) return { text: `✅ Hoy no hay ausencias registradas. Los **${ctx.totalMembers}** miembros están activos.` };
   return { text: lines.join('\n\n'), actions: [{ label:'Ver horarios', fn:"switchTab('horarios');toggleARIA()" }] };
 }
 
 function ariaExpiredCases(ctx) {
   if (!ctx.expiredCasos) return { text: '✅ No hay casos vencidos en este momento. ¡Buen trabajo manteniendo el equipo al día!', nextSuggestions:['¿Cuántos casos están en proceso?','Resumen de la semana'] };
-  const list = ctx.expiredList.map(c => `• **${c.nombre||'Sin nombre'}** — ${c.memberName} (${c.tipo?.toUpperCase()||'—'})`).join('\n');
+  const list = ctx.expiredList.map(c => `• **${c.nombre||'Sin nombre'}** — ${sanitize(c.memberName)} (${c.tipo?.toUpperCase()||'—'})`).join('\n');
   const more = ctx.expiredCasos > 5 ? `\n...y ${ctx.expiredCasos - 5} más.` : '';
   return {
     text: `⚠ **${ctx.expiredCasos} caso${ctx.expiredCasos!==1?'s':''} vencido${ctx.expiredCasos!==1?'s':''}:**\n\n${list}${more}\n\n¿Quieres ir a los casos para revisarlos?`,
@@ -13551,7 +13744,7 @@ function ariaExpiredCases(ctx) {
 function ariaCaseLoad(ctx) {
   if (!ctx.topCaseLoad || ctx.topCaseLoad.open === 0) return { text: '✅ Ningún colaborador tiene casos activos en este momento.' };
   const top3 = ctx.memberCaseLoad.filter(m => m.open > 0).slice(0,5);
-  const list = top3.map((m,i) => `${i===0?'🥇':i===1?'🥈':'🥉'} **${m.name}** — ${m.open} abierto${m.open!==1?'s':''}${m.expired>0?` ⚠ ${m.expired} vencido${m.expired!==1?'s':''}`:''}` ).join('\n');
+  const list = top3.map((m,i) => `${i===0?'🥇':i===1?'🥈':'🥉'} **${sanitize(m.name)}** — ${m.open} abierto${m.open!==1?'s':''}${m.expired>0?` ⚠ ${m.expired} vencido${m.expired!==1?'s':''}`:''}` ).join('\n');
   return {
     text: `📋 **Carga de casos por colaborador:**\n\n${list}`,
     actions: [{ label:'Ver todos los casos', fn:"switchTab('casos');toggleARIA()" }]
@@ -13561,7 +13754,7 @@ function ariaCaseLoad(ctx) {
 function ariaUrgentCases(ctx) {
   if (!ctx.urgentCasos && !ctx.expiredCasos) return { text: '✅ No hay casos urgentes ni vencidos. Todo bajo control.' };
   const total = ctx.urgentCasos + ctx.expiredCasos;
-  const list = [...ctx.expiredList, ...ctx.urgentList].slice(0,6).map(c => `• **${c.nombre||'Sin nombre'}** — ${c.memberName}`).join('\n');
+  const list = [...ctx.expiredList, ...ctx.urgentList].slice(0,6).map(c => `• **${c.nombre||'Sin nombre'}** — ${sanitize(c.memberName)}`).join('\n');
   return {
     text: `🔴 **${total} caso${total!==1?'s':''} urgente${total!==1?'s':''}:**\n\n${list}`,
     actions: [
@@ -13584,7 +13777,7 @@ function ariaCasesSummary(ctx) {
 
 function ariaOT(ctx) {
   if (!ctx.membersWithOT) return { text: `✅ Nadie tiene overtime esta semana. Semana limpia con **${ctx.totalMembers}** colaboradores.` };
-  const list = ctx.highOTList.map(m => `• **${m.name}** — ${fmtH(weekOT(m))}`).join('\n');
+  const list = ctx.highOTList.map(m => `• **${sanitize(m.name)}** — ${fmtH(weekOT(m))}`).join('\n');
   const warning = ctx.highOTList.length > 0 ? `\n\n⚠ **${ctx.highOTList.length}** colaborador${ctx.highOTList.length!==1?'es tienen':' tiene'} 4h+ de OT. Considera balancear la carga.` : '';
   return {
     text: `⏱ **OT esta semana: ${fmtH(ctx.totalOT)} total**\n\nColaboradores con más OT:\n${list}${warning}`,
@@ -13597,7 +13790,7 @@ function ariaOT(ctx) {
 
 function ariaCoverage(ctx) {
   const status = ctx.coverage >= 90 ? '✅ Excelente' : ctx.coverage >= 70 ? '🟡 Aceptable' : ctx.coverage >= 50 ? '🟠 Baja' : '🔴 Crítica';
-  const noShift = ctx.membersNoShiftList?.map(m=>`• ${m.name}`).join('\n') || '';
+  const noShift = ctx.membersNoShiftList?.map(m=>`• ${sanitize(m.name)}`).join('\n') || '';
   return {
     text: `📅 **Cobertura del horario: ${ctx.coverage}%** — ${status}\n\n${ctx.membersNoShift > 0 ? `**${ctx.membersNoShift} colaborador${ctx.membersNoShift!==1?'es sin':' sin'} turno configurado:**\n${noShift}\n\n¿Quieres configurar sus turnos?` : 'Todos los colaboradores tienen al menos un turno configurado.'}`,
     actions: [
@@ -13985,35 +14178,6 @@ window.addEventListener('unhandledrejection', e => {
 
 /* ════════════════════════════════════════
    IMPROVED TOAST — typed variants
-════════════════════════════════════════ */
-function showSaveToast(msg, type = 'auto') {
-  const toast = document.getElementById('save-toast');
-  if (!toast) return;
-  // Auto-detect type from message prefix
-  if (type === 'auto') {
-    if (msg.startsWith('✓') || msg.startsWith('✅')) type = 'success';
-    else if (msg.startsWith('✗') || msg.startsWith('❌') || msg.includes('Error') || msg.includes('error')) type = 'error';
-    else if (msg.startsWith('⚠') || msg.includes('insuficiente') || msg.includes('falta')) type = 'warn';
-    else type = 'default';
-  }
-  toast.className = 'save-toast';
-  if (type === 'success') toast.classList.add('toast-success');
-  if (type === 'error')   toast.classList.add('toast-error');
-  if (type === 'warn')    toast.classList.add('toast-warn');
-  toast.innerHTML = msg;
-  toast.classList.add('visible');
-  clearTimeout(toast._timer);
-  toast._timer = setTimeout(() => toast.classList.remove('visible'), 2800);
-  // Haptic on mobile
-  if (navigator.vibrate) {
-    if (type === 'error') navigator.vibrate([100, 50, 100]);
-    else if (type === 'warn') navigator.vibrate(60);
-    else navigator.vibrate(30);
-  }
-}
-
-/* ════════════════════════════════════════
-   SKELETON LOADERS
 ════════════════════════════════════════ */
 function skeletonKPI(count = 6) {
   return Array(count).fill(0).map(() => `
@@ -14602,7 +14766,7 @@ function validateNoProfanity(text, fieldName = 'campo') {
    12 months free Enterprise for everyone
 ════════════════════════════════════════ */
 const PLAN_CONFIG = {
-  current: 'enterprise_demo',
+  current: 'starter', // Default is starter — demo is set by Firestore on registration
   label: 'Enterprise Demo',
   emoji: '🏆',
   color: 'var(--accent-d)',
@@ -14611,15 +14775,17 @@ const PLAN_CONFIG = {
 };
 
 const PLAN_META = {
-  starter:          { label:'Starter',        emoji:'⭐', color:'var(--accent-b)',  colorBg:'rgba(0,224,168,0.1)',  tag:'Gratis' },
-  pro:              { label:'Pro',             emoji:'💎', color:'var(--accent-a)',  colorBg:'rgba(77,166,255,0.1)', tag:'$12/mes' },
-  business:         { label:'Business',        emoji:'🏢', color:'var(--accent-c)',  colorBg:'rgba(255,180,68,0.1)', tag:'$29/mes' },
-  enterprise:       { label:'Enterprise',      emoji:'🏆', color:'var(--accent-d)',  colorBg:'rgba(192,132,252,0.1)',tag:'$79/mes' },
-  enterprise_demo:  { label:'Enterprise Demo', emoji:'🎁', color:'var(--accent-d)',  colorBg:'rgba(192,132,252,0.12)',tag:'12 meses gratis' },
+  starter:          { label:'Starter',        emoji:'⭐', color:'var(--accent-b)',  colorBg:'rgba(0,224,168,0.1)',  tag:'Gratis',    maxMembers:5,   maxManagers:1  },
+  pro:              { label:'Pro',             emoji:'💎', color:'var(--accent-a)',  colorBg:'rgba(77,166,255,0.1)', tag:'$49/mes',   maxMembers:30,  maxManagers:3  },
+  business:         { label:'Business',        emoji:'🏢', color:'var(--accent-c)',  colorBg:'rgba(255,180,68,0.1)', tag:'$99/mes',   maxMembers:100, maxManagers:999},
+  enterprise:       { label:'Enterprise',      emoji:'🏆', color:'var(--accent-d)',  colorBg:'rgba(192,132,252,0.1)',tag:'$199/mes',  maxMembers:9999,maxManagers:999},
+  enterprise_demo:  { label:'Enterprise Demo', emoji:'🎁', color:'var(--accent-d)',  colorBg:'rgba(192,132,252,0.12)',tag:'3 meses gratis', maxMembers:9999,maxManagers:999},
 };
 
 function getUserPlan() {
-  // Check localStorage for plan set by admin/payment
+  // Priority: 1) Firestore plan synced via applyPlanFromFirestore on login
+  //           2) localStorage cache (cross-tab sync)
+  //           3) PLAN_CONFIG.current (default = 'starter')
   try {
     const stored = localStorage.getItem('scheduleOS_plan');
     if (stored && PLAN_META[stored]) return stored;
@@ -14627,11 +14793,40 @@ function getUserPlan() {
   return PLAN_CONFIG.current;
 }
 
-function setUserPlan(planKey) {
+// Apply plan from Firestore data — the authoritative source on login
+// Handles demo expiry check so plan is always accurate across devices
+function applyPlanFromFirestore(userData) {
+  if (!userData) return;
+  const plan = userData.plan || 'starter';
+  const demoExpiry = userData.demoExpiresAt;
+  // Check demo expiry
+  if (plan === 'enterprise_demo' && demoExpiry) {
+    if (new Date(demoExpiry) < new Date()) {
+      setUserPlan('starter');
+      savePlanToFirestore('starter');
+      showSaveToast('ℹ Tu demo Enterprise expiró. Continuás en plan Starter.', 'info');
+      return;
+    }
+  }
+  setUserPlan(plan);
+}
+
+// Write plan to Firestore for cross-device sync
+async function savePlanToFirestore(planKey) {
+  if (!currentUser || !window._fbFns || !window._fbDb) return;
+  try {
+    const { doc, updateDoc } = window._fbFns;
+    await updateDoc(doc(window._fbDb, 'users', currentUser.uid), { plan: planKey });
+  } catch(e) { console.warn('savePlanToFirestore:', e); }
+}
+
+function setUserPlan(planKey, syncToFirestore = false) {
   if (!PLAN_META[planKey]) return;
   PLAN_CONFIG.current = planKey;
   try { localStorage.setItem('scheduleOS_plan', planKey); } catch(e) {}
   renderPlanBadge();
+  // Persist to Firestore for cross-device sync (when explicitly requested)
+  if (syncToFirestore) savePlanToFirestore(planKey);
 }
 
 function renderPlanBadge() {
@@ -14655,10 +14850,10 @@ function showPlanNotAvailable(planName) {
       <div style="background:rgba(192,132,252,0.08);border:1px solid rgba(192,132,252,0.2);border-radius:10px;padding:14px;margin-bottom:20px">
         <div style="font-size:14px;color:var(--accent-d);font-weight:700;margin-bottom:4px">🎁 Ya tienes Enterprise Demo</div>
         <div style="font-size:13px;color:var(--text2);line-height:1.5">
-          Acceso completo a <strong>todas las funciones</strong> sin límites por <strong>12 meses gratis</strong>. Sin tarjeta requerida.
+          Acceso completo a <strong>todas las funciones</strong> sin límites por <strong>3 meses gratis</strong>. Sin tarjeta requerida.
         </div>
       </div>
-      <button onclick="setUserPlan('enterprise_demo');this.closest('[style]').remove();showSaveToast('🎁 Enterprise Demo activo — 12 meses gratis','success')"
+      <button onclick="setUserPlan('enterprise_demo');this.closest('[style]').remove();showSaveToast('🎁 Enterprise Demo activo — 3 meses gratis','success')"
         style="background:linear-gradient(135deg,var(--accent-d),var(--accent-a));border:none;border-radius:var(--radius-xs);color:#fff;padding:11px 24px;cursor:pointer;font-family:inherit;font-size:13px;font-weight:700;width:100%;margin-bottom:8px">
         Activar Enterprise Demo →
       </button>
@@ -14677,14 +14872,24 @@ function showPlanNotAvailable(planName) {
 ════════════════════════════════════════ */
 const APP_VERSION = '5.2.0';
 function checkAppVersion() {
+  // Anti-loop guard: if we already reloaded this session, don't reload again
+  // This prevents infinite reload loops if localStorage write fails mid-reload
+  if (sessionStorage.getItem('sos_version_reloaded') === APP_VERSION) {
+    // Already reloaded for this version this session — clear flag and continue
+    sessionStorage.removeItem('sos_version_reloaded');
+    try { localStorage.setItem('scheduleOS_appVersion', APP_VERSION); } catch(e) {}
+    return true;
+  }
+
   const stored = localStorage.getItem('scheduleOS_appVersion');
   if (stored && stored !== APP_VERSION) {
-    // New version available — force reload after toast
-    showSaveToast('🔄 Nueva versión disponible — actualizando...', 'info');
-    setTimeout(() => {
+    // New version available — set flag BEFORE reload so we don't loop
+    try {
+      sessionStorage.setItem('sos_version_reloaded', APP_VERSION);
       localStorage.setItem('scheduleOS_appVersion', APP_VERSION);
-      window.location.reload(true);
-    }, 2000);
+    } catch(e) {}
+    showSaveToast('🔄 Nueva versión disponible — actualizando...', 'info');
+    setTimeout(() => { window.location.reload(true); }, 2000);
     return false;
   }
   try { localStorage.setItem('scheduleOS_appVersion', APP_VERSION); } catch(e) {}
@@ -14700,37 +14905,44 @@ function checkAppVersion() {
 ════════════════════════════════════════ */
 async function doGoogleSignIn() {
   try {
-    // Dynamic import — works once Google provider is enabled in Firebase Console
-    const { GoogleAuthProvider, signInWithPopup } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js');
+    // Use static imports (already in window._fbFns from module script)
+    const { GoogleAuthProvider, signInWithPopup } = window._fbFns;
+    if (!GoogleAuthProvider || !signInWithPopup) {
+      showAuthError('Google Sign-In no está disponible. Actívalo en Firebase Console → Authentication → Sign-in method → Google.');
+      return;
+    }
     const provider = new GoogleAuthProvider();
     provider.setCustomParameters({ prompt: 'select_account' });
     const result = await signInWithPopup(window._fbAuth, provider);
     const user = result.user;
-    // Create Firestore user doc if new
-    const { doc, getDoc, setDoc } = window._fbFns;
+    // Create or update Firestore user doc for new Google users
+    const { doc, getDoc, setDoc, serverTimestamp } = window._fbFns;
     const snap = await getDoc(doc(window._fbDb, 'users', user.uid));
     if (!snap.exists()) {
       await setDoc(doc(window._fbDb, 'users', user.uid), {
         email: user.email,
-        displayName: sanitizeName(user.displayName || user.email.split('@')[0]),
+        name: sanitizeName(user.displayName || user.email.split('@')[0]),
         photoURL: user.photoURL || '',
-        plan: 'enterprise_demo',
+        plan: 'starter',
+        demoExpiresAt: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(),
         status: 'active',
-        createdAt: new Date().toISOString(),
+        createdAt: serverTimestamp(),
         provider: 'google',
       });
     }
-    // onAuthStateChanged handles the rest
+    // onAuthStateChanged handles session from here
   } catch(e) {
     const msgs = {
-      'auth/popup-closed-by-user': '',
-      'auth/cancelled-popup-request': '',
-      'auth/popup-blocked': 'El popup fue bloqueado. Permite popups para este sitio.',
-      'auth/account-exists-with-different-credential': 'Ya tienes una cuenta con ese email. Inicia sesión con contraseña.',
+      'auth/popup-closed-by-user':                  '',
+      'auth/cancelled-popup-request':               '',
+      'auth/popup-blocked':                         'El popup fue bloqueado. Permite popups para este sitio e intenta de nuevo.',
+      'auth/account-exists-with-different-credential': 'Ya existe una cuenta con ese email. Usa tu contraseña para iniciar sesión.',
+      'auth/unauthorized-domain':                   'Dominio no autorizado en Firebase. Agrega este dominio en Firebase Console → Authentication → Authorized domains.',
     };
-    const msg = msgs[e.code] || 'Error al iniciar sesión con Google.';
-    if (msg) showAuthError(msg);
-    console.warn('Google SSO error:', e.code);
+    const msg = msgs[e.code];
+    if (msg === undefined) showAuthError(`Error al iniciar con Google: ${e.message}`);
+    else if (msg) showAuthError(msg);
+    console.warn('Google SSO:', e.code, e.message);
   }
 }
 

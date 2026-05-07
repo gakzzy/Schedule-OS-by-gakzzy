@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8"/>
+<meta name="robots" content="noindex, nofollow"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Schedule OS — Admin Console · v5.2</title>
 <style>
@@ -581,7 +582,24 @@ window._verifyAdmin = verifyAdminAccess;
 <!-- ══════════════════════════════════════
      AUTH SCREEN
 ══════════════════════════════════════ -->
-<script>document.addEventListener('DOMContentLoaded',()=>document.body.classList.add('auth-mode'));</script>
+<script>
+/* ── XSS Protection ── */
+function sanitize(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#x27;')
+    .replace(/`/g,'&#x60;');
+}
+function sanitizeName(str) {
+  if (!str) return '';
+  return sanitize(str).slice(0, 80);
+}
+
+document.addEventListener('DOMContentLoaded',()=>document.body.classList.add('auth-mode'));</script>
 <div id="auth-screen">
   <div class="auth-card">
     <div class="auth-badge">Restricted Access</div>
@@ -1379,7 +1397,7 @@ async function initAdminPanel(user, adminInfo) {
   await loadOverview();
 
   // Write audit log: admin logged in
-  await writeAuditLog('login', 'AUTH', `Admin login: ${user.email}`);
+  await writeAuditLog('login', 'AUTH', `Admin login: ${sanitize(user.email || '')}`);
 
   // Start live listeners (including Dev Flow)
   startLiveListeners();
