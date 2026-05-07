@@ -183,15 +183,17 @@ section{position:relative;z-index:1;}
   padding:100px 24px 80px;
 }
 .hero-badge{
-  display:inline-flex;align-items:center;gap:6px;
+  display:inline-flex;align-items:center;gap:8px;
   background:rgba(77,166,255,0.1);border:1px solid rgba(77,166,255,0.2);
   border-radius:99px;padding:6px 14px;
-  font-size:11px;font-weight:700;color:var(--brand-blue);
-  text-transform:uppercase;letter-spacing:1px;
-  margin-bottom:28px;font-family:var(--font-mono);
+  font-size:11px;font-weight:600;color:var(--brand-blue);
+  letter-spacing:.3px;
+  margin-bottom:28px;font-family:var(--font-body);
   animation:fadeUp .6s ease both;
+  white-space:nowrap;
 }
-.hero-badge span{width:6px;height:6px;background:var(--brand-green);border-radius:50%;animation:pulse 2s infinite;}
+.hero-badge .badge-dot{width:6px;height:6px;min-width:6px;background:var(--brand-green);border-radius:50%;animation:pulse 2s infinite;display:inline-block;}
+.hero-badge .badge-text{white-space:nowrap;}
 .hero-title{
   font-family:var(--font-display);
   font-size:clamp(36px,7vw,84px);
@@ -685,8 +687,8 @@ footer{
 <!-- HERO -->
 <section class="hero">
   <div class="hero-badge">
-    <span></span>
-    <span data-i18n="hero_badge">BETA v5.2 — Ahora disponible · V1.0 llegando Nov 18</span>
+    <span class="badge-dot"></span>
+    <span class="badge-text" data-i18n="hero_badge">BETA v5.2 — Ahora disponible · V1.0 llegando Nov 18</span>
   </div>
   <h1 class="hero-title">
     <div class="line1" data-i18n="hero_title1">Gestión de equipos</div>
