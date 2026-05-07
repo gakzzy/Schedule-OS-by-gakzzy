@@ -27,12 +27,12 @@
 ═══════════════════════════════════════ */
 :root{
   /* Backgrounds */
-  --bg:#07090d;
+  --bg:#030406;
   --surface:#0d1117;
-  --surface2:#13191f;
+  --surface2:#161b22;
   --surface3:#1a2230;
   --surface4:#202b3a;
-  --glass:rgba(13,17,23,0.88);
+  --glass:rgba(3,4,6,0.85);
 
   /* Borders */
   --border:rgba(255,255,255,0.07);
@@ -114,7 +114,7 @@ body.light{
   --shadow-md:0 4px 16px rgba(0,0,0,0.1);
   --shadow-lg:0 12px 40px rgba(0,0,0,0.14);
 }
-body.light .topbar{background:rgba(255,255,255,0.94);border-bottom:1px solid var(--border2);}
+body.light .topbar{background:rgba(255,255,255,0.85);backdrop-filter:blur(24px) saturate(180%);-webkit-backdrop-filter:blur(24px) saturate(180%);border-bottom:1px solid var(--border2);}
 body.light select option{background:#fff;color:#0d1117;}
 body.light .auth-overlay{background:linear-gradient(135deg,#e8eef5 0%,#f2f4f8 100%);}
 
@@ -213,7 +213,7 @@ body:not(.light)::after{
 ═══════════════════════════════════════ */
 .topbar{
   position:sticky;top:0;z-index:100;
-  background:rgba(7,9,13,0.94);
+  background:rgba(3,4,6,0.80);
   backdrop-filter:blur(24px) saturate(200%);
   border-bottom:1px solid var(--border);
   padding:0 2rem;
@@ -1175,7 +1175,9 @@ body.minimal .nav-item.active{background:var(--accent-a-dim);border-left-color:v
 ═══════════════════════════════════════ */
 .settings-drawer{
   position:fixed;right:0;top:0;height:100%;width:380px;
-  background:var(--surface);border-left:1px solid var(--border2);
+  background:rgba(13,17,23,0.92);
+  backdrop-filter:blur(20px) saturate(160%);
+  -webkit-backdrop-filter:blur(20px) saturate(160%);border-left:1px solid var(--border2);
   z-index:500;transform:translateX(100%);
   transition:transform .28s cubic-bezier(.4,0,.2,1);
   display:flex;flex-direction:column;overflow:hidden;
@@ -2162,7 +2164,7 @@ body.role-readonly .week-controls-bar input { pointer-events:none; }
 /* ── OLED DARK THEME ── */
 body.oled{
   --bg:#000000;
-  --surface:#0a0a0a;
+  --surface:#060606;
   --surface2:#111111;
   --surface3:#1a1a1a;
   --border:rgba(255,255,255,0.06);
@@ -8541,8 +8543,8 @@ whenFirebaseReady(() => {
       const prevUid = currentUser?.uid;
       if (prevUid && prevUid !== user.uid) fullSessionReset();
 
-      // Check suspended/banned status first
-      const status = checkAccountStatus(user.uid);
+      // Check suspended/banned status first (async — must await)
+      const status = await checkAccountStatus(user.uid);
       if (!status.ok) {
         window._fbFns.signOut(auth);
         showSuspendedScreen(status.message);
@@ -8556,6 +8558,31 @@ whenFirebaseReady(() => {
 
       const createdAt = new Date(user.metadata.creationTime).getTime();
       const isNewAccount = (Date.now() - createdAt) < 15000;
+
+      // If this was a Google Sign-In, ensure user doc exists in Firestore
+      // Do this AFTER onAuthStateChanged fires so the auth token is fully propagated
+      if (window._googleSignInPending) {
+        window._googleSignInPending = false;
+        try {
+          const { doc, getDoc, setDoc, serverTimestamp } = window._fbFns;
+          const snap = await getDoc(doc(window._fbDb, 'users', user.uid));
+          if (!snap.exists()) {
+            await setDoc(doc(window._fbDb, 'users', user.uid), {
+              email: user.email,
+              name: sanitizeName(user.displayName || user.email.split('@')[0]),
+              photoURL: user.photoURL || '',
+              plan: 'enterprise_demo',
+              demoExpiresAt: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(),
+              status: 'active',
+              createdAt: serverTimestamp(),
+              provider: 'google',
+            });
+          }
+        } catch(e) {
+          console.warn('Google user doc create:', e.code, e.message);
+        }
+      }
+
       if (isNewAccount) {
         clearAppData();
         localStorage.removeItem('scheduleOS_tutorialDone');
@@ -10646,7 +10673,60 @@ function exportPrintView() {
       table td,table th{border:1px solid #e5e7eb;padding:4px 6px;}
       table th{background:#f9fafb;font-size:11px;}
       @media print{.no-print{display:none}}
-    </style></head><body>
+    
+/* ── Premium Modal Animations ── */
+.modal-overlay-enter{
+  animation:modalOverlayIn .25s ease both;
+}
+@keyframes modalOverlayIn{
+  from{opacity:0}
+  to{opacity:1}
+}
+@keyframes modalCardIn{
+  from{opacity:0;transform:scale(0.92) translateY(16px)}
+  to{opacity:1;transform:scale(1) translateY(0)}
+}
+@keyframes modalCardOut{
+  from{opacity:1;transform:scale(1) translateY(0)}
+  to{opacity:0;transform:scale(0.94) translateY(8px)}
+}
+/* Premium border glow on cards */
+.kpi-card:hover,.case-card:hover{
+  border-color:rgba(77,166,255,0.18);
+  box-shadow:0 0 0 1px rgba(77,166,255,0.08),0 8px 32px rgba(0,0,0,0.3);
+}
+/* Subtle noise texture on bg for depth */
+body::before{
+  content:'';
+  position:fixed;inset:0;z-index:-1;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events:none;
+  opacity:.4;
+}
+/* Topbar logo shimmer */
+.logo-text{
+  background:linear-gradient(90deg,var(--accent-a),var(--accent-d),var(--accent-a));
+  background-size:200% auto;
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  background-clip:text;
+  animation:shimmer 4s linear infinite;
+}
+@keyframes shimmer{
+  from{background-position:200% center}
+  to{background-position:-200% center}
+}
+/* Card hover lift */
+.group-card:hover{
+  transform:translateY(-1px);
+  box-shadow:0 8px 32px rgba(0,0,0,0.4);
+  transition:transform .2s ease,box-shadow .2s ease;
+}
+/* Accent gradient line on active nav items */
+.nav-item.active::before{
+  background:linear-gradient(180deg,var(--accent-a),var(--accent-d));
+}
+</style></head><body>
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;padding-bottom:12px;border-bottom:2px solid #111">
       <div>
         <h1 style="font-size:20px;font-weight:800;margin:0">${title}</h1>
@@ -14905,7 +14985,6 @@ function checkAppVersion() {
 ════════════════════════════════════════ */
 async function doGoogleSignIn() {
   try {
-    // Use static imports (already in window._fbFns from module script)
     const { GoogleAuthProvider, signInWithPopup } = window._fbFns;
     if (!GoogleAuthProvider || !signInWithPopup) {
       showAuthError('Google Sign-In no está disponible. Actívalo en Firebase Console → Authentication → Sign-in method → Google.');
@@ -14913,25 +14992,13 @@ async function doGoogleSignIn() {
     }
     const provider = new GoogleAuthProvider();
     provider.setCustomParameters({ prompt: 'select_account' });
-    const result = await signInWithPopup(window._fbAuth, provider);
-    const user = result.user;
-    // Create or update Firestore user doc for new Google users
-    const { doc, getDoc, setDoc, serverTimestamp } = window._fbFns;
-    const snap = await getDoc(doc(window._fbDb, 'users', user.uid));
-    if (!snap.exists()) {
-      await setDoc(doc(window._fbDb, 'users', user.uid), {
-        email: user.email,
-        name: sanitizeName(user.displayName || user.email.split('@')[0]),
-        photoURL: user.photoURL || '',
-        plan: 'starter',
-        demoExpiresAt: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(),
-        status: 'active',
-        createdAt: serverTimestamp(),
-        provider: 'google',
-      });
-    }
-    // onAuthStateChanged handles session from here
+    // Just authenticate — onAuthStateChanged will handle the rest
+    // including creating the Firestore user doc if it doesn't exist
+    window._googleSignInPending = true;
+    await signInWithPopup(window._fbAuth, provider);
+    // onAuthStateChanged fires automatically after this
   } catch(e) {
+    window._googleSignInPending = false;
     const msgs = {
       'auth/popup-closed-by-user':                  '',
       'auth/cancelled-popup-request':               '',
