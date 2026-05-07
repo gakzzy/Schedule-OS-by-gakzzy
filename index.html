@@ -1,15 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <script type="text/javascript">
-    (function(c,l,a,r,i,t,y){
-        c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
-        t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
-        y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
-    })(window, document, "clarity", "script", "wklspg2tvn");
-</script>
 <meta charset="UTF-8"/>
-  <meta name="google-site-verification" content="E_6cJqEX2Aq-HybQLkLURhGPRBEdpiaNHpZCBMjOWZs" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
 <meta name="description" content="Schedule OS — La plataforma de gestión de equipos y turnos para empresas modernas. BPO, retail, logística, salud y más."/>
 <meta name="theme-color" content="#050810"/>
@@ -79,7 +71,7 @@
   --brand-purple:#c084fc;
   --brand-orange:#ffb444;
   --brand-red:#ff5c6a;
-  /* Dark backgrounds */
+  /* Dark backgrounds (default) */
   --bg:#050810;
   --bg2:#080d16;
   --surface:rgba(255,255,255,0.04);
@@ -89,11 +81,25 @@
   /* Text */
   --text:#f0f4ff;
   --text2:#a8b8d0;
+  --text3:#6b7d95;
   --muted:#6b7d95;
   /* Fonts */
   --font-display:'Syne',sans-serif;
   --font-body:'DM Sans',sans-serif;
   --font-mono:'JetBrains Mono',monospace;
+}
+/* Light mode */
+[data-theme="light"]{
+  --bg:#f8fafc;
+  --bg2:#ffffff;
+  --surface:rgba(0,0,0,0.03);
+  --surface2:rgba(0,0,0,0.05);
+  --border:rgba(0,0,0,0.08);
+  --border2:rgba(0,0,0,0.12);
+  --text:#0d1117;
+  --text2:#374151;
+  --text3:#6b7280;
+  --muted:#9ca3af;
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html{scroll-behavior:smooth;overflow-x:hidden;}
@@ -638,7 +644,7 @@ footer{
 <body>
 
 <!-- NAV -->
-<nav>
+<nav id="main-nav">
   <a href="#" class="nav-logo">
     <svg class="logo-svg" viewBox="0 0 32 32" fill="none">
       <rect width="32" height="32" rx="8" fill="url(#logoGrad)"/>
@@ -657,12 +663,22 @@ footer{
     Schedule OS
   </a>
   <div class="nav-links">
-    <a href="#features" class="nav-link">Features</a>
-    <a href="#industries" class="nav-link">Industrias</a>
-    <a href="#pricing" class="nav-link">Precios</a>
-    <a href="app.html" class="nav-link">Demo</a>
-    <a href="app.html?action=login" class="nav-login">Iniciar sesión</a>
-    <a href="app.html?action=register" class="nav-cta">Comenzar gratis →</a>
+    <a href="#features" class="nav-link" data-i18n="nav_features">Features</a>
+    <a href="#industries" class="nav-link" data-i18n="nav_industries">Industrias</a>
+    <a href="#pricing" class="nav-link" data-i18n="nav_pricing">Precios</a>
+    <a href="app.html" class="nav-link" data-i18n="nav_demo">Demo</a>
+    <!-- Language toggle -->
+    <button id="lang-toggle" onclick="toggleLandingLang()" title="Switch language"
+      style="background:none;border:1px solid var(--border2);border-radius:6px;color:var(--text2);padding:4px 10px;cursor:pointer;font-family:inherit;font-size:12px;font-weight:600;letter-spacing:.3px">
+      EN
+    </button>
+    <!-- Dark/light toggle -->
+    <button id="theme-toggle" onclick="toggleLandingTheme()" title="Toggle dark/light mode"
+      style="background:none;border:1px solid var(--border2);border-radius:6px;color:var(--text2);width:32px;height:28px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px">
+      🌙
+    </button>
+    <a href="app.html?action=login" class="nav-login" data-i18n="nav_login">Iniciar sesión</a>
+    <a href="app.html?action=register" class="nav-cta" data-i18n="nav_cta">Comenzar gratis →</a>
   </div>
 </nav>
 
@@ -670,23 +686,20 @@ footer{
 <section class="hero">
   <div class="hero-badge">
     <span></span>
-    BETA v5.2 — Ahora disponible · V1.0 llegando Nov 18
+    <span data-i18n="hero_badge">BETA v5.2 — Ahora disponible · V1.0 llegando Nov 18</span>
   </div>
   <h1 class="hero-title">
-    <div class="line1">Gestión de equipos</div>
-    <div class="line2">sin complicaciones</div>
+    <div class="line1" data-i18n="hero_title1">Gestión de equipos</div>
+    <div class="line2" data-i18n="hero_title2">sin complicaciones</div>
   </h1>
-  <p class="hero-subtitle">
-    Horarios inteligentes, seguimiento de casos, ARIA asistente IA, reportes y más.
-    Una sola plataforma para BPO, retail, logística y salud.
-  </p>
+  <p class="hero-subtitle" data-i18n="hero_sub">Horarios inteligentes, seguimiento de casos, ARIA asistente IA, reportes y más. Una sola plataforma para BPO, retail, logística y salud.</p>
   <div class="hero-actions">
     <a href="app.html?action=register" class="btn-primary">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-      Comenzar gratis
+      <span data-i18n="btn_start">Comenzar gratis</span>
     </a>
     <a href="app.html?action=login" class="btn-secondary">
-      Iniciar sesión →
+      <span data-i18n="btn_login">Iniciar sesión →</span>
     </a>
   </div>
   <p style="font-size:12px;color:var(--muted);margin-top:-8px;margin-bottom:48px">
@@ -952,7 +965,7 @@ footer{
           <li><strong>Roles personalizados</strong> — Team Lead, Supervisor, Dev con accesos distintos</li>
           <li><strong>Auditoría de acciones</strong> — log completo de quién cambió qué y cuándo</li>
           <li><strong>Importación masiva</strong> — sube PDF, Excel o CSV con casos y se asignan automáticamente</li>
-          <li><strong>API access</strong> — conecta con tus sistemas internos <em>(próximamente)</em></li>
+          <li><strong>API access</strong> — conecta con tus sistemas internos <em style="color:var(--muted);font-size:11px">(Q1 2027)</em></li>
           <li class="disabled"><strong>SLA 99.9% garantizado</strong> — disponible en Enterprise</li>
         </ul>
         <button onclick="showPlanUnavailable('Business')" class="plan-cta secondary" style="border:none;cursor:pointer;width:100%">Empezar Business → 🔒</button>
@@ -967,13 +980,13 @@ footer{
         <hr class="plan-divider"/>
         <ul class="plan-features">
           <li><strong>Colaboradores ilimitados</strong> — sin techo, escala sin penalizaciones</li>
-          <li><strong>SLA 99.9% garantizado</strong> — tiempo de actividad con respaldo por contrato</li>
+          <li><strong>SLA 99.9% garantizado</strong> — respaldo por contrato <em style="color:var(--muted);font-size:11px">(con contrato anual)</em></li>
           <li><strong>Soporte prioritario 24/7</strong> — canal directo con el equipo de Schedule OS</li>
           <li><strong>Onboarding personalizado</strong> — sesiones de setup con tu equipo de operaciones</li>
-          <li><strong>Custom branding</strong> — tu logo y colores dentro de la plataforma</li>
-          <li><strong>Integraciones custom</strong> — conectamos con tu CRM, ACD o herramienta interna</li>
+          <li><strong>Custom branding</strong> — tu logo y colores <em style="color:var(--muted);font-size:11px">(Q1 2027)</em></li>
+          <li><strong>Integraciones custom</strong> — CRM, ACD, herramientas internas <em style="color:var(--muted);font-size:11px">(Q2 2027)</em></li>
           <li><strong>Contrato anual disponible</strong> — precio fijo sin sorpresas para presupuesto anual</li>
-          <li><strong>Reporte ejecutivo mensual</strong> — métricas de equipo consolidadas para dirección</li>
+          <li><strong>Reporte ejecutivo mensual</strong> — métricas consolidadas para dirección <em style="color:var(--muted);font-size:11px">(próximamente)</em></li>
         </ul>
         <a href="mailto:scheduleosbygakzzy@gmail.com?subject=Schedule OS Enterprise" class="plan-cta enterprise">Contactar ventas →</a>
       </div>
@@ -1263,7 +1276,70 @@ function toggleFAQ(i) {
 }
 
 // Billing toggle
-let isAnnual = false;
+/* ── Dark / Light Mode ── */
+let _landingTheme = 'dark';
+try { _landingTheme = localStorage.getItem('sos_landing_theme') || 'dark'; } catch(e) {}
+
+function applyLandingTheme(theme) {
+  _landingTheme = theme;
+  document.documentElement.setAttribute('data-theme', theme === 'light' ? 'light' : '');
+  const btn = document.getElementById('theme-toggle');
+  if (btn) btn.textContent = theme === 'light' ? '🌙' : '☀️';
+  try { localStorage.setItem('sos_landing_theme', theme); } catch(e) {}
+}
+function toggleLandingTheme() {
+  applyLandingTheme(_landingTheme === 'dark' ? 'light' : 'dark');
+}
+
+/* ── EN / ES i18n ── */
+const LANDING_I18N = {
+  es: {
+    nav_features: 'Features', nav_industries: 'Industrias', nav_pricing: 'Precios',
+    nav_demo: 'Demo', nav_login: 'Iniciar sesión', nav_cta: 'Comenzar gratis →',
+    hero_badge: 'BETA v5.2 — Ahora disponible · V1.0 llegando Nov 18',
+    hero_title1: 'Gestión de equipos', hero_title2: 'sin complicaciones',
+    hero_sub: 'Horarios inteligentes, seguimiento de casos, ARIA asistente IA, reportes y más. Una sola plataforma para BPO, retail, logística y salud.',
+    btn_start: '▶ Comenzar gratis', btn_login: 'Iniciar sesión →',
+    already_account: '¿Ya tienes cuenta?', sign_in_here: 'Inicia sesión aquí →',
+  },
+  en: {
+    nav_features: 'Features', nav_industries: 'Industries', nav_pricing: 'Pricing',
+    nav_demo: 'Demo', nav_login: 'Sign in', nav_cta: 'Start free →',
+    hero_badge: 'BETA v5.2 — Now available · V1.0 coming Nov 18',
+    hero_title1: 'Team management', hero_title2: 'made simple',
+    hero_sub: 'Smart scheduling, case tracking, ARIA AI assistant, reports and more. One platform for BPO, retail, logistics and healthcare.',
+    btn_start: '▶ Start for free', btn_login: 'Sign in →',
+    already_account: 'Already have an account?', sign_in_here: 'Sign in here →',
+  }
+};
+
+let _landingLang = 'es';
+try { _landingLang = localStorage.getItem('sos_landing_lang') || 'es'; } catch(e) {}
+
+function applyLandingI18n(lang) {
+  _landingLang = lang;
+  const dict = LANDING_I18N[lang] || LANDING_I18N.es;
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.dataset.i18n;
+    if (dict[key] !== undefined) el.textContent = dict[key];
+  });
+  const langBtn = document.getElementById('lang-toggle');
+  if (langBtn) langBtn.textContent = lang === 'es' ? 'EN' : 'ES';
+  const themeBtn = document.getElementById('theme-toggle');
+  if (themeBtn) themeBtn.textContent = _landingTheme === 'light' ? '🌙' : '☀️';
+  try { localStorage.setItem('sos_landing_lang', lang); } catch(e) {}
+}
+function toggleLandingLang() {
+  applyLandingI18n(_landingLang === 'es' ? 'en' : 'es');
+}
+
+// Apply theme + lang after DOM is fully ready
+document.addEventListener('DOMContentLoaded', () => {
+  applyLandingTheme(_landingTheme);
+  applyLandingI18n(_landingLang);
+});
+
+
 const prices = { starter:0, pro:49, business:99, enterprise:199 };
 function toggleBilling() {
   isAnnual = !isAnnual;
@@ -1310,7 +1386,7 @@ function showPlanUnavailable(planName) {
       <div style="font-size:14px;color:#8b949e;line-height:1.6;margin-bottom:12px">Este plan estará disponible próximamente.</div>
       <div style="background:rgba(0,224,168,0.08);border:1px solid rgba(0,224,168,0.2);border-radius:10px;padding:14px;margin-bottom:20px">
         <div style="font-size:14px;color:#00e0a8;font-weight:700;margin-bottom:4px">🎁 Buenas noticias</div>
-        <div style="font-size:13px;color:#c9d1d9;line-height:1.5">Por ahora tienes acceso completo a <strong>Enterprise Demo</strong> gratis por <strong>12 meses</strong>. Sin límites, sin tarjeta.</div>
+        <div style="font-size:13px;color:#c9d1d9;line-height:1.5">Por ahora tienes acceso completo a <strong>Enterprise Demo</strong> gratis por <strong>3 meses</strong>. Sin límites, sin tarjeta.</div>
       </div>
       <a href="app.html?action=register" style="display:block;background:#4da6ff;color:#fff;border-radius:10px;padding:12px 24px;text-decoration:none;font-weight:700;font-size:14px;margin-bottom:10px">Comenzar Enterprise Demo →</a>
       <button onclick="document.getElementById('plan-unavail-modal').remove()" style="background:none;border:1px solid #30363d;border-radius:10px;color:#8b949e;padding:10px 20px;cursor:pointer;font-family:inherit;font-size:13px;width:100%">Cerrar</button>
