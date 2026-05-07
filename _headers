@@ -21,11 +21,11 @@
 # ──────────────────────────────────────────────────────────────
 # GOOGLE SEARCH CONSOLE VERIFICATION
 # 1. Go to https://search.google.com/search-console
-# 2. Add property: https://scheduleos.app
+# 2. Add property: https://scheduleos.dev
 # 3. Choose "HTML tag" verification method
 # 4. Copy the meta tag content value (looks like: abc123xyz...)
 # 5. Add this meta tag to <head> in index.html:
 #    <meta name="google-site-verification" content="PASTE_CODE_HERE"/>
 # 6. Click Verify in Search Console
-# 7. Submit sitemap: https://scheduleos.app/sitemap.xml
+# 7. Submit sitemap: https://scheduleos.dev/sitemap.xml
 # ──────────────────────────────────────────────────────────────

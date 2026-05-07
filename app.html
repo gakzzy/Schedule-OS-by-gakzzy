@@ -14479,7 +14479,7 @@ async function saveUserReferralCode(uid) {
 function showReferralModal() {
   if (!currentUser) return;
   const code = getReferralCode(currentUser.uid);
-  const link = `https://scheduleos.app/app.html?action=register&ref=${code}`;
+  const link = `https://scheduleos.dev/app.html?action=register&ref=${code}`;
   const modal = document.createElement('div');
   modal.style.cssText = 'position:fixed;inset:0;z-index:700;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(6px)';
   modal.innerHTML = `
@@ -14953,7 +14953,7 @@ async function doGoogleSignIn() {
    2. Tu proyecto → App Check → Get started
    3. Registra tu app web con reCAPTCHA v3
    4. Ve a https://www.google.com/recaptcha/admin
-   5. Crea un site key para reCAPTCHA v3 con tu dominio scheduleos.app
+   5. Crea un site key para reCAPTCHA v3 con tu dominio scheduleos.dev
    6. Pega el site key donde dice TU_RECAPTCHA_SITE_KEY abajo
    7. Descomenta el bloque completo
 ════════════════════════════════════════ */
