@@ -1,13 +1,16 @@
 {
   "name": "Schedule OS",
   "short_name": "Schedule OS",
-  "description": "Gestión de equipos y turnos inteligente para empresas modernas",
-  "start_url": "/Schedule-OS-by-gakzzy/",
+  "description": "Gestión de equipos inteligente — BPO, retail, logística y más",
+  "start_url": "/app.html",
   "display": "standalone",
-  "background_color": "#050810",
-  "theme_color": "#050810",
-  "orientation": "portrait-primary",
-  "categories": ["business", "productivity"],
+  "background_color": "#030406",
+  "theme_color": "#4da6ff",
+  "orientation": "any",
+  "categories": [
+    "business",
+    "productivity"
+  ],
   "lang": "es",
   "icons": [
     {
@@ -28,16 +31,30 @@
     {
       "name": "Dashboard",
       "short_name": "Dashboard",
-      "description": "Ver el dashboard del equipo",
-      "url": "/Schedule-OS-by-gakzzy/#dash"
+      "description": "Ver el dashboard principal",
+      "url": "/app.html#dash",
+      "icons": [
+        {
+          "src": "/og-image.png",
+          "sizes": "192x192"
+        }
+      ]
     },
     {
       "name": "Horarios",
       "short_name": "Horarios",
-      "description": "Gestionar horarios de la semana",
-      "url": "/Schedule-OS-by-gakzzy/#horarios"
+      "description": "Ver y editar horarios",
+      "url": "/app.html#horarios",
+      "icons": [
+        {
+          "src": "/og-image.png",
+          "sizes": "192x192"
+        }
+      ]
     }
   ],
   "related_applications": [],
-  "prefer_related_applications": false
+  "prefer_related_applications": false,
+  "scope": "/",
+  "id": "/"
 }
