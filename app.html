@@ -3116,7 +3116,7 @@ button, [onclick], .nav-item, .country-card, .lang-card, .kpi-card[style*="curso
 </script>
 </head>
 <!-- ═══════════ AUTH OVERLAY ═══════════ -->
-<div class="auth-overlay hidden" id="auth-overlay">
+<div class="auth-overlay" id="auth-overlay">
   <div class="auth-card" id="auth-card">
     <div class="auth-logo">
       <svg width="52" height="52" viewBox="0 0 32 32" fill="none" style="margin-bottom:4px">
@@ -8699,6 +8699,11 @@ whenFirebaseReady(() => {
   const auth = window._fbAuth;
   const { onAuthStateChanged } = window._fbFns;
 
+  // Pre-render login form immediately so users see the form, not a black screen
+  if (!window._fbAuth?.currentUser) {
+    showAuthScreen(window._pendingAuthAction === 'register' ? 'register' : 'login');
+  }
+
   onAuthStateChanged(auth, async user => {
     if (user) {
       // ALWAYS full reset before loading any new user — prevents data bleed
@@ -10356,6 +10361,11 @@ function setCasoPrioridad(casoId, memberName, prioridad) {
 
 /* ── Version badge update ── */
 document.addEventListener('DOMContentLoaded', () => {
+  // Show login form immediately — don't wait for Firebase
+  // This eliminates the black screen when navigating from landing
+  const action = new URLSearchParams(location.search).get('action');
+  showAuthScreen(action === 'register' ? 'register' : 'login');
+
   const verEl = document.querySelector('.madeby-version');
   if (verEl) verEl.textContent = `BETA v${typeof APP_VERSION !== 'undefined' ? APP_VERSION : '5.2'}`;
   const qa = document.getElementById('quick-actions');
