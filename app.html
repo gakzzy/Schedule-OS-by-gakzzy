@@ -8754,15 +8754,27 @@ whenFirebaseReady(() => {
           return await getDoc(doc(window._fbDb, 'users', user.uid));
         } catch(e) { return null; }
       })();
-      const hasRole = userDocSnap?.exists() && userDocSnap.data()?.role;
-      const needsOnboarding = isNewAccount || !hasRole;
+
+      // Only show onboarding for accounts created in the last 60 seconds
+      // Existing accounts may not have 'role' field but should NOT get onboarding
+      const hasRole   = userDocSnap?.exists() && userDocSnap.data()?.role;
+      const hasEmail  = userDocSnap?.exists() && userDocSnap.data()?.email;
+      const accountAge = Date.now() - new Date(user.metadata.creationTime).getTime();
+      const isTrulyNew = isNewAccount && accountAge < 60000; // max 60 seconds old
+      // Only onboard if: genuinely new account AND no existing data
+      const needsOnboarding = isTrulyNew && !hasRole && !hasEmail;
 
       if (needsOnboarding) {
         clearAppData();
+        // Only reset tutorial for genuinely new accounts
         localStorage.removeItem('scheduleOS_tutorialDone');
-        // Show role selection for new accounts or incomplete onboarding
         setTimeout(() => showRoleSelection(user), 600);
       } else {
+        // Existing user — ensure tutorial doesn't loop
+        // If they have no tutorialDone flag but are an existing account, set it
+        if (!localStorage.getItem('scheduleOS_tutorialDone')) {
+          localStorage.setItem('scheduleOS_tutorialDone', '1');
+        }
         loadUserProfile(); // handles role-based subscriptions internally
         subscribeToNotes();
         subscribeToTeam();
