@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<!-- Early error suppressor — must load before Firebase module -->
-<script>window.onerror=function(m,s,l){var msg=String(m||'');if(['Script error','Illegal return','Unexpected token'].some(function(x){return msg.indexOf(x)>=0;}))return true;if(l===0&&!s)return true;return false;};</script>
+<!-- Early error suppressor -->
+<script>window.onerror=function(m,s,l){var x=String(m||"");return["Script error","Illegal return","Unexpected token"].some(function(n){return x.indexOf(n)>=0;})||(!l&&!s);};</script>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
 <meta name="app-version" content="5.2.0"/>
@@ -3073,15 +3073,8 @@ button, [onclick], .nav-item, .country-card, .lang-card, .kpi-card[style*="curso
 <!-- Firebase SDKs -->
 <script type="module">
   import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut,
-           onAuthStateChanged, updateProfile, browserLocalPersistence, setPersistence,
-           sendPasswordResetEmail, sendEmailVerification, EmailAuthProvider,
-           reauthenticateWithCredential, deleteUser, GoogleAuthProvider, signInWithPopup
-         } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
-  import { getFirestore, doc, setDoc, getDoc, onSnapshot, collection, addDoc, deleteDoc,
-           updateDoc, query, where, getDocs, serverTimestamp, arrayUnion, arrayRemove,
-           orderBy, limit
-         } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile, browserLocalPersistence, setPersistence, sendPasswordResetEmail, sendEmailVerification, EmailAuthProvider, reauthenticateWithCredential, deleteUser, GoogleAuthProvider, signInWithPopup } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+  import { getFirestore, doc, setDoc, getDoc, onSnapshot, collection, addDoc, deleteDoc, updateDoc, query, where, getDocs, serverTimestamp, arrayUnion, arrayRemove, orderBy, limit } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
   const firebaseConfig = {
     apiKey: "AIzaSyBm_rKD05UooJ15XrrDsoIJr_dXgBiyPjg",
@@ -3094,20 +3087,14 @@ button, [onclick], .nav-item, .country-card, .lang-card, .kpi-card[style*="curso
 
   const _app  = initializeApp(firebaseConfig);
   const _auth = getAuth(_app);
-  const _db   = getFirestore(_app);
-  const _fns  = { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut,
-                  onAuthStateChanged, updateProfile, doc, setDoc, getDoc, onSnapshot,
-                  collection, addDoc, deleteDoc, updateDoc, query, where, getDocs,
-                  serverTimestamp, sendPasswordResetEmail, sendEmailVerification,
-                  EmailAuthProvider, reauthenticateWithCredential, deleteUser,
-                  arrayUnion, arrayRemove, orderBy, limit, GoogleAuthProvider, signInWithPopup };
+  const _fns  = { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile, doc, setDoc, getDoc, onSnapshot, collection, addDoc, deleteDoc, updateDoc, query, where, getDocs, serverTimestamp, sendPasswordResetEmail, sendEmailVerification, EmailAuthProvider, reauthenticateWithCredential, deleteUser, arrayUnion, arrayRemove, orderBy, limit, GoogleAuthProvider, signInWithPopup };
 
-  // No top-level await — compatible with all browsers incl. iOS Safari < 15
+  // No top-level await — .finally() is compatible with all browsers incl. iOS Safari
   setPersistence(_auth, browserLocalPersistence)
     .catch(() => {})
     .finally(() => {
       window._fbAuth  = _auth;
-      window._fbDb    = _db;
+      window._fbDb    = getFirestore(_app);
       window._fbApp   = _app;
       window._fbFns   = _fns;
       window._fbReady = true;
@@ -3347,7 +3334,7 @@ button, [onclick], .nav-item, .country-card, .lang-card, .kpi-card[style*="curso
       <div class="export-option" onclick="exportPrintView()">
         <div class="eo-icon">🖨️</div>
         <div class="eo-body">
-          <div class="eo-title">Imprimir / Guardar PDF <span id="badge-export-pdf" style="font-size:10px;background:rgba(77,166,255,0.15);color:var(--accent-a);padding:1px 7px;border-radius:4px;border:1px solid rgba(77,166,255,0.2);display:none">Pro</span></div>
+          <div class="eo-title">Imprimir / Guardar PDF</div>
           <div class="eo-sub">Abre el diálogo de impresión del navegador. Selecciona "Guardar como PDF" para obtener un PDF perfecto sin librerías externas.</div>
         </div>
         <div class="eo-arrow">→</div>
@@ -3363,7 +3350,7 @@ button, [onclick], .nav-item, .country-card, .lang-card, .kpi-card[style*="curso
       <div class="export-option" onclick="exportJSON()">
         <div class="eo-icon">💾</div>
         <div class="eo-body">
-          <div class="eo-title">Exportar JSON <span id="badge-export-json" style="font-size:10px;background:rgba(77,166,255,0.15);color:var(--accent-a);padding:1px 7px;border-radius:4px;border:1px solid rgba(77,166,255,0.2);display:none">Pro</span></div>
+          <div class="eo-title">Exportar JSON</div>
           <div class="eo-sub">Exporta todos los datos en formato JSON. Útil para hacer backup completo o migrar a otra cuenta.</div>
         </div>
         <div class="eo-arrow">→</div>
@@ -4105,112 +4092,12 @@ button, [onclick], .nav-item, .country-card, .lang-card, .kpi-card[style*="curso
 </button>
 
 <!-- External Libraries — crossorigin for security -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script>if(window.pdfjsLib){pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";}</script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script>
-const APP_VERSION = '5.2.0';
-
-// ── Production Error Logging ─────────────────────────────────
-let _errorCount = 0;
-const _ERROR_LIMIT = 10;
-function _logProductionError(type, message, source, lineno) {
-  if (_errorCount >= _ERROR_LIMIT) return;
-  if (!window._fbFns || !window._fbDb) return;
-  const noise = ['Script error', 'ResizeObserver', 'Non-Error promise', 'extension'];
-  if (noise.some(n => String(message).includes(n))) return;
-  _errorCount++;
-  try {
-    const { collection, addDoc } = window._fbFns;
-    addDoc(collection(window._fbDb, 'admin_audit'), {
-      type: 'client_error', errorType: type,
-      message: String(message||'').slice(0,500),
-      source: String(source||'').slice(0,200),
-      line: lineno||0, version: APP_VERSION,
-      uid: window._fbAuth?.currentUser?.uid || 'anonymous',
-      timestamp: new Date().toISOString(), url: location.pathname,
-    });
-  } catch(e) { /* silent */ }
-}
-
-// ── Global error handler ─────────────────────────────────────
-window.onerror = function(message, source, lineno) {
-  const msg = String(message || '');
-  // These are always cross-origin browser noise — cannot get real details
-  // Returning true suppresses the "Uncaught Error:" in devtools
-  const suppress = [
-    'Script error.',
-    'Illegal return statement',   // cross-origin module parse error
-    'Unexpected token',           // cross-origin parse error
-    'Cannot read properties of undefined', // race condition in ext
-  ];
-  if (suppress.some(s => msg.includes(s))) return true;
-  if (lineno === 0 && !source) return true; // pure cross-origin, no info
-  // Known browser/extension noise
-  const noise = ['ResizeObserver loop','Non-Error promise','extension','ChunkLoadError'];
-  if (noise.some(n => msg.includes(n))) return true;
-  // Real error — log silently to Firestore
-  _logProductionError('js_error', msg, String(source || ''), lineno || 0);
-  return false;
-};
-window.addEventListener('unhandledrejection', event => {
-  const msg = String(event.reason?.message || event.reason || '');
-  if (!msg || msg === 'Script error.' || msg.includes('ResizeObserver')) return;
-  _logProductionError('promise_rejection', msg.slice(0,300), '', 0);
-});
-
-// ── Update Banner ─────────────────────────────────────────────
-function _showUpdateBanner() {
-  if (document.getElementById('sos-update-banner')) return;
-  const b = document.createElement('div');
-  b.id = 'sos-update-banner';
-  b.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:9999;background:var(--accent-a);color:#fff;border-radius:8px;padding:10px 16px;display:flex;align-items:center;gap:12px;font-size:13px;font-family:var(--font-body);font-weight:500;box-shadow:0 4px 24px rgba(0,0,0,0.4);animation:slideUp .3s ease both;';
-  b.innerHTML = '<span>🔄 Nueva versión disponible</span><button onclick="_applyUpdate()" style="background:rgba(255,255,255,0.2);border:none;border-radius:4px;color:#fff;padding:4px 10px;cursor:pointer;font-family:inherit;font-size:12px;font-weight:700">Actualizar</button><button onclick="this.parentElement.remove()" style="background:none;border:none;color:rgba(255,255,255,0.7);cursor:pointer;font-size:16px;padding:0 4px">×</button>';
-  document.body.appendChild(b);
-}
-function _applyUpdate() {
-  navigator.serviceWorker?.ready.then(reg => {
-    if (reg.waiting) {
-      reg.waiting.postMessage({ type: 'SKIP_WAITING' });
-      reg.waiting.addEventListener('statechange', e => {
-        if (e.target.state === 'activated') window.location.reload();
-      });
-    } else { window.location.reload(); }
-  });
-}
-
-// ── Server version check ──────────────────────────────────────
-async function checkServerVersion() {
-  if (!window._fbFns || !window._fbDb) return;
-  try {
-    const { doc, getDoc } = window._fbFns;
-    const snap = await getDoc(doc(window._fbDb, 'system', 'config'));
-    if (!snap.exists()) return;
-    const cfg = snap.data();
-    if (!cfg.minVersion) return;
-    const toNum = v => v.split('.').map(Number).reduce((a,b) => a*1000+b, 0);
-    if (toNum(APP_VERSION) < toNum(cfg.minVersion)) {
-      showSaveToast('🔄 Actualización requerida...', 'info');
-      if ('caches' in window) { const keys = await caches.keys(); await Promise.all(keys.map(k=>caches.delete(k))); }
-      setTimeout(() => window.location.reload(true), 2000);
-    }
-  } catch(e) { console.warn('[App] checkServerVersion:', e.code); }
-}
-
-// ── localStorage migrations ───────────────────────────────────
-const LS_SCHEMA_VERSION = 2;
-function runLocalStorageMigrations() {
-  try {
-    const current = parseInt(localStorage.getItem('scheduleOS_schemaV') || '1', 10);
-    if (current >= LS_SCHEMA_VERSION) return;
-    if (current < 2) {
-      ['scheduleOS_data','scheduleOS_groups','scheduleOS_members'].forEach(k => {
-        try { localStorage.removeItem(k); } catch(e) { /* silent */ }
-      });
-    }
-    localStorage.setItem('scheduleOS_schemaV', String(LS_SCHEMA_VERSION));
-  } catch(e) { /* silent */ }
-}
-runLocalStorageMigrations();
-
   // Initialize EmailJS
   if (typeof emailjs !== 'undefined') emailjs.init(atob('OGpmR1FNdERLcVVncXJYMXU='));
 </script>
@@ -4385,7 +4272,7 @@ function applyIndustryTemplate(industryKey) {
     localStorage.setItem('scheduleOS_caseTypes', JSON.stringify(newTypes));
     // Reload case types into memory
     if (typeof loadCaseTypes === 'function') loadCaseTypes();
-  } catch(e) { /* silent */ }
+  } catch(e) {}
 
   // Apply routing
   Object.keys(TASK_ROUTING).forEach(k => delete TASK_ROUTING[k]);
@@ -4393,7 +4280,7 @@ function applyIndustryTemplate(industryKey) {
   saveRoutingRules();
 
   // Save industry preference
-  try { localStorage.setItem('scheduleOS_industry', industryKey); } catch(e) { /* silent */ }
+  try { localStorage.setItem('scheduleOS_industry', industryKey); } catch(e) {}
 
   // Save state
   scheduleSave();
@@ -4427,7 +4314,7 @@ const DEFAULT_TASK_ROUTING = {
   D: ['Transfer Out ATON','Transfer In ATON','Subsequents ATON','transfer out aton','transfer in aton','subsequent aton','subs aton','aton'],
 };
 let TASK_ROUTING=(()=>{try{const r=localStorage.getItem('scheduleOS_routing');return r?JSON.parse(r):JSON.parse(JSON.stringify(DEFAULT_TASK_ROUTING));}catch(e){return JSON.parse(JSON.stringify(DEFAULT_TASK_ROUTING));}})()
-function saveRoutingRules(){try{localStorage.setItem('scheduleOS_routing',JSON.stringify(TASK_ROUTING));}catch(e) { /* silent */ }}
+function saveRoutingRules(){try{localStorage.setItem('scheduleOS_routing',JSON.stringify(TASK_ROUTING));}catch(e){}}
 
 // Palette pool for dynamic groups beyond A/B/C/D
 const COLOR_POOL = [
@@ -4527,7 +4414,7 @@ function getRoleMeta(role) { return ROLE_META[role] || ROLE_META.collaborator; }
 
 // Beta testers — get extra badge regardless of role
 // Beta tester UIDs stored encoded
-const BETA_TESTERS = (()=>{const _b={};[['cWlod1pWdlJFYU1PYlBvSDgzR3hoUnNsdmgyMw==','Manuel Corona']].forEach(([e,n])=>{try{_b[atob(e)]=n;}catch(x) { /* silent */ }});return _b;})();
+const BETA_TESTERS = (()=>{const _b={};[['cWlod1pWdlJFYU1PYlBvSDgzR3hoUnNsdmgyMw==','Manuel Corona']].forEach(([e,n])=>{try{_b[atob(e)]=n;}catch(x){}});return _b;})();
 function isBetaTester() { return currentUser && !!BETA_TESTERS[currentUser.uid]; }
 function getBetaBadge() {
   return `<span style="font-size:9px;font-weight:800;padding:2px 8px;border-radius:99px;background:linear-gradient(90deg,rgba(255,180,68,0.2),rgba(192,132,252,0.2));color:#ffb444;text-transform:uppercase;letter-spacing:.8px;border:1px solid rgba(255,180,68,0.4)">🧪 BETA</span>`;
@@ -4653,18 +4540,6 @@ function groupOf(name){for(const g of GROUP_DEFS){if(state[g.id].some(m=>m.name=
    TAB NAVIGATION
 ════════════════════════════════════════ */
 function switchTab(tab) {
-  // Feature gates for premium tabs
-  const TAB_FEATURES = {
-    llamadas:  'calls',
-    sop:       'sop',
-    errores:   'errors',
-    'stand-up':'standup',
-  };
-  const required = TAB_FEATURES[tab];
-  if (required && !hasFeature(required)) {
-    showUpgradeModal(required);
-    return; // Don't switch tab
-  }
   activeTab = tab;
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
@@ -4749,8 +4624,6 @@ function renderAll() {
   else if(activeTab==='horarios'){ renderNav(); renderGroups(); renderSummary(); }
   else if(activeTab==='casos'){ renderImportZone(); renderMetrics(); renderCasoList(); }
   else if(activeTab==='llamadas') renderCallsTab();
-  else if(activeTab==='stand-up') { if(typeof renderStandUpView==='function') renderStandUpView(); }
-  else if(activeTab==='notas') { if(typeof renderNotesTab==='function') renderNotesTab(); }
   scheduleSave(); // auto-save after every render that modifies state
 }
 
@@ -4852,11 +4725,10 @@ async function loadInviteCodeForDisplay() {
   const el = document.getElementById('dash-invite-code');
   if (!el || !currentUser || !window._fbFns) return;
   try {
-    // Try localStorage first but validate — ignore corrupted values
+    // Try localStorage first (cached by loadUserProfile)
     const cached = localStorage.getItem('scheduleOS_inviteCode');
     const validCache = cached && cached.length >= 4 && !['error','cargando...','undefined','null'].includes(cached);
     if (validCache) { el.textContent = cached; return; }
-    // Clear bad cache
     if (cached && !validCache) localStorage.removeItem('scheduleOS_inviteCode');
     // Fallback: fetch from Firestore
     const { doc, getDoc, updateDoc } = window._fbFns;
@@ -4870,7 +4742,7 @@ async function loadInviteCodeForDisplay() {
       } catch(e) { console.warn('saveInviteCode:', e); }
     }
     if (code) {
-      try { localStorage.setItem('scheduleOS_inviteCode', code); } catch(e) { /* silent */ }
+      try { localStorage.setItem('scheduleOS_inviteCode', code); } catch(e) {}
       el.textContent = code;
     } else {
       el.textContent = 'no disponible';
@@ -4896,9 +4768,7 @@ function generateInviteCode(uid) {
 async function loadAndShowQR() {
   // Try localStorage cache first (fastest)
   const cached = localStorage.getItem('scheduleOS_inviteCode');
-  const validQRCache = cached && cached.length >= 4 && !['error','cargando...','undefined','null'].includes(cached);
-  if (validQRCache) { showQRInvite(cached); return; }
-  if (cached && !validQRCache) localStorage.removeItem('scheduleOS_inviteCode');
+  if (cached) { showQRInvite(cached); return; }
   if (!currentUser || !window._fbFns) return;
   const btn = document.getElementById('dash-qr-btn');
   if (btn) { btn.disabled = true; btn.textContent = 'Cargando...'; }
@@ -4912,7 +4782,7 @@ async function loadAndShowQR() {
       try {
         const teamSnap = await getDoc(doc(window._fbDb, 'teams', currentUser.uid));
         code = teamSnap.data()?.inviteCode || '';
-      } catch(e) { /* silent */ }
+      } catch(e) {}
     }
     // Still no code — generate one and save to both
     if (!code) {
@@ -4922,7 +4792,7 @@ async function loadAndShowQR() {
       } catch(e) { console.warn('saveInviteCode users:', e.code); }
     }
     if (code) {
-      try { localStorage.setItem('scheduleOS_inviteCode', code); } catch(e) { /* silent */ }
+      try { localStorage.setItem('scheduleOS_inviteCode', code); } catch(e) {}
       showQRInvite(code);
     } else {
       showSaveToast('No se pudo generar el código QR.', 'warn');
@@ -4941,7 +4811,7 @@ function inviteCodeForTeam() {
   try {
     const stored = localStorage.getItem('scheduleOS_inviteCode');
     if (stored) return stored;
-  } catch(e) { /* silent */ }
+  } catch(e) {}
   return '';
 }
 
@@ -6092,7 +5962,7 @@ function renderCasoList() {
 
   // Load custom case types
   let customTypes = [];
-  try { customTypes = JSON.parse(localStorage.getItem('scheduleOS_caseTypes') || '[]'); } catch(e) { /* silent */ }
+  try { customTypes = JSON.parse(localStorage.getItem('scheduleOS_caseTypes') || '[]'); } catch(e) {}
 
   GROUP_DEFS.forEach(g => {
     if (_casoFilters?.group && g.id !== _casoFilters.group) return;
@@ -6449,13 +6319,13 @@ function clearChangelog() {
 }
 
 function saveChangelog() {
-  try { localStorage.setItem('scheduleOS_changelog', JSON.stringify(changeLog)); } catch(e) { /* silent */ }
+  try { localStorage.setItem('scheduleOS_changelog', JSON.stringify(changeLog)); } catch(e) {}
 }
 function loadChangelog() {
   try {
     const raw = localStorage.getItem('scheduleOS_changelog');
     if (raw) { changeLog = JSON.parse(raw); renderChangelog(); }
-  } catch(e) { /* silent */ }
+  } catch(e) {}
 }
 
 /* ════════════════════════════════════════
@@ -6736,7 +6606,15 @@ function toggleAdd(gid){const r=document.getElementById(`add-${gid}`);if(!r)retu
 function confirmAdd(gid){
   const inp=document.getElementById(`newinp-${gid}`);const name=inp?.value?.trim();if(!name)return;
   // ── Plan member limit ──
-  if (!canAddMember()) { showMemberLimitModal(); return; }
+  const plan = getUserPlan();
+  const maxM = PLAN_META[plan]?.maxMembers ?? 9999;
+  const currentTotal = getAllMembers().length;
+  if (currentTotal >= maxM) {
+    showSaveToast(`⚠ Tu plan ${PLAN_META[plan]?.label || plan} permite máximo ${maxM} colaboradores.`, 'warn');
+    if (typeof showPlanNotAvailable === 'function') showPlanNotAvailable();
+    if(inp) inp.value='';
+    return;
+  }
   // ── Name validation ──
   const cleanName = sanitizeName(name);
   if (!cleanName) return;
@@ -6745,7 +6623,6 @@ function confirmAdd(gid){
   if(inp) inp.value='';
   logChange('add', `${t('log_member_added')||'Agregado'}: "${cleanName}"`, GROUP_DEFS.find(g=>g.id===gid)?.label || gid);
   renderAll();
-  pushScheduleToCloud();
 }
 
 /* ════════════════════════════════════════
@@ -6765,7 +6642,6 @@ function buildSlots() {
 let activeCallDay = 'Lunes';
 
 function renderCallsTab() {
-  if (!hasFeature('calls')) { requireFeature('calls'); return; }
   renderAgentPicker();
   renderCallDayPills();
   renderCallGrid();
@@ -7664,7 +7540,7 @@ function saveToLocalStorage(){
   }
 }
 function loadFromLocalStorage(){try{const raw=localStorage.getItem(LS_KEY);if(!raw)return false;return applySerializedState(JSON.parse(raw));}catch(e){return false;}}
-function exportJSON(){if(!hasFeature('export_json')){showUpgradeModal('export_json');return;}const data=JSON.stringify(serializeState(),null,2);const blob=new Blob([data],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');const title=document.getElementById('schedule-title').value||'Horario';a.href=url;a.download=`${title.replace(/\s+/g,'_')}_v4.json`;a.click();URL.revokeObjectURL(url);setDirty(false);}
+function exportJSON(){const data=JSON.stringify(serializeState(),null,2);const blob=new Blob([data],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');const title=document.getElementById('schedule-title').value||'Horario';a.href=url;a.download=`${title.replace(/\s+/g,'_')}_v4.json`;a.click();URL.revokeObjectURL(url);setDirty(false);}
 function importJSON(event){const file=event.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=e=>{try{const data=JSON.parse(e.target.result);if(applySerializedState(data)){saveToLocalStorage();renderAll();showSaveToast('Datos importados');}else alert('Archivo incompatible.');}catch(err){alert('Error: '+err.message);}event.target.value='';};reader.readAsText(file);}
 function setDirty(dirty){isDirty=dirty;const dot=document.getElementById('save-dot');const lbl=document.getElementById('save-label');if(!dot||!lbl)return;if(dirty){dot.className='save-dot dirty';lbl.textContent='Sin guardar';}else{dot.className='save-dot';const now=new Date();lbl.textContent=`Guardado ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;}}
 let saveToast;
@@ -7943,11 +7819,7 @@ function setLang(lang) {
     if (el) el.classList.toggle('selected', lang === l);
   });
   // Persist locally
-  try { localStorage.setItem('scheduleOS_lang', lang); } catch(e) { /* silent */ }
-  // Re-apply translations to all DOM elements
-  applyI18n();
-  // Re-render current tab with new language
-  renderAll();
+  try { localStorage.setItem('scheduleOS_lang', lang); } catch(e) {}
   // Persist to Firestore for cross-device consistency
   if (currentUser && window._fbFns && window._fbDb) {
     const { doc, updateDoc } = window._fbFns;
@@ -8670,7 +8542,7 @@ setTimeout(() => {
       window._pendingReferralCode = ref.toUpperCase();
       window.history.replaceState({}, '', window.location.pathname);
     }
-  } catch(e) { /* silent */ }
+  } catch(e) {}
 })();
 
 /* ════════════════════════════════════════
@@ -8681,15 +8553,13 @@ setTimeout(() => {
 function whenFirebaseReady(fn) {
   if (window._fbReady) { fn(); return; }
   document.addEventListener('firebase-ready', fn);
-  // Fallback: if Firebase doesn't load in 5s, show login screen
-  // This prevents black screen when gstatic.com is slow or blocked
+  // Fallback: if Firebase doesn't load in 8s, stay in demo mode (don't block UI)
   setTimeout(() => {
     if (!window._fbReady) {
-      console.info('[App] Firebase timeout — showing auth screen');
-      showAuthOverlay();
-      showAuthScreen(window._pendingAuthAction === 'register' ? 'register' : 'login');
+      console.info('Schedule OS: Firebase not available — local/demo mode active');
+      // Don't show auth overlay in sandboxed environments
     }
-  }, 5000);
+  }, 8000);
 }
 
 
@@ -8766,24 +8636,18 @@ whenFirebaseReady(() => {
           return await getDoc(doc(window._fbDb, 'users', user.uid));
         } catch(e) { return null; }
       })();
-
-      // Only show onboarding for accounts created in the last 60 seconds
-      // Existing accounts may not have 'role' field but should NOT get onboarding
-      const hasRole   = userDocSnap?.exists() && userDocSnap.data()?.role;
-      const hasEmail  = userDocSnap?.exists() && userDocSnap.data()?.email;
-      const accountAge = Date.now() - new Date(user.metadata.creationTime).getTime();
-      const isTrulyNew = isNewAccount && accountAge < 60000; // max 60 seconds old
-      // Only onboard if: genuinely new account AND no existing data
-      const needsOnboarding = isTrulyNew && !hasRole && !hasEmail;
+      const hasRole    = userDocSnap?.exists() && userDocSnap.data()?.role;
+      const accountAge  = Date.now() - new Date(user.metadata.creationTime).getTime();
+      const isTrulyNew  = isNewAccount && accountAge < 60000 && !hasRole;
+      const needsOnboarding = isTrulyNew;
 
       if (needsOnboarding) {
         clearAppData();
-        // Only reset tutorial for genuinely new accounts
         localStorage.removeItem('scheduleOS_tutorialDone');
+        // Show role selection for new accounts or incomplete onboarding
         setTimeout(() => showRoleSelection(user), 600);
       } else {
-        // Existing user — ensure tutorial doesn't loop
-        // If they have no tutorialDone flag but are an existing account, set it
+        // Existing user — ensure tutorial never loops
         if (!localStorage.getItem('scheduleOS_tutorialDone')) {
           localStorage.setItem('scheduleOS_tutorialDone', '1');
         }
@@ -8796,7 +8660,6 @@ whenFirebaseReady(() => {
           setTimeout(addManagerInboxToMenu, 500);
         }
         setTimeout(checkAndAddAdminLink, 600);
-        checkAndAddAdminLink(); // Also call immediately
         startIdleTimer();
         setTimeout(() => checkShowTutorial(), 1200);
         setTimeout(() => checkShowWhatsNew(), 3500);
@@ -8807,10 +8670,8 @@ whenFirebaseReady(() => {
         loadTeamTimezone();
         initMobileNav();
         renderPlanBadge();
-        initPlanUI(); // Apply plan restrictions to UI
         checkShowNPS();
         saveUserReferralCode(user.uid);
-        setTimeout(checkServerVersion, 3000);
         // Apply referral if came via ref link
         if (window._pendingReferralCode) {
           const ref = window._pendingReferralCode;
@@ -9337,7 +9198,7 @@ async function loadUserProfile() {
 
       // Cache inviteCode for QR access — works for existing accounts on any device
       if (data.inviteCode) {
-        try { localStorage.setItem('scheduleOS_inviteCode', data.inviteCode); } catch(e) { /* silent */ }
+        try { localStorage.setItem('scheduleOS_inviteCode', data.inviteCode); } catch(e) {}
       }
 
       // Apply plan from Firestore — authoritative source for cross-device sync
@@ -9663,14 +9524,14 @@ async function openNote(id) {
   if (!note) return;
   renderNotesList();
   const editor = document.getElementById('notes-editor');
-  const NOTE_COLOR_OPTIONS = [
+  const NOTE_COLORS = [
     { key:'default', color:'var(--accent-a)', label:'Azul' },
     { key:'yellow', color:'#f59e0b', label:'Amarillo' },
     { key:'green', color:'var(--accent-b)', label:'Verde' },
     { key:'purple', color:'var(--accent-d)', label:'Púrpura' },
     { key:'red', color:'var(--ot)', label:'Rojo' },
   ];
-  const colorBtns = NOTE_COLOR_OPTIONS.map(c =>
+  const colorBtns = NOTE_COLORS.map(c =>
     `<div class="note-color-btn${(note.color||'default')===c.key?' selected':''}" style="background:${c.color}" title="${sanitize(c.label)}" onclick="setNoteColor('${id}','${c.key}')"></div>`
   ).join('');
   const isPinned = note.pinned || false;
@@ -10383,7 +10244,7 @@ function setCasoPrioridad(casoId, memberName, prioridad) {
 /* ── Version badge update ── */
 document.addEventListener('DOMContentLoaded', () => {
   const verEl = document.querySelector('.madeby-version');
-  if (verEl) verEl.textContent = `BETA v${typeof APP_VERSION !== 'undefined' ? APP_VERSION : '5.2'}`;
+  if (verEl) verEl.textContent = 'BETA v5.2';
   const qa = document.getElementById('quick-actions');
   if (qa) setTimeout(() => { qa.classList.remove('hidden'); renderQAButtons(); }, 1000);
   // Close QA customize panel when clicking outside
@@ -10427,7 +10288,7 @@ const QA_ALL_ACTIONS = [
 ];
 let qaVisible = (()=>{ try{ const s=localStorage.getItem('scheduleOS_qaVisible'); return s?JSON.parse(s):['dash','note','urgent','export']; }catch(e){ return ['dash','note','urgent','export']; }})();
 
-function saveQAVisible(){ try{ localStorage.setItem('scheduleOS_qaVisible',JSON.stringify(qaVisible)); }catch(e) { /* silent */ } }
+function saveQAVisible(){ try{ localStorage.setItem('scheduleOS_qaVisible',JSON.stringify(qaVisible)); }catch(e){} }
 
 function renderQAButtons() {
   const container = document.getElementById('qa-buttons-container');
@@ -10477,8 +10338,8 @@ let errorLog = (()=>{ try{ const s=localStorage.getItem('scheduleOS_errors'); re
 let sopData = (()=>{ try{ const s=localStorage.getItem('scheduleOS_sop'); return s?JSON.parse(s):null; }catch(e){ return null; }})();
 let editingErrorId = null;
 
-function saveErrorLog(){ try{ localStorage.setItem('scheduleOS_errors',JSON.stringify(errorLog)); }catch(e) { /* silent */ } }
-function saveSOPData(){ try{ localStorage.setItem('scheduleOS_sop',JSON.stringify(sopData)); }catch(e) { /* silent */ } }
+function saveErrorLog(){ try{ localStorage.setItem('scheduleOS_errors',JSON.stringify(errorLog)); }catch(e){} }
+function saveSOPData(){ try{ localStorage.setItem('scheduleOS_sop',JSON.stringify(sopData)); }catch(e){} }
 
 function renderErrorLog() {
   // Populate filter selects
@@ -10773,7 +10634,6 @@ function deleteError(id) {
 
 // Include error log in export
 function exportErrorsInCSV() {
-  if (!hasFeature('errors')) { showUpgradeModal('errors'); return; }
   if (!errorLog.length) return '\n\nRegistro de Errores:\n(Sin errores registrados)\n';
   let csv = '\n\nRegistro de Errores:\nColaborador,Fecha,Proceso,Severidad,Descripcion,Accion Correctiva,Seccion SOP\n';
   errorLog.forEach(e => {
@@ -10789,16 +10649,7 @@ function exportErrorsInCSV() {
 ════════════════════════════════════════ */
 function openExportModal() {
   const m = document.getElementById('export-modal');
-  if (m) {
-    m.style.display = 'flex';
-    // Show Pro badges on premium items if user is on starter plan
-    const showPdfBadge  = !hasFeature('export_pdf');
-    const showJsonBadge = !hasFeature('export_json');
-    const pdfBadge  = document.getElementById('badge-export-pdf');
-    const jsonBadge = document.getElementById('badge-export-json');
-    if (pdfBadge)  pdfBadge.style.display  = showPdfBadge  ? 'inline' : 'none';
-    if (jsonBadge) jsonBadge.style.display = showJsonBadge ? 'inline' : 'none';
-  }
+  if (m) m.style.display = 'flex';
 }
 function closeExportModal() {
   const m = document.getElementById('export-modal');
@@ -10806,7 +10657,6 @@ function closeExportModal() {
 }
 
 function exportPrintView() {
-  if (!hasFeature('export_pdf')) { showUpgradeModal('export_pdf'); return; }
   closeExportModal();
   // Build a clean print page
   const title = document.getElementById('schedule-title')?.value || 'Horario';
@@ -11111,7 +10961,7 @@ let CASE_TYPES = (()=>{
   try { const s=localStorage.getItem('scheduleOS_caseTypes'); return s?JSON.parse(s):JSON.parse(JSON.stringify(DEFAULT_CASE_TYPES)); }
   catch(e){ return JSON.parse(JSON.stringify(DEFAULT_CASE_TYPES)); }
 })();
-function saveCaseTypes(){ try{ localStorage.setItem('scheduleOS_caseTypes',JSON.stringify(CASE_TYPES)); }catch(e) { /* silent */ } }
+function saveCaseTypes(){ try{ localStorage.setItem('scheduleOS_caseTypes',JSON.stringify(CASE_TYPES)); }catch(e){} }
 
 function renderCaseTypesEditor() {
   const el = document.getElementById('case-types-editor');
@@ -11357,21 +11207,9 @@ if ('serviceWorker' in navigator) {
   const isRealHost = host.includes('github.io') || host.includes('scheduleos') || host.includes('gakzzy');
   if (isRealHost) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./sw.js').then(reg => {
-        document.addEventListener('visibilitychange', () => {
-          if (document.visibilityState === 'visible') reg.update();
-        });
-        reg.addEventListener('updatefound', () => {
-          const nw = reg.installing;
-          if (!nw) return;
-          nw.addEventListener('statechange', () => {
-            if (nw.state === 'installed' && navigator.serviceWorker.controller) _showUpdateBanner();
-          });
-        });
-      }).catch(err => console.warn('[App] SW failed:', err));
-      navigator.serviceWorker.addEventListener('message', event => {
-        if (event.data?.type === 'SW_UPDATED' && typeof checkServerVersion === 'function') checkServerVersion();
-      });
+      navigator.serviceWorker.register('./sw.js')
+        .then(reg => console.log('SW registered:', reg.scope))
+        .catch(err => console.warn('SW registration failed:', err));
     });
   }
 }
@@ -11520,8 +11358,7 @@ async function confirmRole() {
       }, { merge: true });
 
       currentTeamId = teamId;
-      try { localStorage.setItem('scheduleOS_inviteCode', inviteCode); } catch(e) { /* silent */ }
-      try { localStorage.setItem('scheduleOS_demoAccepted', '1'); localStorage.setItem('scheduleOS_demoForceKeep', '1'); } catch(e) { /* silent */ }
+      try { localStorage.setItem('scheduleOS_inviteCode', inviteCode); } catch(e) {}
       document.getElementById('role-select-overlay')?.remove();
 
       // Show industry selection, then invite code
@@ -11772,7 +11609,7 @@ async function joinTeamWithCode() {
   if (errEl) errEl.style.display = 'none';
 
   // Force token refresh — ensures emailVerified is current
-  try { await currentUser.getIdToken(true); } catch(e) { /* silent */ }
+  try { await currentUser.getIdToken(true); } catch(e) {}
 
   try {
     const { collection, query, where, getDocs, doc, setDoc, updateDoc, arrayUnion } = window._fbFns;
@@ -12064,7 +11901,7 @@ function subscribeToMyRequests() {
   );
   let _firstLoad = true;
   _unsubMyRequests = onSnapshot(q, snap => {
-    if (_firstLoad) { _firstLoad = false; return; }
+    if (_firstLoad) { _firstLoad = false; return; } // Skip initial load
     snap.docChanges().forEach(change => {
       if (change.type === 'modified') {
         const req = change.doc.data();
@@ -12073,26 +11910,30 @@ function subscribeToMyRequests() {
           turno:'Cambio de turno', join_request:'Solicitud de ingreso'
         };
         if (req.status === 'approved') {
+          // Special: join_request approved = collaborator is now on the schedule
           if (req.type === 'join_request') {
             addNotification('team_approved', '🎉 ¡Ya estás en el equipo!',
-              '¡Tu solicitud fue aprobada! Ahora apareces en el horario.');
-            showSaveToast('🎉 ¡Aprobado! Ya apareces en el horario', 'success');
+              '¡Tu solicitud fue aprobada! Ahora apareces en el horario del equipo.');
+            showSaveToast('🎉 ¡Aprobado! Ya apareces en el horario del equipo', 'success');
+            addToNotifHistory('Tu solicitud de ingreso fue aprobada. Ya estás en el horario.', 'approval', '🎉');
+            // Refresh collaborator view
             if (currentTeamId) subscribeToTeamSchedule(currentTeamId);
             renderCollaboratorDashboard();
           } else {
-            const msg = `Tu solicitud de ${typeLabels[req.type]||req.type} fue aprobada${req.managerNote ? ': ' + req.managerNote : ''}`;
+            const msg = `Tu solicitud de ${typeLabels[req.type]||req.type} para ${req.fecha||''} fue aprobada${req.managerNote ? ': ' + req.managerNote : ''}`;
             addNotification('request_approved', '✅ Solicitud aprobada', msg);
-            showSaveToast(`✅ Aprobada: ${typeLabels[req.type]||req.type}`, 'success');
+            showSaveToast(`✅ Solicitud aprobada: ${typeLabels[req.type]||req.type}`, 'success');
             addToNotifHistory(msg, 'approval', '✅');
           }
         } else if (req.status === 'rejected') {
           const msg = req.type === 'join_request'
             ? `Tu solicitud de ingreso fue rechazada.${req.managerNote ? ' Motivo: ' + req.managerNote : ''}`
-            : `Tu solicitud de ${typeLabels[req.type]||req.type} fue rechazada${req.managerNote ? ': ' + req.managerNote : ''}`;
+            : `Tu solicitud de ${typeLabels[req.type]||req.type} para ${req.fecha||''} fue rechazada${req.managerNote ? ': ' + req.managerNote : ''}`;
           addNotification('request_rejected', '❌ Solicitud rechazada', msg);
           showSaveToast('❌ Solicitud rechazada', 'warn');
           addToNotifHistory(msg, 'rejection', '❌');
         }
+        // Refresh requests panel if open
         if (document.getElementById('solicitudes-panel')) loadMyRequests();
         renderCollaboratorDashboard();
       }
@@ -12100,6 +11941,7 @@ function subscribeToMyRequests() {
   }, err => console.warn('myRequests snapshot:', err));
 }
 
+/* ── Render collaborator's weekly schedule ── */
 function renderCollaboratorSchedule() {
   const el = document.getElementById('collab-schedule-content');
   if (!el || !currentUser) return;
@@ -12612,8 +12454,7 @@ async function approveJoinRequest(reqData) {
 /* Superadmin: add Admin Panel shortcut to dropdown */
 function addAdminPanelLink() {
   const dd = document.getElementById('topbar-dropdown');
-  if (!dd) { setTimeout(addAdminPanelLink, 500); return; }
-  if (document.getElementById('dd-admin-link')) return;
+  if (!dd || document.getElementById('dd-admin-link')) return;
   const header = document.getElementById('dd-user-header');
   if (!header) return;
   const btn = document.createElement('button');
@@ -12644,9 +12485,7 @@ async function checkAndAddAdminLink() {
     const { doc, getDoc } = window._fbFns;
     const adminSnap = await getDoc(doc(window._fbDb, 'admins', currentUser.uid));
     if (adminSnap.exists() && adminSnap.data().active === true) {
-      userRole = 'superadmin';
-      // Persist to user doc so role loads correctly next session
-      try { const { updateDoc: ud2 } = window._fbFns; ud2(doc(window._fbDb, 'users', currentUser.uid), { role: 'superadmin' }).catch(()=>{}); } catch(e) { /* silent */ }
+      userRole = 'superadmin'; // Upgrade role if confirmed admin
       addAdminPanelLink();
       renderNav(); // Re-render nav with superadmin role
       renderPlanBadge();
@@ -12774,19 +12613,14 @@ function addNotification(type, title, body, link) {
   const notif = { id:'n'+Date.now(), type, title, body, link:'', read:false, ts:Date.now() };
   notifications.unshift(notif);
   if (notifications.length > 50) notifications = notifications.slice(0,50);
-  try{ localStorage.setItem('scheduleOS_notifs',JSON.stringify(notifications)); }catch(e) { /* silent */ }
+  try{ localStorage.setItem('scheduleOS_notifs',JSON.stringify(notifications)); }catch(e){}
   renderNotifBell();
 }
 
 function renderNotifBell() {
-  try {
-    const badge = document.getElementById('notif-badge');
-    if (!badge) return;
-    const notifs = (typeof notifications !== 'undefined') ? notifications : [];
-    const unread = notifs.filter(n => !n.read).length;
-    badge.textContent = unread > 9 ? '9+' : unread;
-    badge.style.display = unread > 0 ? 'flex' : 'none';
-  } catch(e) { /* silent */ }
+  const badge = document.getElementById('notif-badge');
+  const unread = notifications.filter(n=>!n.read).length;
+  if (badge) { badge.textContent = unread > 9 ? '9+' : unread; badge.style.display = unread > 0 ? 'flex' : 'none'; }
 }
 
 function toggleNotifPanel() {
@@ -12802,7 +12636,7 @@ function toggleNotifPanel() {
   ].join(';');
 
   notifications.forEach(n => n.read = true);
-  try{ localStorage.setItem('scheduleOS_notifs',JSON.stringify(notifications)); }catch(e) { /* silent */ }
+  try{ localStorage.setItem('scheduleOS_notifs',JSON.stringify(notifications)); }catch(e){}
   renderNotifBell();
   markAllNotifsRead();
 
@@ -12853,7 +12687,7 @@ function toggleNotifPanel() {
 function clearAllNotifs() {
   notifications = [];
   _notifHistory = [];
-  try{ localStorage.removeItem('scheduleOS_notifs'); localStorage.removeItem('scheduleOS_notifHistory'); }catch(e) { /* silent */ }
+  try{ localStorage.removeItem('scheduleOS_notifs'); localStorage.removeItem('scheduleOS_notifHistory'); }catch(e){}
   renderNotifBell();
   document.getElementById('notif-panel')?.remove();
 }
@@ -12864,7 +12698,7 @@ function clearAllNotifs() {
 let reminders = (()=>{
   try{ return JSON.parse(localStorage.getItem('scheduleOS_reminders')||'[]'); }catch(e){ return []; }
 })();
-function saveReminders(){ try{ localStorage.setItem('scheduleOS_reminders',JSON.stringify(reminders)); }catch(e) { /* silent */ } }
+function saveReminders(){ try{ localStorage.setItem('scheduleOS_reminders',JSON.stringify(reminders)); }catch(e){} }
 
 function openRemindersPanel() {
   document.getElementById('reminders-panel')?.remove();
@@ -13357,7 +13191,7 @@ function copyWeekToNext() {
     localStorage.setItem('scheduleOS_weekSnapshot', JSON.stringify({
       from: weekInput.value, snapshot, savedAt: new Date().toISOString()
     }));
-  } catch(e) { /* silent */ }
+  } catch(e) {}
   // Move to next week
   weekInput.value = nextStr;
   // Apply the schedule template (hours, not cases) to next week
@@ -13398,7 +13232,7 @@ function saveScheduleTemplate() {
     }))
   }));
   templates.push({ id: Date.now(), name, snapshot, createdAt: new Date().toISOString() });
-  try { localStorage.setItem('scheduleOS_templates', JSON.stringify(templates.slice(-10))); } catch(e) { /* silent */ }
+  try { localStorage.setItem('scheduleOS_templates', JSON.stringify(templates.slice(-10))); } catch(e) {}
   showSaveToast(`✓ Plantilla "${name}" guardada`);
 }
 
@@ -13455,7 +13289,7 @@ function applyScheduleTemplate(id) {
 
 function deleteScheduleTemplate(id) {
   const templates = getScheduleTemplates().filter(t => t.id !== id);
-  try { localStorage.setItem('scheduleOS_templates', JSON.stringify(templates)); } catch(e) { /* silent */ }
+  try { localStorage.setItem('scheduleOS_templates', JSON.stringify(templates)); } catch(e) {}
   loadScheduleTemplates();
 }
 
@@ -13596,7 +13430,7 @@ function showWhatsNew() {
 
 function closeWhatsNew() {
   document.getElementById('whats-new-modal')?.remove();
-  try { localStorage.setItem('scheduleOS_whatsNewSeen', CURRENT_VERSION); } catch(e) { /* silent */ }
+  try { localStorage.setItem('scheduleOS_whatsNewSeen', CURRENT_VERSION); } catch(e) {}
 }
 
 /* ════════════════════════════════════════
@@ -13736,12 +13570,6 @@ let _ariaAlertCount = 0;
 
 /* ── Init ── */
 function initARIA() {
-  if (!hasFeature('aria')) {
-    // Hide ARIA FAB for plans without it
-    const fab = document.getElementById('aria-fab');
-    if (fab) fab.style.display = 'none';
-    return;
-  }
   _ariaEnabled = localStorage.getItem('scheduleOS_ariaEnabled') !== 'false';
   const fab = document.getElementById('aria-fab');
   if (!_ariaEnabled || !currentUser || userRole === 'collaborator') {
@@ -13909,7 +13737,6 @@ function hideARIATyping() { document.getElementById('aria-typing-indicator')?.re
 
 /* ── Send & process message ── */
 function sendARIAMessage(prefill) {
-  if (!hasFeature('aria')) { showUpgradeModal('aria'); return; }
   const input = document.getElementById('aria-input');
   const text = prefill || input?.value?.trim();
   if (!text) return;
@@ -14570,7 +14397,7 @@ function updateARIABadge() {
 /* ── Settings toggle ── */
 function toggleARIAEnabled() {
   _ariaEnabled = !_ariaEnabled;
-  try { localStorage.setItem('scheduleOS_ariaEnabled', _ariaEnabled ? 'true' : 'false'); } catch(e) { /* silent */ }
+  try { localStorage.setItem('scheduleOS_ariaEnabled', _ariaEnabled ? 'true' : 'false'); } catch(e) {}
   const fab = document.getElementById('aria-fab');
   if (_ariaEnabled) {
     if (fab) fab.classList.remove('hidden');
@@ -14596,7 +14423,16 @@ function updateARIASettingsToggle() {
 /* ════════════════════════════════════════
    GLOBAL ERROR BOUNDARY
 ════════════════════════════════════════ */
-// Error handler defined at top of script (L4133) — this duplicate removed
+window.onerror = function(msg, src, line, col, err) {
+  // Only show UI errors, ignore 3rd party
+  if (src && (src.includes('firebase') || src.includes('googleapis') || src.includes('gstatic'))) return false;
+  console.error('Schedule OS error:', msg, src, line);
+  // Only show toast for user-visible errors, not all internal ones
+  if (msg && !msg.includes('Script error') && !msg.includes('ResizeObserver')) {
+    showSaveToast('⚠ Error interno — recarga si hay problemas', 'warn');
+  }
+  return false; // don't suppress default handling
+};
 window.addEventListener('unhandledrejection', e => {
   const msg = e.reason?.message || String(e.reason);
   if (msg.includes('permission') || msg.includes('Permission')) {
@@ -14711,7 +14547,7 @@ function addToNotifHistory(text, type = 'info', icon = '🔔') {
     badge.style.display = unread > 0 ? 'flex' : 'none';
   }
   // Save to localStorage
-  try { localStorage.setItem('scheduleOS_notifHistory', JSON.stringify(_notifHistory.slice(0, 20))); } catch(e) { /* silent */ }
+  try { localStorage.setItem('scheduleOS_notifHistory', JSON.stringify(_notifHistory.slice(0, 20))); } catch(e) {}
 }
 
 function loadNotifHistory() {
@@ -14724,14 +14560,14 @@ function loadNotifHistory() {
       badge.textContent = unread > 9 ? '9+' : unread;
       badge.style.display = 'flex';
     }
-  } catch(e) { /* silent */ }
+  } catch(e) {}
 }
 
 function markAllNotifsRead() {
   _notifHistory.forEach(n => n.read = true);
   const badge = document.getElementById('notif-badge');
   if (badge) badge.style.display = 'none';
-  try { localStorage.setItem('scheduleOS_notifHistory', JSON.stringify(_notifHistory.slice(0, 20))); } catch(e) { /* silent */ }
+  try { localStorage.setItem('scheduleOS_notifHistory', JSON.stringify(_notifHistory.slice(0, 20))); } catch(e) {}
   renderNotifHistory();
 }
 
@@ -14778,7 +14614,7 @@ function toggleOLEDSetting() {
 
 function setOLED(enabled) {
   document.body.classList.toggle('oled', enabled);
-  try { localStorage.setItem('scheduleOS_oled', enabled ? '1' : '0'); } catch(e) { /* silent */ }
+  try { localStorage.setItem('scheduleOS_oled', enabled ? '1' : '0'); } catch(e) {}
   showSaveToast(enabled ? '⬛ OLED activado' : '✓ OLED desactivado');
 }
 async function uploadProfilePhoto(file) {
@@ -14901,7 +14737,7 @@ async function saveUserReferralCode(uid) {
         referralCode: getReferralCode(uid),
       });
     }
-  } catch(e) { /* silent */ }
+  } catch(e) {}
 }
 
 function showReferralModal() {
@@ -14955,7 +14791,7 @@ function shareReferral(link, code) {
       window._pendingReferralCode = ref.toUpperCase();
       window.history.replaceState({}, '', window.location.pathname);
     }
-  } catch(e) { /* silent */ }
+  } catch(e) {}
 })();
 
 /* ════════════════════════════════════════
@@ -15008,7 +14844,7 @@ function show2FASetupModal(qrUrl, secret) {
 */
 
 function saveTeamTimezone(tz) {
-  try { localStorage.setItem('scheduleOS_timezone', tz); } catch(e) { /* silent */ }
+  try { localStorage.setItem('scheduleOS_timezone', tz); } catch(e) {}
   showSaveToast(`✓ Zona horaria: ${tz}`, 'success');
 }
 function loadTeamTimezone() {
@@ -15210,188 +15046,6 @@ const PLAN_META = {
   enterprise_demo:  { label:'Enterprise Demo', emoji:'🎁', color:'var(--accent-d)',  colorBg:'rgba(192,132,252,0.12)',tag:'3 meses gratis', maxMembers:9999,maxManagers:999},
 };
 
-// ═══════════════════════════════════════════════════════════
-// PLAN ENFORCEMENT SYSTEM
-// ═══════════════════════════════════════════════════════════
-
-// Feature map — which plans have access to which features
-const PLAN_FEATURES = {
-  starter:         ['schedules','cases_basic','export_csv','notes_basic','join_team','aria','calls','standup','sop','errors','import'],
-  pro:             ['schedules','cases_full','export_csv','export_pdf','export_json',
-                    'notes_full','aria','calls','standup','sop','errors','import','join_team'],
-  business:        ['schedules','cases_full','export_csv','export_pdf','export_json',
-                    'notes_full','aria','calls','standup','sop','errors','import',
-                    'admin_panel','roles','audit','join_team'],
-  enterprise:      ['*'], // all features
-  enterprise_demo: ['*'], // all features during demo
-};
-
-// Human-readable feature labels for upgrade modal
-const FEATURE_LABELS = {
-  aria:         { name:'ARIA Asistente IA',       plan:'Pro',      emoji:'🤖' },
-  calls:        { name:'Turnos de llamadas',       plan:'Pro',      emoji:'📞' },
-  export_pdf:   { name:'Exportar PDF',            plan:'Pro',      emoji:'📄' },
-  export_json:  { name:'Exportar JSON / Backup',  plan:'Pro',      emoji:'💾' },
-  notes_full:   { name:'Notas del equipo',        plan:'Pro',      emoji:'📝' },
-  standup:      { name:'Vista Stand-up',          plan:'Pro',      emoji:'📊' },
-  sop:          { name:'Guía SOP',                plan:'Pro',      emoji:'📋' },
-  errors:       { name:'Registro de errores',     plan:'Pro',      emoji:'🐛' },
-  import:       { name:'Importar casos (PDF/Excel/CSV)', plan:'Pro', emoji:'📥' },
-  admin_panel:  { name:'Admin Panel completo',    plan:'Business', emoji:'🛡' },
-  roles:        { name:'Roles personalizados',    plan:'Business', emoji:'👥' },
-  audit:        { name:'Auditoría de acciones',   plan:'Business', emoji:'🔍' },
-};
-
-// ── Core check: does current plan have a feature? ────────────
-function hasFeature(feature) {
-  const plan = getUserPlan();
-  const features = PLAN_FEATURES[plan] || PLAN_FEATURES.starter;
-  return features.includes('*') || features.includes(feature);
-}
-
-// ── Member limit check ────────────────────────────────────────
-function canAddMember() {
-  const plan   = getUserPlan();
-  const meta   = PLAN_META[plan] || PLAN_META.starter;
-  const current = getAllMembers().length;
-  return current < meta.maxMembers;
-}
-
-function getMemberLimitInfo() {
-  const plan    = getUserPlan();
-  const meta    = PLAN_META[plan] || PLAN_META.starter;
-  const current = getAllMembers().length;
-  return { current, max: meta.maxMembers, plan, label: meta.label };
-}
-
-// ── Gate: show upgrade modal if feature not available ────────
-function requireFeature(feature, onAllowed) {
-  if (hasFeature(feature)) {
-    if (typeof onAllowed === 'function') onAllowed();
-    return true;
-  }
-  showUpgradeModal(feature);
-  return false;
-}
-
-// ── Upgrade Modal ────────────────────────────────────────────
-function showUpgradeModal(feature) {
-  document.getElementById('plan-upgrade-modal')?.remove();
-  const info   = FEATURE_LABELS[feature] || { name: sanitize(String(feature)), plan: 'Pro', emoji: '⭐' };
-  const plan   = getUserPlan();
-  const meta   = PLAN_META[plan] || PLAN_META.starter;
-  const target = info.plan;
-  // All values from our own constants — sanitize anyway for defense in depth
-  const safeInfoName = sanitize(info.name);
-  const safeTarget   = sanitize(target);
-  const safeLabel    = sanitize(meta.label);
-  const safeTag      = sanitize(meta.tag);
-
-  const modal = document.createElement('div');
-  modal.id = 'plan-upgrade-modal';
-  modal.style.cssText = 'position:fixed;inset:0;z-index:800;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(8px);';
-  modal.innerHTML = `
-    <div style="background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius);padding:28px 24px;max-width:380px;width:100%;text-align:center;box-shadow:var(--shadow-lg);animation:modalCardIn .25s ease both">
-      <div style="font-size:40px;margin-bottom:12px">${info.emoji}</div>
-      <div style="font-size:17px;font-weight:700;color:var(--text);margin-bottom:6px">${safeInfoName}</div>
-      <div style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:16px">
-        Esta función está disponible desde el plan <strong style="color:var(--accent-a)">${safeTarget}</strong>.
-      </div>
-      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:20px;text-align:left">
-        <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Tu plan actual</div>
-        <div style="display:flex;align-items:center;gap:8px">
-          <span style="font-size:16px">${info.emoji}</span>
-          <div>
-            <div style="font-size:14px;font-weight:600;color:var(--text)">${safeLabel}</div>
-            <div style="font-size:11px;color:var(--muted)">${safeTag}</div>
-          </div>
-        </div>
-      </div>
-      <div style="display:flex;gap:10px">
-        <button onclick="document.getElementById('plan-upgrade-modal').remove()"
-          style="flex:1;padding:10px;border-radius:8px;border:1px solid var(--border2);background:var(--surface2);color:var(--text2);cursor:pointer;font-family:inherit;font-size:13px">
-          Cerrar
-        </button>
-        <a href="../index.html#pricing" target="_blank"
-          style="flex:2;padding:10px;border-radius:8px;background:var(--accent-a);color:#fff;text-decoration:none;font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;gap:6px"
-          onclick="document.getElementById('plan-upgrade-modal').remove()">
-          Ver planes →
-        </a>
-      </div>
-    </div>`;
-  modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
-  document.body.appendChild(modal);
-}
-
-// ── Member limit upgrade modal ────────────────────────────────
-function showMemberLimitModal() {
-  const info = getMemberLimitInfo();
-  document.getElementById('plan-upgrade-modal')?.remove();
-  const meta = PLAN_META[info.plan] || PLAN_META.starter;
-  const nextPlan = info.plan === 'starter' ? 'Pro ($49/mes)' :
-                   info.plan === 'pro'     ? 'Business ($99/mes)' : 'Enterprise';
-
-  const modal = document.createElement('div');
-  modal.id = 'plan-upgrade-modal';
-  modal.style.cssText = 'position:fixed;inset:0;z-index:800;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(8px);';
-  modal.innerHTML = `
-    <div style="background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius);padding:28px 24px;max-width:380px;width:100%;text-align:center;box-shadow:var(--shadow-lg);animation:modalCardIn .25s ease both">
-      <div style="font-size:40px;margin-bottom:12px">👥</div>
-      <div style="font-size:17px;font-weight:700;color:var(--text);margin-bottom:6px">Límite de colaboradores</div>
-      <div style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:16px">
-        Tu plan <strong>${sanitize(meta.label)}</strong> permite máximo <strong style="color:var(--accent-a)">${info.max} colaboradores</strong>.<br>
-        Actualmente tienes <strong>${info.current}</strong>.
-      </div>
-      <div style="background:rgba(77,166,255,0.06);border:1px solid rgba(77,166,255,0.15);border-radius:10px;padding:12px;margin-bottom:20px;font-size:13px;color:var(--text2)">
-        Actualiza a <strong style="color:var(--accent-a)">${sanitize(nextPlan)}</strong> para agregar más colaboradores.
-      </div>
-      <div style="display:flex;gap:10px">
-        <button onclick="document.getElementById('plan-upgrade-modal').remove()"
-          style="flex:1;padding:10px;border-radius:8px;border:1px solid var(--border2);background:var(--surface2);color:var(--text2);cursor:pointer;font-family:inherit;font-size:13px">
-          Cerrar
-        </button>
-        <a href="../index.html#pricing" target="_blank"
-          style="flex:2;padding:10px;border-radius:8px;background:var(--accent-a);color:#fff;text-decoration:none;font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;gap:6px"
-          onclick="document.getElementById('plan-upgrade-modal').remove()">
-          Mejorar plan →
-        </a>
-      </div>
-    </div>`;
-  modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
-  document.body.appendChild(modal);
-}
-
-
-// ── initPlanUI: updates nav lock badges and ARIA visibility ──
-function initPlanUI() {
-  // Lock badges on premium nav tabs
-  const tabGates = {
-    'nav-llamadas': 'calls',
-    'nav-errores':  'errors',
-    'nav-sop':      'sop',
-  };
-  Object.entries(tabGates).forEach(([navId, feature]) => {
-    const btn = document.getElementById(navId);
-    if (!btn) return;
-    const locked = !hasFeature(feature);
-    let lockSpan = btn.querySelector('.nav-plan-lock');
-    if (locked && !lockSpan) {
-      lockSpan = document.createElement('span');
-      lockSpan.className = 'nav-plan-lock';
-      lockSpan.style.cssText = 'font-size:9px;position:absolute;top:4px;right:4px;opacity:.5;pointer-events:none';
-      lockSpan.textContent = '🔒';
-      btn.style.position = 'relative';
-      btn.appendChild(lockSpan);
-    } else if (!locked && lockSpan) {
-      lockSpan.remove();
-    }
-  });
-  // ARIA FAB visibility
-  const fab = document.getElementById('aria-fab');
-  if (fab) fab.style.display = hasFeature('aria') ? '' : 'none';
-  renderPlanBadge();
-}
-
 function getUserPlan() {
   // Priority: 1) Firestore plan synced via applyPlanFromFirestore on login
   //           2) localStorage cache (cross-tab sync)
@@ -15399,7 +15053,7 @@ function getUserPlan() {
   try {
     const stored = localStorage.getItem('scheduleOS_plan');
     if (stored && PLAN_META[stored]) return stored;
-  } catch(e) { /* silent */ }
+  } catch(e) {}
   return PLAN_CONFIG.current;
 }
 
@@ -15407,15 +15061,14 @@ function getUserPlan() {
 // Handles demo expiry check so plan is always accurate across devices
 function applyPlanFromFirestore(userData) {
   if (!userData) return;
-  let plan = userData.plan || 'starter';
-  // If user previously accepted enterprise_demo, restore it even if expired
-  if (localStorage.getItem('scheduleOS_demoForceKeep') === '1' && plan === 'starter') {
-    plan = 'enterprise_demo';
-  }
+  const plan = userData.plan || 'starter';
   const demoExpiry = userData.demoExpiresAt;
   // Check demo expiry
+  // Restore demo if user previously accepted it
+  if (plan === 'starter' && localStorage.getItem('scheduleOS_demoForceKeep') === '1') {
+    plan = 'enterprise_demo';
+  }
   if (plan === 'enterprise_demo' && demoExpiry) {
-    // Only expire if genuinely past the date — don't expire during testing
     if (new Date(demoExpiry) < new Date() && !localStorage.getItem('scheduleOS_demoForceKeep')) {
       setUserPlan('starter');
       savePlanToFirestore('starter');
@@ -15438,7 +15091,7 @@ async function savePlanToFirestore(planKey) {
 function setUserPlan(planKey, syncToFirestore = false) {
   if (!PLAN_META[planKey]) return;
   PLAN_CONFIG.current = planKey;
-  try { localStorage.setItem('scheduleOS_plan', planKey); } catch(e) { /* silent */ }
+  try { localStorage.setItem('scheduleOS_plan', planKey); } catch(e) {}
   renderPlanBadge();
   // Persist to Firestore for cross-device sync (when explicitly requested)
   if (syncToFirestore) savePlanToFirestore(planKey);
@@ -15485,13 +15138,14 @@ function showPlanNotAvailable(planName) {
    VERSION ENFORCEMENT
    Force reload if app version is outdated
 ════════════════════════════════════════ */
+const APP_VERSION = '5.2.0';
 function checkAppVersion() {
   // Anti-loop guard: if we already reloaded this session, don't reload again
   // This prevents infinite reload loops if localStorage write fails mid-reload
   if (sessionStorage.getItem('sos_version_reloaded') === APP_VERSION) {
     // Already reloaded for this version this session — clear flag and continue
     sessionStorage.removeItem('sos_version_reloaded');
-    try { localStorage.setItem('scheduleOS_appVersion', APP_VERSION); } catch(e) { /* silent */ }
+    try { localStorage.setItem('scheduleOS_appVersion', APP_VERSION); } catch(e) {}
     return true;
   }
 
@@ -15501,12 +15155,12 @@ function checkAppVersion() {
     try {
       sessionStorage.setItem('sos_version_reloaded', APP_VERSION);
       localStorage.setItem('scheduleOS_appVersion', APP_VERSION);
-    } catch(e) { /* silent */ }
+    } catch(e) {}
     showSaveToast('🔄 Nueva versión disponible — actualizando...', 'info');
     setTimeout(() => { window.location.reload(true); }, 2000);
     return false;
   }
-  try { localStorage.setItem('scheduleOS_appVersion', APP_VERSION); } catch(e) { /* silent */ }
+  try { localStorage.setItem('scheduleOS_appVersion', APP_VERSION); } catch(e) {}
   return true;
 }
 
@@ -15688,7 +15342,7 @@ function submitNPS(score, btn) {
         score, date: new Date().toISOString(), uid: currentUser.uid,
       }, { merge: true });
     }
-  } catch(e) { /* silent */ }
+  } catch(e) {}
 }
 
 /* Request browser notification permission */
@@ -15699,16 +15353,16 @@ function requestNotifPermission() {
 
   if (!('Notification' in window)) return;
   if (Notification.permission === 'granted') {
-    try { localStorage.setItem('scheduleOS_notifConsent', 'granted'); } catch(e) { /* silent */ }
+    try { localStorage.setItem('scheduleOS_notifConsent', 'granted'); } catch(e) {}
     return;
   }
   if (Notification.permission === 'denied') {
-    try { localStorage.setItem('scheduleOS_notifConsent', 'denied'); } catch(e) { /* silent */ }
+    try { localStorage.setItem('scheduleOS_notifConsent', 'denied'); } catch(e) {}
     return;
   }
   // 'default' — ask the user
   Notification.requestPermission().then(result => {
-    try { localStorage.setItem('scheduleOS_notifConsent', result); } catch(e) { /* silent */ }
+    try { localStorage.setItem('scheduleOS_notifConsent', result); } catch(e) {}
   });
 }
 
@@ -15759,11 +15413,5 @@ function updateNotifPermissionUI(msg) {
 }
 
 </script>
-
-  <!-- CDN libraries — loaded last to prevent blocking -->
-  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <script defer src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 </body>
 </html>
