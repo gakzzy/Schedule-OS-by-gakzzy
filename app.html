@@ -3116,7 +3116,7 @@ button, [onclick], .nav-item, .country-card, .lang-card, .kpi-card[style*="curso
 </script>
 </head>
 <!-- ═══════════ AUTH OVERLAY ═══════════ -->
-<div class="auth-overlay" id="auth-overlay">
+<div class="auth-overlay hidden" id="auth-overlay">
   <div class="auth-card" id="auth-card">
     <div class="auth-logo">
       <svg width="52" height="52" viewBox="0 0 32 32" fill="none" style="margin-bottom:4px">
@@ -7657,7 +7657,6 @@ function saveToLocalStorage(){
 }
 function loadFromLocalStorage(){try{const raw=localStorage.getItem(LS_KEY);if(!raw)return false;return applySerializedState(JSON.parse(raw));}catch(e){return false;}}
 function exportJSON(){if(!hasFeature('export_json')){showUpgradeModal('export_json');return;}const data=JSON.stringify(serializeState(),null,2);const blob=new Blob([data],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');const title=document.getElementById('schedule-title').value||'Horario';a.href=url;a.download=`${title.replace(/\s+/g,'_')}_v4.json`;a.click();URL.revokeObjectURL(url);setDirty(false);}
-  if (!hasFeature('export_json')) { showUpgradeModal('export_json'); return; }
 function importJSON(event){const file=event.target.files[0];if(!file)return;const reader=new FileReader();reader.onload=e=>{try{const data=JSON.parse(e.target.result);if(applySerializedState(data)){saveToLocalStorage();renderAll();showSaveToast('Datos importados');}else alert('Archivo incompatible.');}catch(err){alert('Error: '+err.message);}event.target.value='';};reader.readAsText(file);}
 function setDirty(dirty){isDirty=dirty;const dot=document.getElementById('save-dot');const lbl=document.getElementById('save-label');if(!dot||!lbl)return;if(dirty){dot.className='save-dot dirty';lbl.textContent='Sin guardar';}else{dot.className='save-dot';const now=new Date();lbl.textContent=`Guardado ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;}}
 let saveToast;
@@ -8670,13 +8669,15 @@ setTimeout(() => {
 function whenFirebaseReady(fn) {
   if (window._fbReady) { fn(); return; }
   document.addEventListener('firebase-ready', fn);
-  // Fallback: if Firebase doesn't load in 8s, stay in demo mode (don't block UI)
+  // Fallback: if Firebase doesn't load in 5s, show login screen
+  // This prevents black screen when gstatic.com is slow or blocked
   setTimeout(() => {
     if (!window._fbReady) {
-      console.info('Schedule OS: Firebase not available — local/demo mode active');
-      // Don't show auth overlay in sandboxed environments
+      console.info('[App] Firebase timeout — showing auth screen');
+      showAuthOverlay();
+      showAuthScreen(window._pendingAuthAction === 'register' ? 'register' : 'login');
     }
-  }, 8000);
+  }, 5000);
 }
 
 
@@ -8698,11 +8699,6 @@ function clearAppData() {
 whenFirebaseReady(() => {
   const auth = window._fbAuth;
   const { onAuthStateChanged } = window._fbFns;
-
-  // Pre-render login form immediately so users see the form, not a black screen
-  if (!window._fbAuth?.currentUser) {
-    showAuthScreen(window._pendingAuthAction === 'register' ? 'register' : 'login');
-  }
 
   onAuthStateChanged(auth, async user => {
     if (user) {
@@ -9642,14 +9638,14 @@ async function openNote(id) {
   if (!note) return;
   renderNotesList();
   const editor = document.getElementById('notes-editor');
-  const NOTE_COLORS = [
+  const NOTE_COLOR_OPTIONS = [
     { key:'default', color:'var(--accent-a)', label:'Azul' },
     { key:'yellow', color:'#f59e0b', label:'Amarillo' },
     { key:'green', color:'var(--accent-b)', label:'Verde' },
     { key:'purple', color:'var(--accent-d)', label:'Púrpura' },
     { key:'red', color:'var(--ot)', label:'Rojo' },
   ];
-  const colorBtns = NOTE_COLORS.map(c =>
+  const colorBtns = NOTE_COLOR_OPTIONS.map(c =>
     `<div class="note-color-btn${(note.color||'default')===c.key?' selected':''}" style="background:${c.color}" title="${sanitize(c.label)}" onclick="setNoteColor('${id}','${c.key}')"></div>`
   ).join('');
   const isPinned = note.pinned || false;
@@ -10361,11 +10357,6 @@ function setCasoPrioridad(casoId, memberName, prioridad) {
 
 /* ── Version badge update ── */
 document.addEventListener('DOMContentLoaded', () => {
-  // Show login form immediately — don't wait for Firebase
-  // This eliminates the black screen when navigating from landing
-  const action = new URLSearchParams(location.search).get('action');
-  showAuthScreen(action === 'register' ? 'register' : 'login');
-
   const verEl = document.querySelector('.madeby-version');
   if (verEl) verEl.textContent = `BETA v${typeof APP_VERSION !== 'undefined' ? APP_VERSION : '5.2'}`;
   const qa = document.getElementById('quick-actions');
