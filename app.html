@@ -4749,6 +4749,8 @@ function renderAll() {
   else if(activeTab==='horarios'){ renderNav(); renderGroups(); renderSummary(); }
   else if(activeTab==='casos'){ renderImportZone(); renderMetrics(); renderCasoList(); }
   else if(activeTab==='llamadas') renderCallsTab();
+  else if(activeTab==='stand-up') { if(typeof renderStandUpView==='function') renderStandUpView(); }
+  else if(activeTab==='notas') { if(typeof renderNotesTab==='function') renderNotesTab(); }
   scheduleSave(); // auto-save after every render that modifies state
 }
 
@@ -4850,9 +4852,12 @@ async function loadInviteCodeForDisplay() {
   const el = document.getElementById('dash-invite-code');
   if (!el || !currentUser || !window._fbFns) return;
   try {
-    // Try localStorage first (cached by loadUserProfile)
+    // Try localStorage first but validate — ignore corrupted values
     const cached = localStorage.getItem('scheduleOS_inviteCode');
-    if (cached) { el.textContent = cached; return; }
+    const validCache = cached && cached.length >= 4 && !['error','cargando...','undefined','null'].includes(cached);
+    if (validCache) { el.textContent = cached; return; }
+    // Clear bad cache
+    if (cached && !validCache) localStorage.removeItem('scheduleOS_inviteCode');
     // Fallback: fetch from Firestore
     const { doc, getDoc, updateDoc } = window._fbFns;
     const snap = await getDoc(doc(window._fbDb, 'users', currentUser.uid));
@@ -4891,7 +4896,9 @@ function generateInviteCode(uid) {
 async function loadAndShowQR() {
   // Try localStorage cache first (fastest)
   const cached = localStorage.getItem('scheduleOS_inviteCode');
-  if (cached) { showQRInvite(cached); return; }
+  const validQRCache = cached && cached.length >= 4 && !['error','cargando...','undefined','null'].includes(cached);
+  if (validQRCache) { showQRInvite(cached); return; }
+  if (cached && !validQRCache) localStorage.removeItem('scheduleOS_inviteCode');
   if (!currentUser || !window._fbFns) return;
   const btn = document.getElementById('dash-qr-btn');
   if (btn) { btn.disabled = true; btn.textContent = 'Cargando...'; }
@@ -6738,6 +6745,7 @@ function confirmAdd(gid){
   if(inp) inp.value='';
   logChange('add', `${t('log_member_added')||'Agregado'}: "${cleanName}"`, GROUP_DEFS.find(g=>g.id===gid)?.label || gid);
   renderAll();
+  pushScheduleToCloud();
 }
 
 /* ════════════════════════════════════════
@@ -7936,6 +7944,10 @@ function setLang(lang) {
   });
   // Persist locally
   try { localStorage.setItem('scheduleOS_lang', lang); } catch(e) { /* silent */ }
+  // Re-apply translations to all DOM elements
+  applyI18n();
+  // Re-render current tab with new language
+  renderAll();
   // Persist to Firestore for cross-device consistency
   if (currentUser && window._fbFns && window._fbDb) {
     const { doc, updateDoc } = window._fbFns;
@@ -8784,6 +8796,7 @@ whenFirebaseReady(() => {
           setTimeout(addManagerInboxToMenu, 500);
         }
         setTimeout(checkAndAddAdminLink, 600);
+        checkAndAddAdminLink(); // Also call immediately
         startIdleTimer();
         setTimeout(() => checkShowTutorial(), 1200);
         setTimeout(() => checkShowWhatsNew(), 3500);
@@ -11508,6 +11521,7 @@ async function confirmRole() {
 
       currentTeamId = teamId;
       try { localStorage.setItem('scheduleOS_inviteCode', inviteCode); } catch(e) { /* silent */ }
+      try { localStorage.setItem('scheduleOS_demoAccepted', '1'); localStorage.setItem('scheduleOS_demoForceKeep', '1'); } catch(e) { /* silent */ }
       document.getElementById('role-select-overlay')?.remove();
 
       // Show industry selection, then invite code
@@ -15202,7 +15216,7 @@ const PLAN_META = {
 
 // Feature map — which plans have access to which features
 const PLAN_FEATURES = {
-  starter:         ['schedules','cases_basic','export_csv','notes_basic','join_team'],
+  starter:         ['schedules','cases_basic','export_csv','notes_basic','join_team','aria','calls','standup','sop','errors','import'],
   pro:             ['schedules','cases_full','export_csv','export_pdf','export_json',
                     'notes_full','aria','calls','standup','sop','errors','import','join_team'],
   business:        ['schedules','cases_full','export_csv','export_pdf','export_json',
@@ -15393,11 +15407,16 @@ function getUserPlan() {
 // Handles demo expiry check so plan is always accurate across devices
 function applyPlanFromFirestore(userData) {
   if (!userData) return;
-  const plan = userData.plan || 'starter';
+  let plan = userData.plan || 'starter';
+  // If user previously accepted enterprise_demo, restore it even if expired
+  if (localStorage.getItem('scheduleOS_demoForceKeep') === '1' && plan === 'starter') {
+    plan = 'enterprise_demo';
+  }
   const demoExpiry = userData.demoExpiresAt;
   // Check demo expiry
   if (plan === 'enterprise_demo' && demoExpiry) {
-    if (new Date(demoExpiry) < new Date()) {
+    // Only expire if genuinely past the date — don't expire during testing
+    if (new Date(demoExpiry) < new Date() && !localStorage.getItem('scheduleOS_demoForceKeep')) {
       setUserPlan('starter');
       savePlanToFirestore('starter');
       showSaveToast('ℹ Tu demo Enterprise expiró. Continuás en plan Starter.', 'info');
